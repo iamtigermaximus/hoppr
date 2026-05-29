@@ -5,31 +5,17 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { useFeed } from "@/hooks/useFeed";
 import { TimeFilters } from "@/components/feed/TimeFilters";
 import { FeedList } from "@/components/feed/FeedList";
-import type { TimeFilter } from "@/types/feed";
-import { SlidersHorizontal, Clock, NavigationArrow } from "@phosphor-icons/react";
+import type { FeedItem, TimeFilter } from "@/types/feed";
+import { Clock, NavigationArrow, Calendar, MapPin, Ticket } from "@phosphor-icons/react";
 
-const Header = styled.div`
-  padding: 16px 16px 0;
-  margin-bottom: 14px;
-`;
-
-const Title = styled.h1`
-  font-weight: 800; font-size: 24px; color: #fff;
-  letter-spacing: -0.5px; margin: 0 0 2px;
-`;
-
-const Subtitle = styled.div`
-  display: flex; align-items: center; gap: 12px;
-  color: #a3a3a3; font-size: 12px;
-`;
+const Header = styled.div`padding: 16px 16px 0; margin-bottom: 14px;`;
+const Title = styled.h1`font-weight: 800; font-size: 24px; color: #fff; letter-spacing: -0.5px; margin: 0 0 2px;`;
+const Subtitle = styled.div`display: flex; align-items: center; gap: 12px; color: #a3a3a3; font-size: 12px;`;
 
 const SortToggle = styled.div`
-  display: flex; gap: 4px;
-  background: #1a1a1a; border: 1px solid #262626;
-  border-radius: 10px; padding: 3px;
-  margin-bottom: 14px;
+  display: flex; gap: 4px; background: #1a1a1a; border: 1px solid #262626;
+  border-radius: 10px; padding: 3px; margin-bottom: 14px;
 `;
-
 const SortOption = styled.button<{ $active: boolean }>`
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 8px 12px; border-radius: 8px; border: none;
@@ -37,21 +23,35 @@ const SortOption = styled.button<{ $active: boolean }>`
   background: ${({ $active }) => $active ? "#7c3aed" : "transparent"};
   color: ${({ $active }) => $active ? "#fff" : "#737373"};
   transition: all 0.15s;
-  &:hover { color: ${({ $active }) => $active ? "#fff" : "#a3a3a3"}; }
 `;
 
-const SectionLabel = styled.div`
+const TimeHeader = styled.div`
   display: flex; align-items: center; gap: 8px;
-  padding: 0 16px; margin-bottom: 8px;
-  color: #fff; font-weight: 700; font-size: 13px;
+  padding: 0 16px; margin: 16px 0 10px;
+  color: #fff; font-weight: 700; font-size: 14px;
 `;
 
-const Divider = styled.div`
-  height: 1px; background: #262626;
-  margin: 16px 16px;
+const TypeChip = styled.div<{ $color: string }>`
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 0 16px; margin-bottom: 6px;
+  font-size: 11px; font-weight: 600; color: ${({ $color }) => $color};
 `;
+
+const typeGroups = [
+  { key: "event" as const, label: "Events", icon: Calendar, color: "#3b82f6", action: "Join" },
+  { key: "promotion" as const, label: "Promotions", icon: MapPin, color: "#10b981", action: "View" },
+  { key: "pass" as const, label: "VIP Passes", icon: Ticket, color: "#f59e0b", action: "Buy" },
+];
 
 type SortMode = "upcoming" | "nearest";
+
+function groupByType(items: FeedItem[]) {
+  return {
+    event: items.filter(i => i.type === "event"),
+    promotion: items.filter(i => i.type === "promotion"),
+    pass: items.filter(i => i.type === "pass"),
+  };
+}
 
 export default function DiscoverPage() {
   const { lat, lng } = useGeolocation();
@@ -59,38 +59,49 @@ export default function DiscoverPage() {
   const [sort, setSort] = useState<SortMode>("upcoming");
   const { data: items = [], isLoading } = useFeed({ lat, lng, time });
 
-  // Sort items
   const sorted = useMemo(() => {
     const copy = [...items];
-    if (sort === "nearest") {
-      copy.sort((a: any, b: any) => (a.distance || 99) - (b.distance || 99));
-    }
+    if (sort === "nearest") copy.sort((a: any, b: any) => (a.distance || 99) - (b.distance || 99));
     return copy;
   }, [items, sort]);
 
-  // Group by time period for visual sections
   const now = new Date();
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
   const tomorrowEnd = new Date(todayEnd.getTime() + 86400000);
 
-  const happeningNow = sorted.filter((i: any) => {
+  const timeFilter = (i: any) => {
     const t = i.type === "event" ? new Date(i.startTime) : new Date(i.validFrom || i.validUntil);
-    return t <= now;
-  });
-  const today = sorted.filter((i: any) => {
-    const t = i.type === "event" ? new Date(i.startTime) : new Date(i.validFrom || i.validUntil);
-    return t > now && t <= todayEnd;
-  });
-  const tomorrow = sorted.filter((i: any) => {
-    const t = i.type === "event" ? new Date(i.startTime) : new Date(i.validFrom || i.validUntil);
-    return t > todayEnd && t <= tomorrowEnd;
-  });
-  const later = sorted.filter((i: any) => {
-    const t = i.type === "event" ? new Date(i.startTime) : new Date(i.validFrom || i.validUntil);
-    return t > tomorrowEnd;
-  });
+    return { t, isNow: t <= now, isToday: t > now && t <= todayEnd, isTomorrow: t > todayEnd && t <= tomorrowEnd, isLater: t > tomorrowEnd };
+  };
+
+  const happeningNow = sorted.filter(i => timeFilter(i).isNow);
+  const today = sorted.filter(i => timeFilter(i).isToday);
+  const tomorrow = sorted.filter(i => timeFilter(i).isTomorrow);
+  const later = sorted.filter(i => timeFilter(i).isLater);
+
+  const totalEvents = sorted.filter(i => i.type === "event").length;
+  const totalPromos = sorted.filter(i => i.type === "promotion").length;
+  const totalPasses = sorted.filter(i => i.type === "pass").length;
 
   const hasSections = time === "today";
+
+  const renderTypeGroups = (sectionItems: FeedItem[]) => {
+    const groups = groupByType(sectionItems);
+    return typeGroups.map(tg => {
+      const groupItems = groups[tg.key];
+      if (!groupItems.length) return null;
+      const GroupIcon = tg.icon;
+      return (
+        <div key={tg.key}>
+          <TypeChip $color={tg.color}>
+            <GroupIcon size={12} weight="fill" />
+            {tg.label} · {groupItems.length}
+          </TypeChip>
+          <FeedList items={groupItems} isLoading={false} />
+        </div>
+      );
+    });
+  };
 
   return (
     <>
@@ -99,7 +110,11 @@ export default function DiscoverPage() {
         <Subtitle>
           <span>📍 Nearby</span>
           <span>·</span>
-          <span>{items.length} things happening</span>
+          <span>
+            {totalEvents > 0 && `${totalEvents} events`}
+            {totalPromos > 0 && ` · ${totalPromos} promos`}
+            {totalPasses > 0 && ` · ${totalPasses} passes`}
+          </span>
         </Subtitle>
       </Header>
 
@@ -120,32 +135,29 @@ export default function DiscoverPage() {
         <>
           {happeningNow.length > 0 && (
             <>
-              <SectionLabel>
+              <TimeHeader>
                 <span style={{ width: "8px", height: "8px", background: "#10b981", borderRadius: "50%" }} />
                 Happening Now
-              </SectionLabel>
-              <FeedList items={happeningNow} isLoading={false} />
-              {(today.length > 0 || tomorrow.length > 0) && <Divider />}
+              </TimeHeader>
+              {renderTypeGroups(happeningNow)}
             </>
           )}
           {today.length > 0 && (
             <>
-              <SectionLabel>Today</SectionLabel>
-              <FeedList items={today} isLoading={false} />
-              {tomorrow.length > 0 && <Divider />}
+              <TimeHeader>Today</TimeHeader>
+              {renderTypeGroups(today)}
             </>
           )}
           {tomorrow.length > 0 && (
             <>
-              <SectionLabel>Tomorrow</SectionLabel>
-              <FeedList items={tomorrow} isLoading={false} />
-              {later.length > 0 && <Divider />}
+              <TimeHeader>Tomorrow</TimeHeader>
+              {renderTypeGroups(tomorrow)}
             </>
           )}
           {later.length > 0 && (
             <>
-              <SectionLabel>Later</SectionLabel>
-              <FeedList items={later} isLoading={false} />
+              <TimeHeader>Later</TimeHeader>
+              {renderTypeGroups(later)}
             </>
           )}
           {sorted.length === 0 && <FeedList items={[]} isLoading={false} />}
