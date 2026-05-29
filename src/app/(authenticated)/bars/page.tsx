@@ -178,8 +178,12 @@ export default function BarsPage() {
         )}
         {displayed.map((venue: any) => (
           <BarCard key={venue.id} onClick={() => router.push(`/venues/${venue.id}`)}>
-            <div style={{ width: "52px", height: "52px", background: "#262626", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <House size={26} color="#a3a3a3" />
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", overflow: "hidden", flexShrink: 0, background: "#262626", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {venue.imageUrl ? (
+                <img src={venue.imageUrl} alt={venue.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <House size={26} color="#a3a3a3" />
+              )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

@@ -107,6 +107,13 @@ export function VenueDetail() {
         ← Back to bars
       </button>
 
+      {/* Hero Image */}
+      {venue.imageUrl && (
+        <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: "#1a1a1a" }}>
+          <img src={venue.imageUrl} alt={venue.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ marginBottom: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
