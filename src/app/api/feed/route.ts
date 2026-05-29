@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       endTime: e.endTime?.toISOString(),
       attendeeCount: e.participants.length,
       distance,
-      image: e.imageUrl,
+      image: e.imageUrl || undefined,
       attendees: e.participants.map((p) => ({
         id: p.user.id,
         name: p.user.username,
