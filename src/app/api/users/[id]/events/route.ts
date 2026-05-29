@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const events = await prisma.event.findMany({
     where: {
       OR: [
-        { creatorId: params.id },
-        { participants: { some: { userId: params.id } } },
+        { creatorId: id },
+        { participants: { some: { userId: id } } },
       ],
     },
     include: {

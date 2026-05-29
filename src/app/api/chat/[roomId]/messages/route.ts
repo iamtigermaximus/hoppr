@@ -3,12 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(_req: Request, { params }: { params: { roomId: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ roomId: string }> }) {
+  const { roomId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const messages = await prisma.chatMessage.findMany({
-    where: { roomId: params.roomId },
+    where: { roomId },
     include: {
       author: { select: { id: true, username: true, avatarUrl: true } },
     },

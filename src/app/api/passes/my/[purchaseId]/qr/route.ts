@@ -4,12 +4,13 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
-export async function GET(_req: Request, { params }: { params: { purchaseId: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ purchaseId: string }> }) {
+  const { purchaseId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = (session.user as any).id;
 
-  const purchase = await prisma.passPurchase.findUnique({ where: { id: params.purchaseId } });
+  const purchase = await prisma.passPurchase.findUnique({ where: { id: purchaseId } });
   if (!purchase || purchase.userId !== userId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

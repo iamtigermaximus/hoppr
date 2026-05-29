@@ -5,12 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { mockPasses, mockVenues } from "@/lib/marketing-api";
 import crypto from "crypto";
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = (session.user as any).id;
 
-  const pass = mockPasses.find(p => p.id === params.id);
+  const pass = mockPasses.find(p => p.id === id);
   if (!pass) return NextResponse.json({ error: "Pass not found" }, { status: 404 });
 
   const venue = mockVenues.find(v => v.id === pass.venueId);
