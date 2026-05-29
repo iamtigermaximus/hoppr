@@ -1,6 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Calendar } from "@phosphor-icons/react";
 import { useEvent, useJoinEvent, useLeaveEvent } from "@/hooks/useEvents";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -40,11 +41,18 @@ export function EventDetail({ id }: { id: string }) {
         ← Back
       </button>
 
-      {event.imageUrl && (
-        <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: "#1a1a1a" }}>
+      <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: event.imageUrl ? "#1a1a1a" : "linear-gradient(135deg, #1a0533, #2d1060, #0a0a0a)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {event.imageUrl ? (
           <img src={event.imageUrl} alt={event.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        </div>
-      )}
+        ) : (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: "64px", height: "64px", background: "rgba(124,58,237,0.2)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+              <Calendar size={32} color="#a78bfa" weight="fill" />
+            </div>
+            <div style={{ color: "#a78bfa", fontSize: "13px", fontWeight: 600 }}>{event.venueName}</div>
+          </div>
+        )}
+      </div>
 
       <h1 style={{ fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "8px" }}>{event.title}</h1>
 
