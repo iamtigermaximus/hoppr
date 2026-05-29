@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   description: "Finland's drinking establishments, unified.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 

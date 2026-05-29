@@ -100,8 +100,13 @@ export function TrendingCarousel() {
   const item = trending[current];
   const isPromo = item.type === "promo";
 
-  const accentColors = ["#1a0533", "#0a1a1a", "#1a0a0a", "#0a0a2e"];
-  const bgColor = accentColors[current] || "#1a0533";
+  const gradients = [
+    "linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #1a0533 100%)",
+    "linear-gradient(135deg, #065f46 0%, #10b981 50%, #022c22 100%)",
+    "linear-gradient(135deg, #991b1b 0%, #ef4444 50%, #1a0505 100%)",
+    "linear-gradient(135deg, #1e3a5f 0%, #3b82f6 50%, #0a0a2e 100%)",
+  ];
+  const currentGradient = gradients[current] || gradients[0];
 
   return (
     <div style={{ marginBottom: "18px", padding: "0 16px" }}>
@@ -116,7 +121,7 @@ export function TrendingCarousel() {
               else window.location.href = `/venues/${t.id}`;
             }}
             style={{
-              background: `linear-gradient(135deg, ${bgColor}, ${bgColor}44, #0a0a0a)`,
+              background: currentGradient,
             }}
           >
             <div style={{ position: "absolute", top: "20px", left: "28px", display: "flex", gap: "6px" }}>
