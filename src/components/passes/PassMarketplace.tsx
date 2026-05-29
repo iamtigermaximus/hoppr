@@ -2,14 +2,16 @@
 import { usePasses, usePurchasePass } from "@/hooks/usePasses";
 import { PassCard } from "./PassCard";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 export function PassMarketplace() {
   const { data: passes = [], isLoading } = usePasses();
   const { mutate: purchase } = usePurchasePass();
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleBuy = (passId: string) => {
-    purchase(passId, { onSuccess: () => router.push("/passes/my") });
+    purchase(passId, { onSuccess: () => { toast("Pass purchased!", "success"); router.push("/passes/my"); } });
   };
 
   if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;

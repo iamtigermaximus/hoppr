@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/contexts/ThemeContext";
 import { SocketProvider } from "@/components/contexts/SocketContext";
 import { AppHeader } from "@/components/app/AppHeader";
 import { BottomNav } from "@/components/ui/BottomNav";
+import { ToastProvider } from "@/components/ui/Toast";
 import styled from "styled-components";
 
 const Main = styled.main`
@@ -29,9 +30,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <SocketProvider>
-        <AppHeader />
-        <Main>{children}</Main>
-        <BottomNav />
+        <ToastProvider>
+          <AppHeader />
+          <Main>{children}</Main>
+          <BottomNav />
+        </ToastProvider>
       </SocketProvider>
     </ThemeProvider>
   );

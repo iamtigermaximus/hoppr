@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import styled from "styled-components";
 import { mockPasses, mockVenues } from "@/lib/marketing-api";
 import { Badge } from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { MapPin, ArrowLeft, NavigationArrow, Ticket, CheckCircle, Clock, CurrencyCircleDollar } from "@phosphor-icons/react";
@@ -31,6 +32,7 @@ export default function PassDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { lat, lng } = useGeolocation();
+  const { toast } = useToast();
   const { mutate: purchase, isPending } = usePurchasePass();
   const id = params.id as string;
 
@@ -47,7 +49,7 @@ export default function PassDetailPage() {
     : 0;
 
   const handleBuy = () => {
-    purchase(id, { onSuccess: () => router.push("/passes/my") });
+    purchase(id, { onSuccess: () => { toast("Pass purchased!", "success"); router.push("/passes/my"); } });
   };
 
   return (

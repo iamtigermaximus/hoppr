@@ -6,6 +6,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { useCreateEvent } from "@/hooks/useEvents";
+import { useToast } from "@/components/ui/Toast";
 import { useVenues } from "@/hooks/useVenues";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { formatDistance } from "@/lib/utils";
@@ -62,6 +63,7 @@ const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "12px", fo
 
 export function EventForm() {
   const router = useRouter();
+  const { toast } = useToast();
   const { mutate: createEvent, isPending } = useCreateEvent();
   const { lat, lng } = useGeolocation();
   const { data: venues = [] } = useVenues();
@@ -133,7 +135,7 @@ export function EventForm() {
       },
       {
         onSuccess: (data: any) => {
-          if (data.id) router.push(`/events/${data.id}`);
+          if (data.id) { toast("Event created!", "success"); router.push(`/events/${data.id}`); }
         },
         onError: (err: any) => setError(err?.message || err?.error || "Failed to create event"),
       }

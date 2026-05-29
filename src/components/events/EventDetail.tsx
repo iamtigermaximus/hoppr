@@ -6,12 +6,14 @@ import { useEvent, useJoinEvent, useLeaveEvent } from "@/hooks/useEvents";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { AvatarGroup } from "@/components/ui/AvatarGroup";
+import { useToast } from "@/components/ui/Toast";
 import { formatEventTime } from "@/lib/utils";
 
 export function EventDetail({ id }: { id: string }) {
   const { data: event, isLoading } = useEvent(id);
   const { data: session } = useSession();
   const router = useRouter();
+  const { toast, confirm: confirmModal } = useToast();
   const joinMutation = useJoinEvent(id);
   const leaveMutation = useLeaveEvent(id);
 
@@ -92,7 +94,7 @@ export function EventDetail({ id }: { id: string }) {
 
       <div style={sectionStyle}>
         {!isJoined && !isFull && (
-          <Button size="lg" fullWidth onClick={() => joinMutation.mutate()} disabled={joinMutation.isPending}>
+          <Button size="lg" fullWidth onClick={() => joinMutation.mutate(undefined, { onSuccess: () => toast("Joined event!", "success") })} disabled={joinMutation.isPending}>
             {joinMutation.isPending ? "Joining..." : "Join Event"}
           </Button>
         )}
@@ -100,7 +102,7 @@ export function EventDetail({ id }: { id: string }) {
           <Button size="lg" fullWidth disabled>Event is Full</Button>
         )}
         {isJoined && !isCreator && (
-          <Button variant="secondary" size="lg" fullWidth onClick={() => leaveMutation.mutate()} disabled={leaveMutation.isPending}>
+          <Button variant="secondary" size="lg" fullWidth onClick={() => leaveMutation.mutate(undefined, { onSuccess: () => toast("Left event", "info") })} disabled={leaveMutation.isPending}>
             Leave Event
           </Button>
         )}
@@ -115,9 +117,11 @@ export function EventDetail({ id }: { id: string }) {
             <Button size="lg" variant="secondary" fullWidth style={{ marginTop: "8px" }} onClick={() => router.push(`/events/${id}/edit`)}>
               Edit Event
             </Button>
-            <Button size="lg" variant="ghost" fullWidth style={{ marginTop: "8px", color: "#ef4444" }} onClick={() => {
-              if (confirm("Delete this event? This cannot be undone.")) {
-                fetch(`/api/events/${id}`, { method: "DELETE" }).then(() => router.push("/home"));
+            <Button size="lg" variant="ghost" fullWidth style={{ marginTop: "8px", color: "#ef4444" }} onClick={async () => {
+              const confirmed = await confirmModal("Delete this event? This cannot be undone.");
+              if (confirmed) {
+                fetch(`/api/events/${id}`, { method: "DELETE" })
+                  .then(() => { toast("Event deleted", "info"); router.push("/home"); });
               }
             }}>
               Delete Event
