@@ -59,8 +59,10 @@ const BarBody = styled.div`
 const List = styled.div`
   display: flex; flex-direction: column; gap: 10px;
   @media (min-width: 768px) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: grid; grid-template-columns: 1fr 1fr;
+  }
+  @media (min-width: 1200px) {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 `;
 

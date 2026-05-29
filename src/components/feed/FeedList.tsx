@@ -41,8 +41,17 @@ const EmptyState = styled.div`
 `;
 
 const List = styled.div`
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 0 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 0;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (min-width: 1200px) {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 `;
 
 export function FeedList({ items, isLoading }: { items: FeedItem[]; isLoading: boolean }) {

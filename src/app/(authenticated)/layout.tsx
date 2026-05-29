@@ -7,22 +7,27 @@ import { ToastProvider } from "@/components/ui/Toast";
 import styled from "styled-components";
 
 const Main = styled.main`
-  padding-bottom: 80px;
+  padding: 0 16px 80px;
   min-height: 100dvh;
-  max-width: 600px;
+  max-width: 100%;
   margin: 0 auto;
 
   @media (min-width: 768px) {
     max-width: 960px;
-    padding-bottom: 20px;
-    padding-left: 96px;
-    padding-right: 16px;
+    padding: 0 24px 20px;
+    padding-left: 120px;
   }
 
   @media (min-width: 1024px) {
-    max-width: 1024px;
-    padding-left: 96px;
-    padding-right: 24px;
+    max-width: 1200px;
+    padding-left: 120px;
+    padding-right: 32px;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 1400px;
+    padding-left: 120px;
+    padding-right: 40px;
   }
 `;
 

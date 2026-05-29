@@ -14,6 +14,9 @@ const Slider = styled.div`
     grid-template-columns: repeat(4, 1fr);
     overflow-x: visible;
   }
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
 `;
 
 const BarCard = styled.div`

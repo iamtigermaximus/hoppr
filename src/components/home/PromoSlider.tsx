@@ -15,9 +15,10 @@ const Slider = styled.div`
   @media (min-width: 768px) {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    overflow-x: visible;
-    scroll-snap-type: none;
-    padding: 0;
+    overflow-x: visible; scroll-snap-type: none; padding: 0;
+  }
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
   }
 `;
 
