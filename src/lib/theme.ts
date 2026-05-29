@@ -22,7 +22,7 @@ export const lightTheme: AppTheme = {
     bg: "#f8f9fa", surface: "#ffffff", card: "#ffffff", cardHover: "#f1f3f5",
     cardBorder: "#dee2e6", primary: "#6d28d9", primaryHover: "#5b21b6",
     primaryLight: "#7c3aed", primarySubtle: "#8b5cf6",
-    textPrimary: "#111111", textSecondary: "#495057", textMuted: "#6c757d",
+    textPrimary: "#0d0d0d", textSecondary: "#374151", textMuted: "#4b5563",
     event: "#2563eb", promo: "#059669", pass: "#d97706", error: "#dc2626", online: "#059669",
     headerBg: "#ffffff", headerBorder: "#dee2e6",
     inputBg: "#f1f3f5", inputBorder: "#ced4da",

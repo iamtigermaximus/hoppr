@@ -26,8 +26,8 @@ const VENUE_TYPES = [
 const VenueList = styled.div`
   display: flex; flex-direction: column; gap: 6px;
   max-height: 260px; overflow-y: auto;
-  background: #0a0a0a;
-  border: 1px solid #262626;
+  background: var(--color-bg, #0a0a0a);
+  border: 1px solid var(--color-card-border, #262626);
   border-radius: 12px;
   padding: 8px;
 `;
@@ -40,7 +40,7 @@ const VenueOption = styled.div<{ $selected: boolean }>`
   transition: all 0.15s;
   background: ${({ $selected }) => $selected ? "#7c3aed22" : "transparent"};
   border: 1px solid ${({ $selected }) => $selected ? "#7c3aed" : "transparent"};
-  &:hover { background: #1a1a1a; }
+  &:hover { background: var(--color-card, #1a1a1a); }
 `;
 
 const Filters = styled.div`
@@ -59,7 +59,7 @@ const RouteLine = styled.div`
   margin-top: 4px;
 `;
 
-const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "12px", fontWeight: 600 };
+const labelStyle: React.CSSProperties = { color: "var(--color-text-secondary, #a3a3a3)", fontSize: "12px", fontWeight: 600 };
 
 export function EventForm() {
   const router = useRouter();

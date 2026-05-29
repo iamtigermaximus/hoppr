@@ -9,11 +9,11 @@ import type { FeedItem, TimeFilter } from "@/types/feed";
 import { Clock, NavigationArrow, Calendar, MapPin, Ticket } from "@phosphor-icons/react";
 
 const Header = styled.div`padding: 16px 16px 0; margin-bottom: 14px;`;
-const Title = styled.h1`font-weight: 800; font-size: 24px; color: #fff; letter-spacing: -0.5px; margin: 0 0 2px;`;
-const Subtitle = styled.div`display: flex; align-items: center; gap: 12px; color: #a3a3a3; font-size: 12px;`;
+const Title = styled.h1`font-weight: 800; font-size: 24px; color: var(--color-text-primary, #fff); letter-spacing: -0.5px; margin: 0 0 2px;`;
+const Subtitle = styled.div`display: flex; align-items: center; gap: 12px; color: var(--color-text-secondary, #a3a3a3); font-size: 12px;`;
 
 const SortToggle = styled.div`
-  display: flex; gap: 4px; background: #1a1a1a; border: 1px solid #262626;
+  display: flex; gap: 4px; background: var(--color-card, #1a1a1a); border: 1px solid var(--color-card-border, #262626);
   border-radius: 10px; padding: 3px; margin-bottom: 14px;
 `;
 const SortOption = styled.button<{ $active: boolean }>`
@@ -28,7 +28,7 @@ const SortOption = styled.button<{ $active: boolean }>`
 const TimeHeader = styled.div`
   display: flex; align-items: center; gap: 8px;
   padding: 0 16px; margin: 16px 0 10px;
-  color: #fff; font-weight: 700; font-size: 14px;
+  color: var(--color-text-primary, #fff); font-weight: 700; font-size: 14px;
 `;
 
 const TypeChip = styled.div<{ $color: string }>`
