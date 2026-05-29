@@ -2,7 +2,23 @@
 import styled from "styled-components";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, MagnifyingGlass, Plus, ChatCircle, User } from "@phosphor-icons/react";
+import { House, MagnifyingGlass, Plus, ChatCircle, User, BeerBottle } from "@phosphor-icons/react";
+
+const SidebarLogo = styled(Link)`
+  display: none;
+  @media (min-width: 768px) {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-decoration: none; margin-bottom: 8px;
+    position: absolute; top: 20px;
+  }
+`;
+
+const LogoIcon = styled.div`
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+`;
 
 const Nav = styled.nav`
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
@@ -67,6 +83,11 @@ export function BottomNav() {
 
   return (
     <Nav>
+      <SidebarLogo href="/">
+        <LogoIcon>
+          <BeerBottle size={18} color="#fff" weight="fill" />
+        </LogoIcon>
+      </SidebarLogo>
       {tabs.map(({ href, label, icon: Icon, isFab }) => {
         const active = pathname === href || (href !== "/" && pathname.startsWith(href));
         if (isFab) {
