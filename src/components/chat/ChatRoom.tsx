@@ -14,7 +14,7 @@ export function ChatRoom() {
   const eventId = params.id as string;
   const { data: event } = useEvent(eventId);
   const roomId = event?.chatRoom?.id || null;
-  const { joinEventChat, leaveEventChat } = useSocket();
+  const { joinEventChat, leaveEventChat, isConnected } = useSocket();
   const { messages, sendMessage } = useChatMessages(roomId);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +33,15 @@ export function ChatRoom() {
         </button>
         <div>
           <div style={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>{event?.title || "Chat"}</div>
-          <div style={{ color: "#737373", fontSize: "11px" }}>{event?.participants?.length || 0} participants</div>
+          <div style={{ color: "#737373", fontSize: "11px" }}>
+            {event?.participants?.length || 0} participants
+            {isConnected && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#10b981", fontSize: "10px", fontWeight: 600, marginLeft: "8px" }}>
+                <span style={{ width: "6px", height: "6px", background: "#10b981", borderRadius: "50%" }} />
+                LIVE
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

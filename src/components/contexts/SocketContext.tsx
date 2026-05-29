@@ -27,15 +27,29 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!session?.user) return;
-    // Need a JWT — for MVP, we pass the session token, but in production you'd generate a proper JWT
-    const token = (session.user as any).id || ""; // Fallback — in production, GET /api/auth/token
-    const socket = getSocket(token);
-    socketRef.current = socket;
 
-    socket.on("connect", () => setIsConnected(true));
-    socket.on("disconnect", () => setIsConnected(false));
+    let socket: Socket | null = null;
 
-    return () => { disconnectSocket(); setIsConnected(false); };
+    async function connect() {
+      try {
+        const res = await fetch("/api/auth/token");
+        if (!res.ok) return;
+        const { token } = await res.json();
+        socket = getSocket(token);
+        socketRef.current = socket;
+        socket.on("connect", () => setIsConnected(true));
+        socket.on("disconnect", () => setIsConnected(false));
+      } catch (e) {
+        console.error("Socket connection failed:", e);
+      }
+    }
+
+    connect();
+
+    return () => {
+      if (socket) socket.disconnect();
+      setIsConnected(false);
+    };
   }, [session]);
 
   const joinEventChat = (eventId: string) => {

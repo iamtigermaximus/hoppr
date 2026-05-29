@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { Bell, User, Gear, SignOut, BeerBottle } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useMyProfile } from "@/hooks/useProfile";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const Header = styled.header`
   display: flex; align-items: center; justify-content: space-between;
@@ -57,6 +58,8 @@ export function AppHeader() {
   const { data: session } = useSession();
   const user = session?.user;
   const { data: profile } = useMyProfile();
+  const { data: notifications = [] } = useNotifications();
+  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -80,7 +83,22 @@ export function AppHeader() {
       </Link>
       <Actions>
         <Link href="/notifications">
-          <Bell size={20} color="#737373" />
+          <div style={{ position: "relative" }}>
+            <Bell size={20} color="#737373" />
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute", top: "-6px", right: "-8px",
+                background: "#ef4444", color: "#fff",
+                fontSize: "10px", fontWeight: 700,
+                minWidth: "18px", height: "18px",
+                borderRadius: "9px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "0 4px",
+              }}>
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </div>
         </Link>
         <div ref={menuRef} style={{ position: "relative" }}>
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ cursor: "pointer", background: "none", border: "none", padding: 0 }}>
