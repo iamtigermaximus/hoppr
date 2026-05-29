@@ -42,6 +42,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing required fields: title, venueId, venueName, startTime" }, { status: 400 });
   }
 
+  const creatorId = (session.user as any).id;
+
   const event = await prisma.event.create({
     data: {
       title,
@@ -53,7 +55,11 @@ export async function POST(req: Request) {
       endTime: endTime ? new Date(endTime) : null,
       maxAttendees: maxAttendees || null,
       isPrivate: isPrivate || false,
-      creatorId: (session.user as any).id,
+      creatorId,
+      // Auto-join the creator as a participant
+      participants: {
+        create: { userId: creatorId },
+      },
     },
     include: {
       creator: { select: { id: true, username: true, avatarUrl: true } },
@@ -62,6 +68,9 @@ export async function POST(req: Request) {
       },
     },
   });
+
+  // Auto-create chat room
+  await prisma.chatRoom.create({ data: { eventId: event.id } });
 
   return NextResponse.json(event, { status: 201 });
 }
