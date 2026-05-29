@@ -5,7 +5,7 @@ import { Calendar } from "@phosphor-icons/react";
 import { useEvent, useJoinEvent, useLeaveEvent } from "@/hooks/useEvents";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { AvatarGroup } from "@/components/ui/AvatarGroup";
+import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import { formatEventTime } from "@/lib/utils";
 
@@ -78,15 +78,42 @@ export function EventDetail({ id }: { id: string }) {
 
       <div style={sectionStyle}>
         <h3 style={titleStyle}>
-          Attendees ({event.participants?.length || 0}
-          {event.maxAttendees ? ` / ${event.maxAttendees}` : ""})
+          {event.participants?.length || 0} Participant{(event.participants?.length || 0) !== 1 ? "s" : ""}
+          {event.maxAttendees ? ` / ${event.maxAttendees} max` : ""}
         </h3>
         {event.participants?.length > 0 ? (
-          <AvatarGroup
-            users={event.participants.map((p: any) => p.user)}
-            max={10}
-            size={40}
-          />
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {event.participants.map((p: any) => (
+              <div
+                key={p.user.id}
+                onClick={(e) => { e.stopPropagation(); router.push(`/profile/${p.user.id}`); }}
+                style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "10px 14px", background: "#1a1a1a", border: "1px solid #262626",
+                  borderRadius: "12px", cursor: "pointer",
+                  transition: "border-color 0.15s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#7c3aed44")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#262626")}
+              >
+                <Avatar src={p.user.avatarUrl || p.user.image} name={p.user.username || p.user.name} size={40} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>
+                      {p.user.username || p.user.name || "Anonymous"}
+                    </span>
+                    {p.user.id === event.creator?.id && (
+                      <span style={{ background: "rgba(124,58,237,0.15)", color: "#a78bfa", fontSize: "9px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px" }}>ORGANIZER</span>
+                    )}
+                  </div>
+                  <div style={{ color: "#737373", fontSize: "11px", marginTop: "1px" }}>
+                    Joined {new Date(p.joinedAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </div>
+                </div>
+                <span style={{ color: "#737373", fontSize: "10px" }}>View profile →</span>
+              </div>
+            ))}
+          </div>
         ) : (
           <p style={{ color: "#737373", fontSize: "13px" }}>No attendees yet. Be the first to join!</p>
         )}
