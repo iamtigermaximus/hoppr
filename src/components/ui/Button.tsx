@@ -10,7 +10,9 @@ interface ButtonProps {
   fullWidth?: boolean;
 }
 
-export const Button = styled.button<ButtonProps>`
+export const Button = styled.button.withConfig({
+  shouldForwardProp: (prop) => !["variant", "size", "fullWidth"].includes(prop),
+})<ButtonProps>`
   display: inline-flex;
   align-items: center;
   justify-content: center;

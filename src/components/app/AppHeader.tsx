@@ -13,7 +13,7 @@ const Header = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  /* padding: 8px 10px; */
   background: var(--color-header-bg, #0a0a0a);
   border-bottom: 1px solid var(--color-header-border, #262626);
   position: sticky;
