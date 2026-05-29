@@ -1,13 +1,23 @@
 "use client";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { useUserProfile, useUserEvents } from "@/hooks/useProfile";
 import { Avatar } from "@/components/ui/Avatar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Warning } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
 
 export function ProfileView({ id }: { id: string }) {
+  const { data: session } = useSession();
+  const userId = (session?.user as any)?.id as string | undefined;
   const { data: profile, isLoading } = useUserProfile(id);
   const { data: events = [] } = useUserEvents(id);
+
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
 
   if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
   if (!profile || profile.error) return <div style={{ padding: 16, color: "#ef4444" }}>User not found</div>;
@@ -24,6 +34,31 @@ export function ProfileView({ id }: { id: string }) {
         <p style={{ color: "#737373", fontSize: "11px", marginTop: "8px" }}>
           Joined {new Date(profile.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </p>
+
+        {id !== userId && (
+          <>
+            <Button variant="ghost" size="sm" fullWidth style={{ marginTop: "12px" }} onClick={() => setShowReport(true)}>
+              <Warning size={14} /> Report User
+            </Button>
+            <Modal open={showReport} onClose={() => setShowReport(false)}>
+              <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "16px", marginBottom: "12px" }}>Report User</h3>
+              <textarea
+                placeholder="Why are you reporting this user?"
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                style={{
+                  width: "100%", background: "#1a1a1a", border: "1px solid #262626", borderRadius: "10px",
+                  padding: "12px", color: "#fff", fontSize: "14px", resize: "vertical", minHeight: "80px",
+                  fontFamily: "inherit", outline: "none",
+                }}
+              />
+              <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                <Button variant="secondary" fullWidth onClick={() => setShowReport(false)}>Cancel</Button>
+                <Button fullWidth onClick={() => { setShowReport(false); setReportReason(""); }}>Submit Report</Button>
+              </div>
+            </Modal>
+          </>
+        )}
       </div>
 
       {created.length > 0 && (

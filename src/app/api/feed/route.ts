@@ -88,5 +88,14 @@ export async function GET(req: Request) {
       return aTime - bTime;
     });
 
-  return NextResponse.json(allItems);
+  // Boost promoted items with priority > 1 to the top while preserving relative order
+  const sorted = [...allItems].sort((a, b) => {
+    const aBoost = a.type === "promotion" && (a as any).priority > 1;
+    const bBoost = b.type === "promotion" && (b as any).priority > 1;
+    if (aBoost && !bBoost) return -1;
+    if (!aBoost && bBoost) return 1;
+    return 0;
+  });
+
+  return NextResponse.json(sorted);
 }

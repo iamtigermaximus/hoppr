@@ -7,7 +7,7 @@ export interface Venue {
 export interface Promotion {
   id: string; venueId: string; venueName: string; title: string;
   description: string; type: string; validFrom: string; validTo: string;
-  imageUrl?: string; accentColor?: string;
+  imageUrl?: string; accentColor?: string; priority?: number;
 }
 
 export interface Pass {
@@ -35,10 +35,10 @@ export const mockVenues: Venue[] = [
 ];
 
 export const mockPromotions: Promotion[] = [
-  { id: "p1", venueId: "v8", venueName: "The Old Pub", title: "Happy Hour — €4 Pints", description: "All draft beers €4 during happy hour", type: "HAPPY_HOUR", validFrom: "2026-05-29T16:00:00Z", validTo: "2026-05-29T19:00:00Z", accentColor: "#064e3b" },
+  { id: "p1", venueId: "v8", venueName: "The Old Pub", title: "Happy Hour — €4 Pints", description: "All draft beers €4 during happy hour", type: "HAPPY_HOUR", validFrom: "2026-05-29T16:00:00Z", validTo: "2026-05-29T19:00:00Z", accentColor: "#064e3b", priority: 2 },
   { id: "p2", venueId: "v3", venueName: "Club X", title: "Ladies Night — Free Entry", description: "Free entry for ladies until midnight", type: "LADIES_NIGHT", validFrom: "2026-05-29T22:00:00Z", validTo: "2026-05-30T04:00:00Z", accentColor: "#601010" },
   { id: "p3", venueId: "v2", venueName: "The Cocktail", title: "2-for-1 Cocktails", description: "Buy one get one free on all signature cocktails", type: "DRINK_SPECIAL", validFrom: "2026-05-30T20:00:00Z", validTo: "2026-05-30T23:00:00Z", accentColor: "#2d1060" },
-  { id: "p4", venueId: "v1", venueName: "Bar Loose", title: "Student Night — 20% Off", description: "Show your student ID for 20% off all drinks", type: "STUDENT_DISCOUNT", validFrom: "2026-05-29T18:00:00Z", validTo: "2026-05-30T02:00:00Z", accentColor: "#1a0533" },
+  { id: "p4", venueId: "v1", venueName: "Bar Loose", title: "Student Night — 20% Off", description: "Show your student ID for 20% off all drinks", type: "STUDENT_DISCOUNT", validFrom: "2026-05-29T18:00:00Z", validTo: "2026-05-30T02:00:00Z", accentColor: "#1a0533", priority: 1 },
   { id: "p5", venueId: "v7", venueName: "BrewDog Helsinki", title: "New Beer Tasting Flight", description: "Sample 4 new seasonal brews for €12", type: "DRINK_SPECIAL", validFrom: "2026-05-29T14:00:00Z", validTo: "2026-05-31T22:00:00Z", accentColor: "#0a1a2e" },
   { id: "p6", venueId: "v4", venueName: "Sports Bar 99", title: "Game Day Specials", description: "€5 pints during all live matches", type: "DRINK_SPECIAL", validFrom: "2026-05-29T16:00:00Z", validTo: "2026-05-29T23:00:00Z", accentColor: "#1a1a0a" },
   { id: "p7", venueId: "v9", venueName: "Apollo Live Club", title: "Live Music Thursdays", description: "Live band + free cover before 9 PM", type: "THEME_NIGHT", validFrom: "2026-06-01T20:00:00Z", validTo: "2026-06-02T02:00:00Z", accentColor: "#2d1060" },
