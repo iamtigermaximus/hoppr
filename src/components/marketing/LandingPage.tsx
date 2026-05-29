@@ -6,7 +6,7 @@ import Image from "next/image";
 import { MapPin, Users, Ticket, ArrowRight } from "@phosphor-icons/react";
 
 const Page = styled.div`
-  min-height: 100dvh; background: #0a0a0a;
+  min-height: 100dvh; background: var(--color-bg, #0a0a0a);
   display: flex; flex-direction: column; align-items: center;
   padding: 48px 24px 32px;
   text-align: center;

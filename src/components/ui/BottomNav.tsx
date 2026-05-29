@@ -51,7 +51,7 @@ const MenuItem = styled.button`
 
 const Nav = styled.nav`
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-  background: #0a0a0a; border-top: 1px solid #262626;
+  background: var(--color-header-bg, #0a0a0a); border-top: 1px solid var(--color-header-border, #262626);
   padding: 8px 20px env(safe-area-inset-bottom, 8px) 20px;
   display: flex; justify-content: space-around; align-items: center;
 

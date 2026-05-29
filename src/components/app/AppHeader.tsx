@@ -14,8 +14,8 @@ const Header = styled.header`
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  background: #0a0a0a;
-  border-bottom: 1px solid #262626;
+  background: var(--color-header-bg, #0a0a0a);
+  border-bottom: 1px solid var(--color-header-border, #262626);
   position: sticky;
   top: 0;
   z-index: 40;
