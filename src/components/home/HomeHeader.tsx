@@ -4,10 +4,12 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { Bell, User, Gear, SignOut } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/Avatar";
+import { useMyProfile } from "@/hooks/useProfile";
 
 export function HomeHeader() {
   const { data: session } = useSession();
   const user = session?.user;
+  const { data: profile } = useMyProfile();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const today = new Date();
@@ -36,7 +38,7 @@ export function HomeHeader() {
         </Link>
         <div ref={menuRef} style={{ position: "relative" }}>
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ cursor: "pointer", background: "none", border: "none", padding: 0 }}>
-            <Avatar src={user?.image} name={user?.name || undefined} size={34} />
+            <Avatar src={profile?.avatarUrl} name={profile?.username || user?.name || undefined} size={34} />
           </button>
           {menuOpen && (
             <div style={{
