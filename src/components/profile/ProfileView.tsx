@@ -29,7 +29,7 @@ export function ProfileView({ id }: { id: string }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const LIMIT = 3;
 
-  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
+  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
   if (!profile || profile.error) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>User not found</div>;
 
   const created = events.filter((e: any) => e.creatorId === id);
@@ -39,16 +39,16 @@ export function ProfileView({ id }: { id: string }) {
   return (
     <div style={{ padding: "24px 16px", maxWidth: "680px", margin: "0 auto" }}>
       {/* Back button */}
-      <button onClick={() => router.back()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#a3a3a3", fontSize: "13px", fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: "16px" }}>
+      <button onClick={() => router.back()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: "16px" }}>
         <ArrowLeft size={16} /> Back
       </button>
 
       {/* Avatar + Name */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "16px" }}>
         <Avatar src={profile.avatarUrl} name={profile.username} size={96} />
-        <h1 style={{ fontWeight: 800, fontSize: "24px", color: "#fff", marginTop: "12px" }}>{profile.username}</h1>
-        {profile.bio && <p style={{ color: "#a3a3a3", fontSize: "13px", marginTop: "4px", textAlign: "center", maxWidth: "400px" }}>{profile.bio}</p>}
-        <p style={{ color: "#737373", fontSize: "11px", marginTop: "6px" }}>
+        <h1 style={{ fontWeight: 800, fontSize: "24px", color: "var(--color-text-primary, #fff)", marginTop: "12px" }}>{profile.username}</h1>
+        {profile.bio && <p style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", marginTop: "4px", textAlign: "center", maxWidth: "400px" }}>{profile.bio}</p>}
+        <p style={{ color: "var(--color-text-muted, #737373)", fontSize: "11px", marginTop: "6px" }}>
           Joined {new Date(profile.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </p>
 
@@ -59,7 +59,7 @@ export function ProfileView({ id }: { id: string }) {
               <a href={`https://instagram.com/${profile.instagram.replace("@", "")}`} target="_blank" rel="noopener" style={{
                 display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px",
                 borderRadius: "8px", fontSize: "12px", fontWeight: 600, textDecoration: "none",
-                background: "linear-gradient(135deg, #e1306c, #c13584)", color: "#fff",
+                background: "linear-gradient(135deg, #e1306c, #c13584)", color: "var(--color-text-primary, #fff)",
               }}>
                 <InstagramLogo size={14} weight="fill" /> Instagram
               </a>
@@ -68,7 +68,7 @@ export function ProfileView({ id }: { id: string }) {
               <a href={`https://facebook.com/${profile.facebook}`} target="_blank" rel="noopener" style={{
                 display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px",
                 borderRadius: "8px", fontSize: "12px", fontWeight: 600, textDecoration: "none",
-                background: "#1877f2", color: "#fff",
+                background: "#1877f2", color: "var(--color-text-primary, #fff)",
               }}>
                 <FacebookLogo size={14} weight="fill" /> Facebook
               </a>
@@ -77,7 +77,7 @@ export function ProfileView({ id }: { id: string }) {
               <a href={`https://x.com/${profile.twitter.replace("@", "")}`} target="_blank" rel="noopener" style={{
                 display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px",
                 borderRadius: "8px", fontSize: "12px", fontWeight: 600, textDecoration: "none",
-                background: "#1da1f2", color: "#fff",
+                background: "#1da1f2", color: "var(--color-text-primary, #fff)",
               }}>
                 <TwitterLogo size={14} weight="fill" /> X
               </a>
@@ -93,14 +93,14 @@ export function ProfileView({ id }: { id: string }) {
             <Warning size={14} /> Report
           </Button>
           <Modal open={showReport} onClose={() => setShowReport(false)}>
-            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "16px", marginBottom: "12px" }}>Report User</h3>
+            <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "16px", marginBottom: "12px" }}>Report User</h3>
             <textarea
               placeholder="Why are you reporting this user?"
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
               style={{
-                width: "100%", background: "#1a1a1a", border: "1px solid #262626", borderRadius: "10px",
-                padding: "12px", color: "#fff", fontSize: "14px", resize: "vertical", minHeight: "80px",
+                width: "100%", background: "var(--color-card, #1a1a1a)", border: "1px solid var(--color-card-border, #262626)", borderRadius: "10px",
+                padding: "12px", color: "var(--color-text-primary, #fff)", fontSize: "14px", resize: "vertical", minHeight: "80px",
                 fontFamily: "inherit", outline: "none",
               }}
             />
@@ -114,17 +114,17 @@ export function ProfileView({ id }: { id: string }) {
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "20px" }}>
-        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#7c3aed", fontWeight: 700, fontSize: "22px" }}>{created.length}</div>
-          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Created</div>
+          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Created</div>
         </div>
-        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#3b82f6", fontWeight: 700, fontSize: "22px" }}>{joined.length}</div>
-          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Joined</div>
+          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Joined</div>
         </div>
-        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#f59e0b", fontWeight: 700, fontSize: "22px" }}>{history?.passes?.length || 0}</div>
-          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Passes</div>
+          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Passes</div>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export function ProfileView({ id }: { id: string }) {
         <div style={{ marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
             <Heart size={14} color="#7c3aed" />
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>Interests</span>
+            <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>Interests</span>
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             {profile.interests.map((i: string) => (
@@ -148,7 +148,7 @@ export function ProfileView({ id }: { id: string }) {
         <div style={{ marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
             <Globe size={14} color="#7c3aed" />
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>Languages</span>
+            <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>Languages</span>
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             {profile.languages.map((l: string) => (
@@ -163,11 +163,11 @@ export function ProfileView({ id }: { id: string }) {
         <div style={{ marginBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
             <Camera size={14} color="#7c3aed" />
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>Photos</span>
+            <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>Photos</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "6px" }}>
             {profile.gallery.map((url: string, i: number) => (
-              <div key={i} style={{ aspectRatio: "1", borderRadius: "10px", overflow: "hidden", background: "#1a1a1a", cursor: "pointer" }} onClick={() => window.open(url, "_blank")}>
+              <div key={i} style={{ aspectRatio: "1", borderRadius: "10px", overflow: "hidden", background: "var(--color-card, #1a1a1a)", cursor: "pointer" }} onClick={() => window.open(url, "_blank")}>
                 <img src={url} alt={`Gallery ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
             ))}
@@ -183,13 +183,13 @@ export function ProfileView({ id }: { id: string }) {
         const hasMore = created.length > LIMIT;
         return (
           <div style={{ marginBottom: "20px" }}>
-            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Created ({created.length})</h3>
+            <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Created ({created.length})</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {visible.map((event: any) => (
                 <Card key={event.id} $accent="#3b82f644" onClick={() => window.location.href = `/events/${event.id}`}>
                   <Badge $type="event">EVENT</Badge>
-                  <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
-                  <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
+                  <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
+                  <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
                 </Card>
               ))}
             </div>
@@ -211,13 +211,13 @@ export function ProfileView({ id }: { id: string }) {
         const hasMore = joined.length > LIMIT;
         return (
           <div style={{ marginBottom: "20px" }}>
-            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Joined ({joined.length})</h3>
+            <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Joined ({joined.length})</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {visible.map((event: any) => (
                 <Card key={event.id} onClick={() => window.location.href = `/events/${event.id}`}>
                   <Badge $type="event">EVENT</Badge>
-                  <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
-                  <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
+                  <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
+                  <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
                 </Card>
               ))}
             </div>
@@ -232,8 +232,8 @@ export function ProfileView({ id }: { id: string }) {
       })()}
 
       {!created.length && !joined.length && (
-        <div style={{ textAlign: "center", padding: "24px", color: "#737373", fontSize: "13px" }}>
-          <Calendar size={32} color="#737373" style={{ marginBottom: "8px" }} />
+        <div style={{ textAlign: "center", padding: "24px", color: "var(--color-text-muted, #737373)", fontSize: "13px" }}>
+          <Calendar size={32} color="var(--color-text-muted, #737373)" style={{ marginBottom: "8px" }} />
           <p>No events yet.</p>
         </div>
       )}

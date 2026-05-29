@@ -30,7 +30,7 @@ const priceLabels: Record<string, string> = {
 
 const InfoRow = styled.div`
   display: flex; align-items: center; gap: 8px;
-  color: #a3a3a3; font-size: 13px;
+  color: var(--color-text-secondary, #a3a3a3); font-size: 13px;
   padding: 6px 0;
 `;
 
@@ -50,7 +50,7 @@ const HourRow = styled.div<{ $today?: boolean }>`
   display: flex; justify-content: space-between;
   padding: 4px 0;
   font-size: 12px;
-  color: ${({ $today }) => $today ? "#fff" : "#a3a3a3"};
+  color: ${({ $today }) => $today ? "var(--color-text-primary, #fff)" : "var(--color-text-secondary, #a3a3a3)"};
   font-weight: ${({ $today }) => $today ? 600 : 400};
 `;
 
@@ -64,13 +64,13 @@ const AmenityBadge = styled.span`
 `;
 
 const Divider = styled.div`
-  height: 1px; background: #262626;
+  height: 1px; background: var(--color-card-border, #262626);
   margin: 20px 0;
 `;
 
 const SectionCard = styled.div`
-  background: #1a1a1a;
-  border: 1px solid #262626;
+  background: var(--color-card, #1a1a1a);
+  border: 1px solid var(--color-card-border, #262626);
   border-radius: 14px;
   padding: 16px;
   margin-bottom: 16px;
@@ -85,7 +85,7 @@ export function VenueDetail() {
   const { data: events = [] } = useEvents();
   const venueEvents = events.filter((e: any) => e.venueId === id);
 
-  if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
+  if (isLoading) return <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
   if (!venue || venue.error) return <div style={{ padding: 16, color: "#ef4444" }}>Venue not found</div>;
 
   const distance = lat && lng
@@ -100,7 +100,7 @@ export function VenueDetail() {
       {/* Back button */}
       <button onClick={() => router.back()} style={{
         display: "inline-flex", alignItems: "center", gap: "6px",
-        color: "#a3a3a3", fontSize: "13px", fontWeight: 500,
+        color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", fontWeight: 500,
         background: "none", border: "none", cursor: "pointer", padding: 0,
         marginBottom: "12px",
       }}>
@@ -109,7 +109,7 @@ export function VenueDetail() {
 
       {/* Hero Image */}
       {venue.imageUrl && (
-        <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: "#1a1a1a" }}>
+        <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: "var(--color-card, #1a1a1a)" }}>
           <img src={venue.imageUrl} alt={venue.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       )}
@@ -118,19 +118,19 @@ export function VenueDetail() {
       <div style={{ marginBottom: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <h1 style={{ fontWeight: 800, fontSize: "24px", color: "#fff", marginBottom: "6px" }}>{venue.name}</h1>
+            <h1 style={{ fontWeight: 800, fontSize: "24px", color: "var(--color-text-primary, #fff)", marginBottom: "6px" }}>{venue.name}</h1>
             <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
               <Badge $type="event">{typeLabels[venue.type] || venue.type}</Badge>
               {venue.priceRange && (
-                <span style={{ color: "#a3a3a3", fontSize: "12px" }}>{priceLabels[venue.priceRange]?.split("·")[0]}</span>
+                <span style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "12px" }}>{priceLabels[venue.priceRange]?.split("·")[0]}</span>
               )}
-              {distance && <span style={{ color: "#737373", fontSize: "11px" }}>· {distance} away</span>}
+              {distance && <span style={{ color: "var(--color-text-muted, #737373)", fontSize: "11px" }}>· {distance} away</span>}
             </div>
           </div>
           {venue.capacity && (
             <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <div style={{ color: "#a3a3a3", fontSize: "10px" }}>Capacity</div>
-              <div style={{ color: "#fff", fontWeight: 700, fontSize: "18px" }}>{venue.capacity}</div>
+              <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "10px" }}>Capacity</div>
+              <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "18px" }}>{venue.capacity}</div>
             </div>
           )}
         </div>
@@ -139,20 +139,20 @@ export function VenueDetail() {
       {/* Description */}
       {venue.description && (
         <SectionCard>
-          <p style={{ color: "#a3a3a3", fontSize: "13px", lineHeight: 1.7, margin: 0 }}>{venue.description}</p>
+          <p style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", lineHeight: 1.7, margin: 0 }}>{venue.description}</p>
         </SectionCard>
       )}
 
       {/* Contact & Location */}
       <SectionCard>
-        <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "10px" }}>Contact & Location</h3>
+        <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", marginBottom: "10px" }}>Contact & Location</h3>
         <InfoGrid>
-          <InfoRow><MapPin size={16} color="#737373" />{venue.address}, {venue.district}, Helsinki</InfoRow>
-          {venue.phone && <InfoRow><Phone size={16} color="#737373" /><a href={`tel:${venue.phone}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.phone}</a></InfoRow>}
-          {venue.website && <InfoRow><Globe size={16} color="#737373" /><a href={venue.website} target="_blank" rel="noopener" style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.website.replace("https://", "")}</a></InfoRow>}
-          {venue.email && <InfoRow><Envelope size={16} color="#737373" /><a href={`mailto:${venue.email}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.email}</a></InfoRow>}
-          {venue.instagram && <InfoRow><InstagramLogo size={16} color="#737373" /><span>{venue.instagram}</span></InfoRow>}
-          {venue.facebook && <InfoRow><FacebookLogo size={16} color="#737373" /><span>{venue.facebook}</span></InfoRow>}
+          <InfoRow><MapPin size={16} color="var(--color-text-muted, #737373)" />{venue.address}, {venue.district}, Helsinki</InfoRow>
+          {venue.phone && <InfoRow><Phone size={16} color="var(--color-text-muted, #737373)" /><a href={`tel:${venue.phone}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.phone}</a></InfoRow>}
+          {venue.website && <InfoRow><Globe size={16} color="var(--color-text-muted, #737373)" /><a href={venue.website} target="_blank" rel="noopener" style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.website.replace("https://", "")}</a></InfoRow>}
+          {venue.email && <InfoRow><Envelope size={16} color="var(--color-text-muted, #737373)" /><a href={`mailto:${venue.email}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.email}</a></InfoRow>}
+          {venue.instagram && <InfoRow><InstagramLogo size={16} color="var(--color-text-muted, #737373)" /><span>{venue.instagram}</span></InfoRow>}
+          {venue.facebook && <InfoRow><FacebookLogo size={16} color="var(--color-text-muted, #737373)" /><span>{venue.facebook}</span></InfoRow>}
         </InfoGrid>
         <Button variant="secondary" fullWidth style={{ marginTop: "14px" }} onClick={() => {
           window.open(`https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lng}`, "_blank");
@@ -166,7 +166,7 @@ export function VenueDetail() {
         <SectionCard>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
             <Clock size={18} color="#7c3aed" />
-            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", margin: 0 }}>Opening Hours</h3>
+            <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", margin: 0 }}>Opening Hours</h3>
           </div>
           <HoursGrid>
             {days.map((day) => (
@@ -184,7 +184,7 @@ export function VenueDetail() {
         <SectionCard>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
             <Star size={18} color="#7c3aed" />
-            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", margin: 0 }}>Amenities</h3>
+            <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", margin: 0 }}>Amenities</h3>
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
             {venue.amenities.map((a: string) => <AmenityBadge key={a}>{a}</AmenityBadge>)}
@@ -195,18 +195,18 @@ export function VenueDetail() {
       {/* Price + Capacity */}
       {(venue.priceRange || venue.capacity) && (
         <SectionCard>
-          <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Overview</h3>
+          <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Overview</h3>
           <div style={{ display: "flex", gap: "24px" }}>
             {venue.priceRange && (
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <CurrencyDollar size={18} color="#737373" />
-                <span style={{ color: "#a3a3a3", fontSize: "13px" }}>{priceLabels[venue.priceRange] || venue.priceRange}</span>
+                <CurrencyDollar size={18} color="var(--color-text-muted, #737373)" />
+                <span style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px" }}>{priceLabels[venue.priceRange] || venue.priceRange}</span>
               </div>
             )}
             {venue.capacity && (
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <Users size={18} color="#737373" />
-                <span style={{ color: "#a3a3a3", fontSize: "13px" }}>Up to {venue.capacity} people</span>
+                <Users size={18} color="var(--color-text-muted, #737373)" />
+                <span style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px" }}>Up to {venue.capacity} people</span>
               </div>
             )}
           </div>
@@ -225,9 +225,9 @@ export function VenueDetail() {
                 <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
                   <Badge $type="promo">PROMO</Badge>
                   <div>
-                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{promo.title}</div>
-                    <div style={{ color: "#a3a3a3", fontSize: "11px", marginTop: "2px" }}>{promo.description}</div>
-                    <div style={{ color: "#737373", fontSize: "10px", marginTop: "4px" }}>
+                    <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>{promo.title}</div>
+                    <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px", marginTop: "2px" }}>{promo.description}</div>
+                    <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "4px" }}>
                       {formatEventTime(new Date(promo.validFrom))} — {formatEventTime(new Date(promo.validTo))}
                     </div>
                   </div>
@@ -248,8 +248,8 @@ export function VenueDetail() {
                 <div style={{ display: "flex", gap: "8px" }}>
                   <Badge $type="event">EVENT</Badge>
                   <div>
-                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{event.title}</div>
-                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>
+                    <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>{event.title}</div>
+                    <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>
                       {formatEventTime(new Date(event.startTime))} · {event.participants?.length || 0} going
                     </div>
                   </div>
@@ -271,14 +271,14 @@ export function VenueDetail() {
                   <div>
                     <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
                       <Badge $type="pass">PASS</Badge>
-                      <span style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{pass.title}</span>
+                      <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>{pass.title}</span>
                     </div>
-                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{pass.benefits.join(" · ")}</div>
+                    <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>{pass.benefits.join(" · ")}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ color: "#f59e0b", fontWeight: 700, fontSize: "14px" }}>€{pass.price}</div>
                     {pass.originalPrice && pass.originalPrice > pass.price && (
-                      <div style={{ color: "#737373", fontSize: "11px", textDecoration: "line-through" }}>€{pass.originalPrice}</div>
+                      <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "11px", textDecoration: "line-through" }}>€{pass.originalPrice}</div>
                     )}
                   </div>
                 </div>
@@ -290,8 +290,8 @@ export function VenueDetail() {
 
       {/* No data fallback */}
       {!venue.promotions?.length && !venueEvents.length && !venue.passes?.length && (
-        <div style={{ textAlign: "center", padding: "24px", color: "#737373", fontSize: "13px" }}>
-          <Wine size={32} color="#737373" style={{ marginBottom: "8px" }} />
+        <div style={{ textAlign: "center", padding: "24px", color: "var(--color-text-muted, #737373)", fontSize: "13px" }}>
+          <Wine size={32} color="var(--color-text-muted, #737373)" style={{ marginBottom: "8px" }} />
           <p>No active promos, events, or passes right now.</p>
           <p style={{ marginTop: "4px", fontSize: "11px" }}>Check back soon or browse the feed for what's happening.</p>
         </div>

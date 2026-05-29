@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 
 const Section = styled.div`margin-bottom: 24px;`;
 const SectionTitle = styled.h3`
-  color: #fff; font-weight: 700; font-size: 14px;
+  color: var(--color-text-primary, #fff); font-weight: 700; font-size: 14px;
   margin-bottom: 12px;
   display: flex; align-items: center; gap: 8px;
 `;
@@ -30,7 +30,7 @@ const StatCard = styled(Card)`
   padding: 14px;
 `;
 
-const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "11px", fontWeight: 600, marginBottom: "2px" };
+const labelStyle: React.CSSProperties = { color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px", fontWeight: 600, marginBottom: "2px" };
 
 const SHOW_INITIAL = 3;
 
@@ -88,7 +88,7 @@ export function ProfileEdit() {
     });
   };
 
-  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
+  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
   if (!profile) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Failed to load profile</div>;
 
   const eventsCreated = history?.eventsCreated || [];
@@ -97,28 +97,28 @@ export function ProfileEdit() {
 
   return (
     <div style={{ padding: "20px 16px", maxWidth: "680px", margin: "0 auto" }}>
-      <h1 style={{ fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "20px" }}>Edit Profile</h1>
+      <h1 style={{ fontWeight: 800, fontSize: "22px", color: "var(--color-text-primary, #fff)", marginBottom: "20px" }}>Edit Profile</h1>
 
       {/* Avatar + Name */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px" }}>
         <Avatar src={profile.avatarUrl} name={profile.username} size={88} />
-        <div style={{ color: "#fff", fontWeight: 700, fontSize: "18px", marginTop: "10px" }}>{profile.username}</div>
-        <div style={{ color: "#737373", fontSize: "12px" }}>{profile.email}</div>
+        <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "18px", marginTop: "10px" }}>{profile.username}</div>
+        <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "12px" }}>{profile.email}</div>
       </div>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "24px" }}>
-        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#7c3aed", fontWeight: 700, fontSize: "22px" }}>{eventsCreated.length}</div>
-          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Created</div>
+          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Created</div>
         </div>
-        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#3b82f6", fontWeight: 700, fontSize: "22px" }}>{eventsJoined.length}</div>
-          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Joined</div>
+          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Joined</div>
         </div>
-        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#f59e0b", fontWeight: 700, fontSize: "22px" }}>{passes.length}</div>
-          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Passes</div>
+          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Passes</div>
         </div>
       </div>
 
@@ -170,18 +170,18 @@ export function ProfileEdit() {
 
         {/* Social Links */}
         <Section>
-          <SectionTitle>Social Links <span style={{ color: "#737373", fontWeight: 400, fontSize: "11px" }}>(optional)</span></SectionTitle>
+          <SectionTitle>Social Links <span style={{ color: "var(--color-text-muted, #737373)", fontWeight: 400, fontSize: "11px" }}>(optional)</span></SectionTitle>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ position: "relative" }}>
-              <InstagramLogo size={18} color="#737373" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
+              <InstagramLogo size={18} color="var(--color-text-muted, #737373)" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
               <Input placeholder="Instagram username" value={instagram} onChange={(e) => setInstagram(e.target.value)} style={{ paddingLeft: "42px" }} />
             </div>
             <div style={{ position: "relative" }}>
-              <FacebookLogo size={18} color="#737373" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
+              <FacebookLogo size={18} color="var(--color-text-muted, #737373)" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
               <Input placeholder="Facebook profile" value={facebook} onChange={(e) => setFacebook(e.target.value)} style={{ paddingLeft: "42px" }} />
             </div>
             <div style={{ position: "relative" }}>
-              <TwitterLogo size={18} color="#737373" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
+              <TwitterLogo size={18} color="var(--color-text-muted, #737373)" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
               <Input placeholder="Twitter / X handle" value={twitter} onChange={(e) => setTwitter(e.target.value)} style={{ paddingLeft: "42px" }} />
             </div>
           </div>
@@ -189,7 +189,7 @@ export function ProfileEdit() {
 
         {/* Gallery */}
         <Section>
-          <SectionTitle>Photo Gallery <span style={{ color: "#737373", fontWeight: 400, fontSize: "11px" }}>(optional)</span></SectionTitle>
+          <SectionTitle>Photo Gallery <span style={{ color: "var(--color-text-muted, #737373)", fontWeight: 400, fontSize: "11px" }}>(optional)</span></SectionTitle>
           <input
             type="file"
             accept="image/*"
@@ -216,12 +216,12 @@ export function ProfileEdit() {
           {gallery.length > 0 && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginTop: "12px" }}>
               {gallery.map((url, i) => (
-                <div key={i} style={{ position: "relative", aspectRatio: "1", borderRadius: "10px", overflow: "hidden", background: "#1a1a1a" }}>
+                <div key={i} style={{ position: "relative", aspectRatio: "1", borderRadius: "10px", overflow: "hidden", background: "var(--color-card, #1a1a1a)" }}>
                   <img src={url} alt={`Gallery ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   <button
                     type="button"
                     onClick={() => setGallery(prev => prev.filter((_, idx) => idx !== i))}
-                    style={{ position: "absolute", top: "4px", right: "4px", width: "24px", height: "24px", background: "rgba(0,0,0,0.7)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "12px", border: "none", cursor: "pointer" }}
+                    style={{ position: "absolute", top: "4px", right: "4px", width: "24px", height: "24px", background: "rgba(0,0,0,0.7)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-primary, #fff)", fontSize: "12px", border: "none", cursor: "pointer" }}
                   >
                     ✕
                   </button>
@@ -234,11 +234,11 @@ export function ProfileEdit() {
         {/* Interests & Languages */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
           <div>
-            <div style={labelStyle}>Interests <span style={{ fontWeight: 400, color: "#737373" }}>(comma-separated)</span></div>
+            <div style={labelStyle}>Interests <span style={{ fontWeight: 400, color: "var(--color-text-muted, #737373)" }}>(comma-separated)</span></div>
             <Input placeholder="e.g., techno, craft beer, karaoke" value={interests} onChange={(e) => setInterests(e.target.value)} />
           </div>
           <div>
-            <div style={labelStyle}>Languages <span style={{ fontWeight: 400, color: "#737373" }}>(comma-separated)</span></div>
+            <div style={labelStyle}>Languages <span style={{ fontWeight: 400, color: "var(--color-text-muted, #737373)" }}>(comma-separated)</span></div>
             <Input placeholder="e.g., Finnish, English, Swedish" value={languages} onChange={(e) => setLanguages(e.target.value)} />
           </div>
         </div>
@@ -249,7 +249,7 @@ export function ProfileEdit() {
 
       {/* Activity History */}
       <div style={{ marginTop: "32px" }}>
-        <h2 style={{ fontWeight: 700, fontSize: "18px", color: "#fff", marginBottom: "16px" }}>Activity History</h2>
+        <h2 style={{ fontWeight: 700, fontSize: "18px", color: "var(--color-text-primary, #fff)", marginBottom: "16px" }}>Activity History</h2>
 
         {eventsCreated.length > 0 && (() => {
           const key = "created";
@@ -266,8 +266,8 @@ export function ProfileEdit() {
                       <Calendar size={18} color="#fff" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
-                      <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · {e.participants?.length || 0} joined</div>
+                      <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
+                      <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · {e.participants?.length || 0} joined</div>
                     </div>
                     <Badge $type="event">CREATED</Badge>
                   </StatCard>
@@ -298,8 +298,8 @@ export function ProfileEdit() {
                       <Calendar size={18} color="#fff" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
-                      <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · by {e.creator?.username || "Unknown"}</div>
+                      <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
+                      <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · by {e.creator?.username || "Unknown"}</div>
                     </div>
                     <Badge $type="event">JOINED</Badge>
                   </StatCard>
@@ -330,8 +330,8 @@ export function ProfileEdit() {
                       <Ticket size={18} color="#fff" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{p.passTitle}</div>
-                      <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{p.venueName} · €{p.price} · {p.redeemedAt ? "Used" : "Active"}</div>
+                      <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>{p.passTitle}</div>
+                      <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>{p.venueName} · €{p.price} · {p.redeemedAt ? "Used" : "Active"}</div>
                     </div>
                     <Badge $type={p.redeemedAt ? "promo" : "pass"}>{p.redeemedAt ? "USED" : "ACTIVE"}</Badge>
                   </StatCard>
@@ -348,8 +348,8 @@ export function ProfileEdit() {
         })()}
 
         {!eventsCreated.length && !eventsJoined.length && !passes.length && (
-          <div style={{ textAlign: "center", padding: "32px 16px", color: "#737373", fontSize: "14px" }}>
-            <Calendar size={40} color="#737373" style={{ marginBottom: "10px" }} />
+          <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--color-text-muted, #737373)", fontSize: "14px" }}>
+            <Calendar size={40} color="var(--color-text-muted, #737373)" style={{ marginBottom: "10px" }} />
             <p>No activity yet. Create or join an event to get started!</p>
           </div>
         )}

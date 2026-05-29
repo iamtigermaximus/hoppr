@@ -18,7 +18,7 @@ export function EventDetail({ id }: { id: string }) {
   const leaveMutation = useLeaveEvent(id);
 
   if (isLoading) {
-    return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
+    return <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
   }
   if (!event || event.error) {
     return <div style={{ padding: 16, color: "#ef4444" }}>Event not found</div>;
@@ -30,20 +30,20 @@ export function EventDetail({ id }: { id: string }) {
   const isFull = event.maxAttendees && event.participants?.length >= event.maxAttendees;
 
   const sectionStyle: React.CSSProperties = { marginBottom: "20px" };
-  const titleStyle: React.CSSProperties = { color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "10px" };
+  const titleStyle: React.CSSProperties = { color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", marginBottom: "10px" };
 
   return (
     <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
       <button onClick={() => router.back()} style={{
         display: "inline-flex", alignItems: "center", gap: "6px",
-        color: "#a3a3a3", fontSize: "13px", fontWeight: 500,
+        color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", fontWeight: 500,
         background: "none", border: "none", cursor: "pointer", padding: 0,
         marginBottom: "12px",
       }}>
         ← Back
       </button>
 
-      <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: event.imageUrl ? "#1a1a1a" : "linear-gradient(135deg, #1a0533, #2d1060, #0a0a0a)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: event.imageUrl ? "var(--color-card, #1a1a1a)" : "linear-gradient(135deg, #1a0533, #2d1060, #0a0a0a)", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {event.imageUrl ? (
           <img src={event.imageUrl} alt={event.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
@@ -56,12 +56,12 @@ export function EventDetail({ id }: { id: string }) {
         )}
       </div>
 
-      <h1 style={{ fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "8px" }}>{event.title}</h1>
+      <h1 style={{ fontWeight: 800, fontSize: "22px", color: "var(--color-text-primary, #fff)", marginBottom: "8px" }}>{event.title}</h1>
 
-      <div style={{ color: "#a3a3a3", fontSize: "13px", marginBottom: "16px", lineHeight: 1.6 }}>
+      <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", marginBottom: "16px", lineHeight: 1.6 }}>
         <Badge $type="event">EVENT</Badge>
         <br />
-        <strong style={{ color: "#fff" }}>{event.venueName}</strong>
+        <strong style={{ color: "var(--color-text-primary, #fff)" }}>{event.venueName}</strong>
         <br />
         {formatEventTime(new Date(event.startTime))}
         {event.endTime && ` — ${formatEventTime(new Date(event.endTime))}`}
@@ -72,7 +72,7 @@ export function EventDetail({ id }: { id: string }) {
       {event.description && (
         <div style={sectionStyle}>
           <h3 style={titleStyle}>About</h3>
-          <p style={{ color: "#a3a3a3", fontSize: "13px", lineHeight: 1.5 }}>{event.description}</p>
+          <p style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", lineHeight: 1.5 }}>{event.description}</p>
         </div>
       )}
 
@@ -89,33 +89,33 @@ export function EventDetail({ id }: { id: string }) {
                 onClick={(e) => { e.stopPropagation(); router.push(`/profile/${p.user.id}`); }}
                 style={{
                   display: "flex", alignItems: "center", gap: "12px",
-                  padding: "10px 14px", background: "#1a1a1a", border: "1px solid #262626",
+                  padding: "10px 14px", background: "var(--color-card, #1a1a1a)", border: "1px solid var(--color-card-border, #262626)",
                   borderRadius: "12px", cursor: "pointer",
                   transition: "border-color 0.15s",
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#7c3aed44")}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#262626")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-card-border, #262626)")}
               >
                 <Avatar src={p.user.avatarUrl || p.user.image} name={p.user.username || p.user.name} size={40} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>
+                    <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>
                       {p.user.username || p.user.name || "Anonymous"}
                     </span>
                     {p.user.id === event.creator?.id && (
                       <span style={{ background: "rgba(124,58,237,0.15)", color: "#a78bfa", fontSize: "9px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px" }}>ORGANIZER</span>
                     )}
                   </div>
-                  <div style={{ color: "#737373", fontSize: "11px", marginTop: "1px" }}>
+                  <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "11px", marginTop: "1px" }}>
                     Joined {new Date(p.joinedAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </div>
                 </div>
-                <span style={{ color: "#737373", fontSize: "10px" }}>View profile →</span>
+                <span style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px" }}>View profile →</span>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ color: "#737373", fontSize: "13px" }}>No attendees yet. Be the first to join!</p>
+          <p style={{ color: "var(--color-text-muted, #737373)", fontSize: "13px" }}>No attendees yet. Be the first to join!</p>
         )}
       </div>
 

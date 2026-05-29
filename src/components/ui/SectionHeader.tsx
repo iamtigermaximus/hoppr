@@ -9,7 +9,7 @@ const Row = styled.div`
   padding: 0 16px;
 `;
 
-const Title = styled.span`color: #fff; font-weight: 700; font-size: 14px;`;
+const Title = styled.span`color: var(--color-text-primary, #fff); font-weight: 700; font-size: 14px;`;
 const SeeAll = styled.span`
   color: #7c3aed; font-size: 11px; font-weight: 500; cursor: pointer;
   &:hover { text-decoration: underline; }

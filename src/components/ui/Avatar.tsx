@@ -39,8 +39,8 @@ const Circle = styled.div<{ $size: number; $fallback?: boolean }>`
   justify-content: center;
   font-size: ${({ $size }) => Math.max($size * 0.35, 9)}px;
   font-weight: 600;
-  color: #a3a3a3;
-  background: ${({ $fallback }) => ($fallback ? "#262626" : "transparent")};
+  color: var(--color-text-secondary, #a3a3a3);
+  background: ${({ $fallback }) => ($fallback ? "var(--color-card-border, #262626)" : "transparent")};
   position: relative;
   overflow: hidden;
 `;

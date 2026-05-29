@@ -46,12 +46,12 @@ const NavRight = styled.div`
 
 const NavItem = styled(Link)<{ $active: boolean }>`
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  color: ${({ $active }) => $active ? "#7c3aed" : "#737373"};
+  color: ${({ $active }) => $active ? "#7c3aed" : "var(--color-text-muted, #737373)"};
   transition: color 0.15s;
   min-width: 48px; min-height: 48px; justify-content: center;
   text-decoration: none;
   span { font-size: 10px; font-weight: ${({ $active }) => $active ? 600 : 500}; }
-  &:hover { color: ${({ $active }) => $active ? "#7c3aed" : "#a3a3a3"}; }
+  &:hover { color: ${({ $active }) => $active ? "#7c3aed" : "var(--color-text-secondary, #a3a3a3)"}; }
 
   @media (min-width: 768px) {
     flex-direction: row; gap: 6px;
@@ -94,8 +94,8 @@ const MenuItem = styled.button`
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: 8px;
   font-size: 13px; width: 100%;
-  background: none; border: none; cursor: pointer; color: #a3a3a3;
-  &:hover { background: #262626; }
+  background: none; border: none; cursor: pointer; color: var(--color-text-secondary, #a3a3a3);
+  &:hover { background: var(--color-card-border, #262626); }
 `;
 
 const tabs = [
@@ -157,7 +157,7 @@ export function BottomNav() {
       {/* Desktop: Bell + Avatar */}
       <NavRight>
         <Link href="/notifications" style={{ position: "relative" }}>
-          <Bell size={22} color="#737373" />
+          <Bell size={22} color="var(--color-text-muted, #737373)" />
           {unreadCount > 0 && (
             <span style={{ position: "absolute", top: "-6px", right: "-8px", background: "#ef4444", color: "#fff", fontSize: "10px", fontWeight: 700, minWidth: "18px", height: "18px", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -176,7 +176,7 @@ export function BottomNav() {
               <Link href="/settings" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
                 <MenuItem as="span"><Gear size={16} /> Settings</MenuItem>
               </Link>
-              <div style={{ height: "1px", background: "#262626", margin: "4px 0" }} />
+              <div style={{ height: "1px", background: "var(--color-card-border, #262626)", margin: "4px 0" }} />
               <MenuItem onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/login" }); }} style={{ color: "#ef4444" }}>
                 <SignOutIcon size={16} /> Sign Out
               </MenuItem>

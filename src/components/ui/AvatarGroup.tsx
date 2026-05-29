@@ -26,11 +26,11 @@ const CountBadge = styled.div<{ $size: number }>`
   height: ${({ $size }) => $size}px;
   min-width: ${({ $size }) => $size}px;
   border-radius: 50%;
-  border: 2px solid #1a1a1a;
-  background: #262626;
+  border: 2px solid var(--color-card, #1a1a1a);
+  background: var(--color-card-border, #262626);
   display: flex; align-items: center; justify-content: center;
   font-size: ${({ $size }) => Math.max($size * 0.35, 9)}px;
   font-weight: 600;
-  color: #a3a3a3;
+  color: var(--color-text-secondary, #a3a3a3);
   margin-left: 4px;
 `;

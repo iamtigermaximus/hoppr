@@ -18,13 +18,13 @@ const Hero = styled.div`
 `;
 
 const Tagline = styled.h1`
-  font-weight: 800; font-size: 28px; color: #fff;
+  font-weight: 800; font-size: 28px; color: var(--color-text-primary, #fff);
   line-height: 1.2; letter-spacing: -0.5px;
   max-width: 320px;
 `;
 
 const Subtitle = styled.p`
-  color: #a3a3a3; font-size: 14px; line-height: 1.6;
+  color: var(--color-text-secondary, #a3a3a3); font-size: 14px; line-height: 1.6;
   max-width: 320px;
 `;
 
@@ -40,9 +40,9 @@ const CTA = styled.button`
 `;
 
 const SignInLink = styled.button`
-  background: none; border: none; color: #a3a3a3;
+  background: none; border: none; color: var(--color-text-secondary, #a3a3a3);
   font-size: 14px; cursor: pointer; margin-top: 16px;
-  &:hover { color: #fff; }
+  &:hover { color: var(--color-text-primary, #fff); }
 `;
 
 const Features = styled.div`
@@ -53,15 +53,15 @@ const Features = styled.div`
 const FeatureCard = styled.div`
   display: flex; align-items: flex-start; gap: 14px;
   text-align: left; padding: 16px;
-  background: #1a1a1a; border: 1px solid #262626;
+  background: var(--color-card, #1a1a1a); border: 1px solid var(--color-card-border, #262626);
   border-radius: 16px;
 `;
 
 const FeatureTitle = styled.div`
-  color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 3px;
+  color: var(--color-text-primary, #fff); font-weight: 700; font-size: 14px; margin-bottom: 3px;
 `;
 const FeatureDesc = styled.div`
-  color: #737373; font-size: 12px; line-height: 1.5;
+  color: var(--color-text-muted, #737373); font-size: 12px; line-height: 1.5;
 `;
 
 const features = [
