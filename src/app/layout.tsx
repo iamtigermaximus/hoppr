@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "Hoppr — Discover. Crawl. Connect.",
   description: "Finland's drinking establishments, unified.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
