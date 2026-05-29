@@ -13,8 +13,8 @@ export default function HomePage() {
     <>
       <div style={{ padding: "4px 16px 12px" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-          <span style={{ fontWeight: 800, fontSize: "18px", color: "#fff", letterSpacing: "-0.5px" }}>Helsinki</span>
-          <span style={{ color: "#737373", fontSize: "12px" }}>{dateStr}</span>
+          <span style={{ fontWeight: 800, fontSize: "18px", color: "var(--color-text-primary, #fff)", letterSpacing: "-0.5px" }}>Helsinki</span>
+          <span style={{ color: "var(--color-text-muted, #737373)", fontSize: "12px" }}>{dateStr}</span>
         </div>
       </div>
       <TrendingCarousel />
