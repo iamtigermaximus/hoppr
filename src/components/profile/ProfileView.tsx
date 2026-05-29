@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useUserProfile, useUserEvents } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/ui/Avatar";
@@ -8,10 +9,11 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { Warning, InstagramLogo, FacebookLogo, TwitterLogo, Calendar, Heart, Globe, Camera } from "@phosphor-icons/react";
+import { Warning, InstagramLogo, FacebookLogo, TwitterLogo, Calendar, Heart, Globe, Camera, ArrowLeft } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
 
 export function ProfileView({ id }: { id: string }) {
+  const router = useRouter();
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id as string | undefined;
   const { data: profile, isLoading } = useUserProfile(id);
@@ -36,6 +38,11 @@ export function ProfileView({ id }: { id: string }) {
 
   return (
     <div style={{ padding: "24px 16px", maxWidth: "680px", margin: "0 auto" }}>
+      {/* Back button */}
+      <button onClick={() => router.back()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#a3a3a3", fontSize: "13px", fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: "16px" }}>
+        <ArrowLeft size={16} /> Back
+      </button>
+
       {/* Avatar + Name */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "16px" }}>
         <Avatar src={profile.avatarUrl} name={profile.username} size={96} />
@@ -44,6 +51,39 @@ export function ProfileView({ id }: { id: string }) {
         <p style={{ color: "#737373", fontSize: "11px", marginTop: "6px" }}>
           Joined {new Date(profile.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </p>
+
+        {/* Social Links — below name */}
+        {(profile.instagram || profile.facebook || profile.twitter) && (
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+            {profile.instagram && (
+              <a href={`https://instagram.com/${profile.instagram.replace("@", "")}`} target="_blank" rel="noopener" style={{
+                display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px",
+                borderRadius: "8px", fontSize: "12px", fontWeight: 600, textDecoration: "none",
+                background: "linear-gradient(135deg, #e1306c, #c13584)", color: "#fff",
+              }}>
+                <InstagramLogo size={14} weight="fill" /> Instagram
+              </a>
+            )}
+            {profile.facebook && (
+              <a href={`https://facebook.com/${profile.facebook}`} target="_blank" rel="noopener" style={{
+                display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px",
+                borderRadius: "8px", fontSize: "12px", fontWeight: 600, textDecoration: "none",
+                background: "#1877f2", color: "#fff",
+              }}>
+                <FacebookLogo size={14} weight="fill" /> Facebook
+              </a>
+            )}
+            {profile.twitter && (
+              <a href={`https://x.com/${profile.twitter.replace("@", "")}`} target="_blank" rel="noopener" style={{
+                display: "inline-flex", alignItems: "center", gap: "5px", padding: "6px 12px",
+                borderRadius: "8px", fontSize: "12px", fontWeight: 600, textDecoration: "none",
+                background: "#1da1f2", color: "#fff",
+              }}>
+                <TwitterLogo size={14} weight="fill" /> X
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Report (only for other users) */}
@@ -115,27 +155,6 @@ export function ProfileView({ id }: { id: string }) {
               <span key={l} style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", fontSize: "11px", padding: "4px 10px", borderRadius: "6px" }}>{l}</span>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Social Links */}
-      {(profile.instagram || profile.facebook || profile.twitter) && (
-        <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "20px" }}>
-          {profile.instagram && (
-            <a href={`https://instagram.com/${profile.instagram.replace("@", "")}`} target="_blank" rel="noopener" style={{ color: "#737373", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", textDecoration: "none" }}>
-              <InstagramLogo size={18} /> {profile.instagram}
-            </a>
-          )}
-          {profile.facebook && (
-            <a href={`https://facebook.com/${profile.facebook}`} target="_blank" rel="noopener" style={{ color: "#737373", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", textDecoration: "none" }}>
-              <FacebookLogo size={18} /> FB
-            </a>
-          )}
-          {profile.twitter && (
-            <a href={`https://x.com/${profile.twitter.replace("@", "")}`} target="_blank" rel="noopener" style={{ color: "#737373", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", textDecoration: "none" }}>
-              <TwitterLogo size={18} /> {profile.twitter}
-            </a>
-          )}
         </div>
       )}
 
