@@ -8,8 +8,14 @@ import { Button } from "@/components/ui/Button";
 import type { FeedItem } from "@/types/feed";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 
+const iconMap = { event: Calendar, promotion: MapPin, pass: Ticket };
+const colorMap = { event: "#3b82f6", promotion: "#10b981", pass: "#f59e0b" };
+
 export function FeedCard({ item }: { item: FeedItem }) {
   const router = useRouter();
+  const color = colorMap[item.type];
+  const IconComponent = iconMap[item.type];
+  const badgeType = item.type === "promotion" ? "promo" : item.type;
 
   const handleClick = () => {
     if (item.type === "event") router.push(`/events/${item.id}`);
@@ -17,52 +23,63 @@ export function FeedCard({ item }: { item: FeedItem }) {
     else router.push(`/passes`);
   };
 
-  const icon = item.type === "event" ? Calendar : item.type === "promotion" ? MapPin : Ticket;
-  const color = item.type === "event" ? "#3b82f6" : item.type === "promotion" ? "#10b981" : "#f59e0b";
-  const IconComponent = icon;
-  const badgeType = item.type === "promotion" ? "promo" : item.type;
-
   return (
-    <Card onClick={handleClick} $accent={`${color}33`}>
-      <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-        <div
-          style={{
-            minWidth: "48px", height: "48px",
-            background: `linear-gradient(135deg, ${color}, ${color}dd)`,
-            borderRadius: "12px",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <IconComponent size={20} color="#fff" weight="regular" />
+    <Card onClick={handleClick} $accent={`${color}22`}>
+      <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+        {/* Icon */}
+        <div style={{
+          minWidth: "52px", width: "52px", height: "52px",
+          background: `linear-gradient(135deg, ${color}22, ${color}11)`,
+          border: `1px solid ${color}33`,
+          borderRadius: "14px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <IconComponent size={22} color={color} weight="fill" />
         </div>
+
+        {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+          {/* Top row: badge + distance */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
             <Badge $type={badgeType}>{item.type}</Badge>
-            <span style={{ fontSize: "10px", color: "#737373", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+            <span style={{ fontSize: "10px", color: "#737373", display: "inline-flex", alignItems: "center", gap: "3px" }}>
               <MapPin size={10} />{formatDistance(item.distance)}
             </span>
           </div>
-          <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px", marginBottom: "2px" }}>
+
+          {/* Title */}
+          <div style={{ color: "#fff", fontWeight: 600, fontSize: "14px", marginBottom: "3px", lineHeight: 1.3 }}>
             {item.title}
           </div>
-          <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "6px" }}>
+
+          {/* Subtitle */}
+          <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "8px" }}>
             {item.type === "event" && `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`}
             {item.type === "promotion" && `${item.venueName} · ${formatEventTime(new Date(item.validFrom))}`}
             {item.type === "pass" && `${item.venueName} · Valid until ${formatEventTime(new Date(item.validUntil))}`}
           </div>
+
+          {/* Bottom row: avatars + action */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            {item.type === "event" && item.attendees && item.attendees.length > 0 && (
-              <AvatarGroup users={item.attendees} max={5} size={22} />
+            {item.type === "event" && item.attendees && item.attendees.length > 0 ? (
+              <AvatarGroup users={item.attendees} max={4} size={24} />
+            ) : (
+              <div />
             )}
-            {item.type === "event" && !item.attendees?.length && <div />}
             {item.type === "event" && (
               <Button size="sm" onClick={(e) => { e.stopPropagation(); handleClick(); }}>Join</Button>
             )}
-            {item.type === "promotion" && <div />}
             {item.type === "pass" && (
               <>
-                <span style={{ color: "#f59e0b", fontWeight: 700, fontSize: "13px" }}>€{item.price}</span>
-                <Button size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/passes`); }}>Buy</Button>
+                <span style={{ color: "#f59e0b", fontWeight: 700, fontSize: "14px" }}>
+                  €{item.price}
+                  {"originalPrice" in item && item.originalPrice && item.originalPrice > item.price && (
+                    <span style={{ color: "#737373", fontSize: "11px", textDecoration: "line-through", marginLeft: "5px", fontWeight: 400 }}>
+                      €{item.originalPrice}
+                    </span>
+                  )}
+                </span>
+                <Button size="sm" onClick={(e) => { e.stopPropagation(); router.push("/passes"); }}>Buy</Button>
               </>
             )}
           </div>
