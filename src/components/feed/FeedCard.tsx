@@ -14,38 +14,33 @@ const CardWrapper = styled.div<{ $color: string }>`
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s;
+  display: flex;
   &:hover { border-color: ${({ $color }) => $color}44; }
 `;
 
 const CardImage = styled.div`
-  height: 160px; width: 100%;
+  width: 120px; min-width: 120px;
   background: #262626;
   position: relative;
   overflow: hidden;
-  img { width: 100%; height: 100%; object-fit: cover; }
-`;
-
-const CardBody = styled.div`
-  padding: 12px 14px 14px;
+  img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 `;
 
 const CardIconPlaceholder = styled.div<{ $color: string }>`
-  height: 120px; width: 100%;
+  width: 100px; min-width: 100px;
   background: linear-gradient(135deg, ${({ $color }) => $color}22, ${({ $color }) => $color}08);
   display: flex; align-items: center; justify-content: center;
 `;
 
-const TopBadge = styled.div`
-  position: absolute; top: 10px; left: 10px; z-index: 2;
+const CardBody = styled.div`
+  padding: 14px 16px;
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center;
 `;
 
-const TopDistance = styled.div`
-  position: absolute; top: 10px; right: 10px; z-index: 2;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-  color: #fff; font-size: 10px; font-weight: 500;
-  padding: 3px 8px; border-radius: 6px;
-  display: inline-flex; align-items: center; gap: 3px;
+const TopBadge = styled.div`
+  position: absolute; top: 8px; left: 8px; z-index: 2;
 `;
 
 const TypeLabel = styled.div<{ $color: string }>`
@@ -83,27 +78,28 @@ export function FeedCard({ item }: { item: FeedItem }) {
         <CardImage>
           <img src={imageSrc} alt="" />
           <TopBadge><Badge $type={item.type === "promotion" ? "promo" : item.type}>{t.label}</Badge></TopBadge>
-          <TopDistance><MapPin size={10} />{formatDistance(item.distance)}</TopDistance>
         </CardImage>
       ) : (
         <CardIconPlaceholder $color={color}>
-          <div style={{ position: "absolute", top: "10px", left: "10px" }}><Badge $type={item.type === "promotion" ? "promo" : item.type}>{t.label}</Badge></div>
-          <TopDistance style={{ position: "absolute" }}><MapPin size={10} />{formatDistance(item.distance)}</TopDistance>
-          <IconComponent size={40} color={color} weight="fill" opacity={0.4} />
+          <IconComponent size={36} color={color} weight="fill" opacity={0.3} />
         </CardIconPlaceholder>
       )}
 
       <CardBody>
         {!imageSrc && <TypeLabel $color={color}><IconComponent size={10} weight="fill" />{t.label}</TypeLabel>}
 
-        <div style={{ color: "#fff", fontWeight: 600, fontSize: "14px", marginBottom: "3px", lineHeight: 1.3 }}>
+        <div style={{ color: "#fff", fontWeight: 600, fontSize: "14px", marginBottom: "4px", lineHeight: 1.3 }}>
           {item.title}
         </div>
 
-        <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "8px" }}>
+        <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "6px" }}>
           {item.type === "event" && `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`}
           {item.type === "promotion" && `${item.venueName} · ${formatEventTime(new Date(item.validFrom))}`}
           {item.type === "pass" && `${item.venueName} · ${formatEventTime(new Date(item.validUntil))}`}
+        </div>
+
+        <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+          <MapPin size={10} />{formatDistance(item.distance)}
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

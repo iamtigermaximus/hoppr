@@ -11,7 +11,6 @@ import { Calendar, MapPin, Users } from "@phosphor-icons/react";
 
 const List = styled.div`
   display: flex; flex-direction: column; gap: 10px;
-  padding: 0;
 
   @media (min-width: 768px) {
     display: grid;
@@ -22,24 +21,24 @@ const List = styled.div`
 const CardWrapper = styled.div`
   background: #1a1a1a; border: 1px solid #262626;
   border-radius: 16px; overflow: hidden; cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s; display: flex;
   &:hover { border-color: #3b82f644; }
 `;
 
 const CardImage = styled.div`
-  height: 140px; width: 100%; background: #262626;
-  position: relative; overflow: hidden;
-  img { width: 100%; height: 100%; object-fit: cover; }
+  width: 120px; min-width: 120px; position: relative; overflow: hidden; background: #262626;
+  img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 `;
 
 const CardPlaceholder = styled.div`
-  height: 100px; width: 100%;
+  width: 100px; min-width: 100px;
   background: linear-gradient(135deg, #3b82f622, #1d4ed808);
   display: flex; align-items: center; justify-content: center;
 `;
 
 const CardBody = styled.div`
-  padding: 10px 14px 12px;
+  padding: 14px 16px; flex: 1; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center;
 `;
 
 export function EventList() {
@@ -59,24 +58,20 @@ export function EventList() {
               <CardImage>
                 <img src={event.image} alt="" />
                 <div style={{ position: "absolute", top: "8px", left: "8px" }}><Badge $type="event">EVENT</Badge></div>
-                <div style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", color: "#fff", fontSize: "10px", padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                  <MapPin size={10} />{formatDistance(event.distance)}
-                </div>
               </CardImage>
             ) : (
               <CardPlaceholder>
-                <div style={{ position: "absolute", top: "8px", left: "8px" }}><Badge $type="event">EVENT</Badge></div>
-                <div style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", color: "#fff", fontSize: "10px", padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                  <MapPin size={10} />{formatDistance(event.distance)}
-                </div>
                 <Calendar size={32} color="#3b82f6" weight="fill" opacity={0.3} />
               </CardPlaceholder>
             )}
 
             <CardBody>
-              <div style={{ color: "#fff", fontWeight: 600, fontSize: "14px", marginBottom: "3px" }}>{event.title}</div>
-              <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "8px" }}>
+              <div style={{ color: "#fff", fontWeight: 600, fontSize: "14px", marginBottom: "4px" }}>{event.title}</div>
+              <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "6px" }}>
                 {event.venueName} · {formatEventTime(new Date(event.startTime))}
+              </div>
+              <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                <MapPin size={10} />{formatDistance(event.distance)}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 {event.attendees?.length > 0 && <AvatarGroup users={event.attendees} max={4} size={24} />}
