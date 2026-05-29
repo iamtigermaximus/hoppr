@@ -1,0 +1,186 @@
+"use client";
+import { useState, useMemo } from "react";
+import styled from "styled-components";
+import { useRouter } from "next/navigation";
+import { useVenues } from "@/hooks/useVenues";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { Chip } from "@/components/ui/Chip";
+import { Button } from "@/components/ui/Button";
+import { formatDistance } from "@/lib/utils";
+import { House, MapPin, Star, MagnifyingGlass, X } from "@phosphor-icons/react";
+
+const VENUE_TYPES = [
+  { key: "PUB", label: "Pubs" },
+  { key: "CLUB", label: "Clubs" },
+  { key: "COCKTAIL_LOUNGE", label: "Cocktails" },
+  { key: "SPORTS_BAR", label: "Sports" },
+  { key: "KARAOKE_BAR", label: "Karaoke" },
+  { key: "WINE_BAR", label: "Wine" },
+  { key: "BREWERY_TAPROOM", label: "Brewery" },
+  { key: "LIVE_MUSIC", label: "Live Music" },
+];
+
+const ratings: Record<string, number> = {
+  v1: 4.8, v2: 4.6, v3: 4.9, v4: 4.2, v5: 4.3, v6: 4.5, v7: 4.7, v8: 4.4,
+  v9: 4.1, v10: 4.6, v11: 4.3, v12: 4.8, v13: 4.4, v14: 4.7, v15: 4.5,
+};
+
+const SearchBar = styled.div`
+  display: flex; align-items: center; gap: 8px;
+  background: #1a1a1a; border: 1px solid #262626;
+  border-radius: 12px; padding: 10px 14px;
+  margin-bottom: 14px;
+`;
+
+const SearchInput = styled.input`
+  flex: 1; background: none; border: none; color: #fff;
+  font-size: 14px; outline: none;
+  &::placeholder { color: #737373; }
+`;
+
+const Filters = styled.div`display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;`;
+
+const BarCard = styled.div`
+  display: flex; gap: 12px; align-items: center;
+  padding: 16px;
+  background: #1a1a1a; border: 1px solid #262626;
+  border-radius: 16px; cursor: pointer;
+  transition: border-color 0.15s;
+  &:hover { border-color: #7c3aed44; }
+`;
+
+const List = styled.div`display: flex; flex-direction: column; gap: 8px;`;
+
+const PAGE_SIZE = 10;
+
+export default function BarsPage() {
+  const router = useRouter();
+  const { lat, lng } = useGeolocation();
+  const { data: venues = [] } = useVenues();
+  const [search, setSearch] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+
+  const toggleType = (key: string) => {
+    setSelectedTypes(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setSelectedTypes([]);
+    setSearch("");
+    setPage(1);
+  };
+
+  // Filter, sort, and paginate
+  const filtered = useMemo(() => {
+    const result = (venues as any[])
+      .map((v: any) => ({
+        ...v,
+        distance: lat && lng ? Math.sqrt((v.lat - lat) ** 2 + (v.lng - lng) ** 2) * 111.32 : 99,
+      }))
+      .filter((v: any) => {
+        if (selectedTypes.length > 0 && !selectedTypes.includes(v.type)) return false;
+        if (search && !v.name.toLowerCase().includes(search.toLowerCase())
+          && !v.district?.toLowerCase().includes(search.toLowerCase())
+          && !v.type?.toLowerCase().replace(/_/g, " ").includes(search.toLowerCase())) return false;
+        return true;
+      })
+      .sort((a: any, b: any) => a.distance - b.distance);
+
+    return result;
+  }, [venues, lat, lng, selectedTypes, search]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const displayed = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = page < totalPages;
+
+  return (
+    <div style={{ padding: "16px", maxWidth: "680px", margin: "0 auto" }}>
+      <h1 style={{ fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "16px" }}>Bars & Venues</h1>
+
+      {/* Search */}
+      <SearchBar>
+        <MagnifyingGlass size={18} color="#737373" />
+        <SearchInput
+          placeholder="Search by name, type, or district..."
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+        />
+        {search && (
+          <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <X size={16} color="#737373" />
+          </button>
+        )}
+      </SearchBar>
+
+      {/* Category filters */}
+      <Filters>
+        {VENUE_TYPES.map(t => (
+          <Chip key={t.key} $active={selectedTypes.includes(t.key)} onClick={() => toggleType(t.key)} type="button">
+            {t.label}
+          </Chip>
+        ))}
+        {(selectedTypes.length > 0 || search) && (
+          <Chip $active={false} onClick={clearFilters} style={{ color: "#ef4444" }}>
+            Clear all
+          </Chip>
+        )}
+      </Filters>
+
+      {/* Results count */}
+      <div style={{ color: "#737373", fontSize: "12px", marginBottom: "12px" }}>
+        {filtered.length} {filtered.length === 1 ? "venue" : "venues"} found
+        {selectedTypes.length > 0 && ` · ${selectedTypes.map(t => VENUE_TYPES.find(vt => vt.key === t)?.label).join(", ")}`}
+      </div>
+
+      {/* Venue list */}
+      <List>
+        {displayed.length === 0 && (
+          <div style={{ textAlign: "center", padding: "48px 16px", color: "#737373" }}>
+            <House size={48} color="#737373" style={{ marginBottom: "12px" }} />
+            <p style={{ fontSize: "14px" }}>No venues match your search.</p>
+            <p style={{ fontSize: "12px", marginTop: "4px" }}>Try different filters or search terms.</p>
+          </div>
+        )}
+        {displayed.map((venue: any) => (
+          <BarCard key={venue.id} onClick={() => router.push(`/venues/${venue.id}`)}>
+            <div style={{ width: "52px", height: "52px", background: "#262626", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <House size={26} color="#a3a3a3" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px" }}>{venue.name}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#f59e0b", fontSize: "12px" }}>
+                  <Star size={12} weight="fill" /> {ratings[venue.id] || 4.0}
+                </div>
+              </div>
+              <div style={{ color: "#a3a3a3", fontSize: "12px", marginTop: "3px" }}>
+                {venue.type?.replace(/_/g, " ")} · {venue.district}
+              </div>
+              <div style={{ display: "flex", gap: "12px", marginTop: "6px" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", color: "#737373", fontSize: "11px" }}>
+                  <MapPin size={12} /> {venue.address?.split(",")[0]}
+                </span>
+                <span style={{ color: "#7c3aed", fontSize: "11px", fontWeight: 500 }}>
+                  {formatDistance(venue.distance)}
+                </span>
+              </div>
+            </div>
+          </BarCard>
+        ))}
+      </List>
+
+      {/* Load more */}
+      {hasMore && (
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
+          <Button variant="secondary" fullWidth onClick={() => setPage(p => p + 1)}>
+            Show more ({filtered.length - displayed.length} remaining)
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
