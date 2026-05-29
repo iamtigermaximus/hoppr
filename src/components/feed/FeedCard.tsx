@@ -1,7 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Calendar, MapPin, Ticket, Users, Clock, CurrencyCircleDollar } from "@phosphor-icons/react";
+import { Calendar, MapPin, Ticket, Users, Clock, CurrencyCircleDollar, CheckCircle } from "@phosphor-icons/react";
+import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/Badge";
 import { AvatarGroup } from "@/components/ui/AvatarGroup";
 import { Button } from "@/components/ui/Button";
@@ -61,6 +62,8 @@ const typeLabels = {
 
 export function FeedCard({ item }: { item: FeedItem }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userId = (session?.user as any)?.id as string | undefined;
   const t = typeLabels[item.type];
   const color = t.color;
   const IconComponent = t.icon;
@@ -72,12 +75,22 @@ export function FeedCard({ item }: { item: FeedItem }) {
     else router.push(`/passes/${item.id}`);
   };
 
+  // Check user status for this item
+  const isEventJoined = item.type === "event" && userId && (item as any).attendees?.some((a: any) => a.id === userId);
+
   return (
     <CardWrapper $color={color} onClick={handleClick}>
       {imageSrc ? (
         <CardImage>
           <img src={imageSrc} alt="" />
-          <TopBadge><Badge $type={item.type === "promotion" ? "promo" : item.type}>{t.label}</Badge></TopBadge>
+          <div style={{ position: "absolute", top: "8px", left: "8px", display: "flex", gap: "6px", zIndex: 2 }}>
+            <Badge $type={item.type === "promotion" ? "promo" : item.type}>{t.label}</Badge>
+            {isEventJoined && (
+              <span style={{ background: "rgba(16,185,129,0.8)", backdropFilter: "blur(4px)", color: "#fff", fontSize: "9px", fontWeight: 700, padding: "3px 8px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                <CheckCircle size={10} weight="fill" /> JOINED
+              </span>
+            )}
+          </div>
         </CardImage>
       ) : (
         <CardIconPlaceholder $color={color}>
@@ -108,7 +121,13 @@ export function FeedCard({ item }: { item: FeedItem }) {
           ) : <div />}
 
           {item.type === "event" && (
-            <Button size="sm" onClick={(e) => { e.stopPropagation(); handleClick(); }}><Users size={12} /> Join</Button>
+            isEventJoined ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#10b981", fontSize: "12px", fontWeight: 600 }}>
+                <CheckCircle size={14} weight="fill" /> Joined
+              </span>
+            ) : (
+              <Button size="sm" onClick={(e) => { e.stopPropagation(); handleClick(); }}><Users size={12} /> Join</Button>
+            )
           )}
           {item.type === "promotion" && (
             <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); handleClick(); }}><Clock size={12} /> View</Button>
