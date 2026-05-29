@@ -22,7 +22,7 @@ const Slider = styled.div`
 `;
 
 const PromoCard = styled.div<{ $imageUrl?: string }>`
-  min-width: 270px;
+  min-width: 280px; min-height: 160px;
   border-radius: 16px;
   padding: 18px;
   border: 1px solid #333;
@@ -32,13 +32,15 @@ const PromoCard = styled.div<{ $imageUrl?: string }>`
   overflow: hidden;
   background-size: cover;
   background-position: center;
+  display: flex; align-items: flex-end;
   ${({ $imageUrl }) => $imageUrl && `
     background-image: url(${$imageUrl});
+    min-height: 200px;
     &::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.65);
+      background: rgba(0,0,0,0.55);
       border-radius: 16px;
       z-index: 0;
     }

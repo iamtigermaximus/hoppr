@@ -32,7 +32,7 @@ const CardWrapper = styled.div<{ $color: string; $type: string }>`
 `;
 
 const IconBox = styled.div<{ $color: string; $type: string }>`
-  min-width: 52px; width: 52px; height: 52px;
+  min-width: 80px; width: 80px; height: 80px;
   border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
 
@@ -96,7 +96,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
       <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
         {("image" in item && item.image) || ("imageUrl" in item && (item as any).imageUrl) ? (
           <div style={{
-            minWidth: "52px", width: "52px", height: "52px",
+            minWidth: "80px", width: "80px", height: "80px",
             borderRadius: "14px", overflow: "hidden",
             background: "#262626",
           }}>
@@ -104,7 +104,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
           </div>
         ) : (
           <IconBox $color={color} $type={item.type}>
-            <IconComponent size={22} color={item.type === "promotion" ? "#fff" : color} weight="fill" />
+            <IconComponent size={28} color={item.type === "promotion" ? "#fff" : color} weight="fill" />
           </IconBox>
         )}
 

@@ -56,12 +56,12 @@ export function BarSlider() {
               <div style={{ position: "absolute", top: "8px", right: "8px", width: "6px", height: "6px", background: "#10b981", borderRadius: "50%" }} />
             )}
             {venue.imageUrl ? (
-              <div style={{ width: "44px", height: "44px", borderRadius: "12px", margin: "0 auto", overflow: "hidden" }}>
+              <div style={{ width: "60px", height: "60px", borderRadius: "14px", margin: "0 auto", overflow: "hidden" }}>
                 <img src={venue.imageUrl} alt={venue.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
             ) : (
-              <div style={{ width: "44px", height: "44px", background: "#262626", borderRadius: "12px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <House size={22} color="#a3a3a3" weight="regular" />
+              <div style={{ width: "60px", height: "60px", background: "#262626", borderRadius: "14px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <House size={28} color="#a3a3a3" weight="regular" />
               </div>
             )}
             <div style={{ color: "#fff", fontWeight: 600, fontSize: "12px", marginTop: "8px" }}>{venue.name}</div>

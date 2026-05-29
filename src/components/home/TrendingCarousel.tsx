@@ -13,8 +13,8 @@ const Carousel = styled.div`
   position: relative; overflow: hidden;
   border-radius: 18px;
   margin-bottom: 4px;
-  height: 260px;
-  @media (min-width: 768px) { height: 300px; }
+  height: 280px;
+  @media (min-width: 768px) { height: 340px; }
 `;
 
 const Slide = styled.div<{ $active: boolean; $imageUrl?: string }>`
