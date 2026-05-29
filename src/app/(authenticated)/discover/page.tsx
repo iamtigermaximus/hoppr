@@ -53,10 +53,13 @@ function groupByType(items: FeedItem[]) {
   };
 }
 
+const INITIAL_SHOW = 3;
+
 export default function DiscoverPage() {
   const { lat, lng } = useGeolocation();
   const [time, setTime] = useState<TimeFilter>("today");
   const [sort, setSort] = useState<SortMode>("upcoming");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { data: items = [], isLoading } = useFeed({ lat, lng, time });
 
   const sorted = useMemo(() => {
@@ -85,19 +88,45 @@ export default function DiscoverPage() {
 
   const hasSections = time === "today";
 
-  const renderTypeGroups = (sectionItems: FeedItem[]) => {
+  const toggleExpand = (key: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const renderTypeGroups = (sectionItems: FeedItem[], sectionKey: string) => {
     const groups = groupByType(sectionItems);
     return typeGroups.map(tg => {
       const groupItems = groups[tg.key];
       if (!groupItems.length) return null;
       const GroupIcon = tg.icon;
+      const expandKey = `${sectionKey}-${tg.key}`;
+      const isExpanded = expanded.has(expandKey);
+      const visible = isExpanded ? groupItems : groupItems.slice(0, INITIAL_SHOW);
+      const hasMore = groupItems.length > INITIAL_SHOW;
+
       return (
         <div key={tg.key}>
           <TypeChip $color={tg.color}>
             <GroupIcon size={12} weight="fill" />
             {tg.label} · {groupItems.length}
           </TypeChip>
-          <FeedList items={groupItems} isLoading={false} />
+          <FeedList items={visible} isLoading={false} />
+          {hasMore && (
+            <button
+              onClick={() => toggleExpand(expandKey)}
+              style={{
+                display: "block", width: "100%", padding: "8px 16px",
+                color: "#7c3aed", fontSize: "12px", fontWeight: 600,
+                background: "none", border: "none", cursor: "pointer",
+                textAlign: "center", marginTop: "2px",
+              }}
+            >
+              {isExpanded ? "Show less ▲" : `Show all ${groupItems.length} ▼`}
+            </button>
+          )}
         </div>
       );
     });
@@ -139,25 +168,25 @@ export default function DiscoverPage() {
                 <span style={{ width: "8px", height: "8px", background: "#10b981", borderRadius: "50%" }} />
                 Happening Now
               </TimeHeader>
-              {renderTypeGroups(happeningNow)}
+              {renderTypeGroups(happeningNow, "now")}
             </>
           )}
           {today.length > 0 && (
             <>
               <TimeHeader>Today</TimeHeader>
-              {renderTypeGroups(today)}
+              {renderTypeGroups(today, "today")}
             </>
           )}
           {tomorrow.length > 0 && (
             <>
               <TimeHeader>Tomorrow</TimeHeader>
-              {renderTypeGroups(tomorrow)}
+              {renderTypeGroups(tomorrow, "tomorrow")}
             </>
           )}
           {later.length > 0 && (
             <>
               <TimeHeader>Later</TimeHeader>
-              {renderTypeGroups(later)}
+              {renderTypeGroups(later, "later")}
             </>
           )}
           {sorted.length === 0 && <FeedList items={[]} isLoading={false} />}
