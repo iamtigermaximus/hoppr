@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatEventTime } from "@/lib/utils";
-import { Calendar, Ticket, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin } from "@phosphor-icons/react";
-import { useSession } from "next-auth/react";
+import { Calendar, Ticket, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin, Gear, SignOut as SignOutIcon } from "@phosphor-icons/react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const Section = styled.div`margin-bottom: 24px;`;
 const SectionTitle = styled.h3`
@@ -32,6 +33,7 @@ const StatCard = styled(Card)`
 const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "11px", fontWeight: 600, marginBottom: "2px" };
 
 export function ProfileEdit() {
+  const router = useRouter();
   const { data: profile, isLoading } = useMyProfile();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
   const { update } = useSession();
@@ -312,6 +314,16 @@ export function ProfileEdit() {
             <p>No activity yet. Create or join an event to get started!</p>
           </div>
         )}
+
+        {/* Settings & Sign Out */}
+        <div style={{ marginTop: "32px", display: "flex", flexDirection: "column", gap: "8px" }}>
+          <Button variant="secondary" fullWidth onClick={() => router.push("/settings")}>
+            <Gear size={16} /> Settings
+          </Button>
+          <Button variant="ghost" fullWidth onClick={() => signOut({ callbackUrl: "/login" })} style={{ color: "#ef4444" }}>
+            <SignOutIcon size={16} /> Sign Out
+          </Button>
+        </div>
       </div>
     </div>
   );

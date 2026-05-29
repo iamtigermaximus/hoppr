@@ -130,7 +130,7 @@ export function BottomNav() {
   return (
     <Nav>
       <SidebarLogo href="/">
-        <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={40} height={40} />
+        <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={56} height={56} />
       </SidebarLogo>
 
       {tabs.map(({ href, label, icon: Icon, isFab }) => {
