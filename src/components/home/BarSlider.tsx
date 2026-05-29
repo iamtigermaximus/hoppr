@@ -48,7 +48,7 @@ export function BarSlider() {
 
   return (
     <div style={{ marginBottom: "18px", padding: "0 16px" }}>
-      <SectionHeader title="Bars near you" onSeeAll={() => window.location.href = "/discover"} />
+      <SectionHeader title="Bars near you" onSeeAll={() => window.location.href = "/bars"} />
       <Slider>
         {venues.slice(0, 8).map((venue: any) => (
           <BarCard key={venue.id} onClick={() => window.location.href = `/venues/${venue.id}`}>
