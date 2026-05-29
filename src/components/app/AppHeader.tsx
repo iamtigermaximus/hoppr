@@ -110,7 +110,8 @@ export function AppHeader() {
           <Image
             src="/hoppr-neon-nobg.png"
             alt="Hoppr"
-            width={100} height={100}
+            width={150}
+            height={80}
             priority
           />
         </Logo>

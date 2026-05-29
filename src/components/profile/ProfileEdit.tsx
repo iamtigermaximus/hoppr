@@ -32,11 +32,14 @@ const StatCard = styled(Card)`
 
 const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "11px", fontWeight: 600, marginBottom: "2px" };
 
+const SHOW_INITIAL = 3;
+
 export function ProfileEdit() {
   const router = useRouter();
   const { data: profile, isLoading } = useMyProfile();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
   const { update } = useSession();
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { data: history } = useQuery({
     queryKey: ["profile", "history"],
     queryFn: () => fetch("/api/users/me/history").then(r => r.json()),
@@ -248,65 +251,101 @@ export function ProfileEdit() {
       <div style={{ marginTop: "32px" }}>
         <h2 style={{ fontWeight: 700, fontSize: "18px", color: "#fff", marginBottom: "16px" }}>Activity History</h2>
 
-        {eventsCreated.length > 0 && (
-          <Section>
-            <SectionTitle><Calendar size={16} color="#7c3aed" /> Events Created ({eventsCreated.length})</SectionTitle>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {eventsCreated.map((e: any) => (
-                <StatCard key={e.id} onClick={() => window.location.href = `/events/${e.id}`}>
-                  <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #7c3aed, #5b21b6)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Calendar size={18} color="#fff" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
-                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · {e.participants?.length || 0} joined</div>
-                  </div>
-                  <Badge $type="event">CREATED</Badge>
-                </StatCard>
-              ))}
-            </div>
-          </Section>
-        )}
+        {eventsCreated.length > 0 && (() => {
+          const key = "created";
+          const isOpen = expanded.has(key);
+          const visible = isOpen ? eventsCreated : eventsCreated.slice(0, SHOW_INITIAL);
+          const hasMore = eventsCreated.length > SHOW_INITIAL;
+          return (
+            <Section>
+              <SectionTitle><Calendar size={16} color="#7c3aed" /> Events Created ({eventsCreated.length})</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {visible.map((e: any) => (
+                  <StatCard key={e.id} onClick={() => window.location.href = `/events/${e.id}`}>
+                    <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #7c3aed, #5b21b6)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Calendar size={18} color="#fff" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
+                      <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · {e.participants?.length || 0} joined</div>
+                    </div>
+                    <Badge $type="event">CREATED</Badge>
+                  </StatCard>
+                ))}
+              </div>
+              {hasMore && (
+                <button onClick={() => setExpanded(prev => { const s = new Set(prev); isOpen ? s.delete(key) : s.add(key); return s; })}
+                  style={{ display: "block", width: "100%", padding: "8px 0", color: "#7c3aed", fontSize: "12px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textAlign: "center" }}>
+                  {isOpen ? "Show less ▲" : `Show all ${eventsCreated.length} ▼`}
+                </button>
+              )}
+            </Section>
+          );
+        })()}
 
-        {eventsJoined.length > 0 && (
-          <Section>
-            <SectionTitle><Calendar size={16} color="#3b82f6" /> Events Joined ({eventsJoined.length})</SectionTitle>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {eventsJoined.map((e: any) => (
-                <StatCard key={e.id} onClick={() => window.location.href = `/events/${e.id}`}>
-                  <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Calendar size={18} color="#fff" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
-                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · by {e.creator?.username || "Unknown"}</div>
-                  </div>
-                  <Badge $type="event">JOINED</Badge>
-                </StatCard>
-              ))}
-            </div>
-          </Section>
-        )}
+        {eventsJoined.length > 0 && (() => {
+          const key = "joined";
+          const isOpen = expanded.has(key);
+          const visible = isOpen ? eventsJoined : eventsJoined.slice(0, SHOW_INITIAL);
+          const hasMore = eventsJoined.length > SHOW_INITIAL;
+          return (
+            <Section>
+              <SectionTitle><Calendar size={16} color="#3b82f6" /> Events Joined ({eventsJoined.length})</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {visible.map((e: any) => (
+                  <StatCard key={e.id} onClick={() => window.location.href = `/events/${e.id}`}>
+                    <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Calendar size={18} color="#fff" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
+                      <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · by {e.creator?.username || "Unknown"}</div>
+                    </div>
+                    <Badge $type="event">JOINED</Badge>
+                  </StatCard>
+                ))}
+              </div>
+              {hasMore && (
+                <button onClick={() => setExpanded(prev => { const s = new Set(prev); isOpen ? s.delete(key) : s.add(key); return s; })}
+                  style={{ display: "block", width: "100%", padding: "8px 0", color: "#7c3aed", fontSize: "12px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textAlign: "center" }}>
+                  {isOpen ? "Show less ▲" : `Show all ${eventsJoined.length} ▼`}
+                </button>
+              )}
+            </Section>
+          );
+        })()}
 
-        {passes.length > 0 && (
-          <Section>
-            <SectionTitle><Ticket size={16} color="#f59e0b" /> Passes Purchased ({passes.length})</SectionTitle>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {passes.map((p: any) => (
-                <StatCard key={p.id}>
-                  <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Ticket size={18} color="#fff" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{p.passTitle}</div>
-                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{p.venueName} · €{p.price} · {p.redeemedAt ? "Used" : "Active"}</div>
-                  </div>
-                  <Badge $type={p.redeemedAt ? "promo" : "pass"}>{p.redeemedAt ? "USED" : "ACTIVE"}</Badge>
-                </StatCard>
-              ))}
-            </div>
-          </Section>
-        )}
+        {passes.length > 0 && (() => {
+          const key = "passes";
+          const isOpen = expanded.has(key);
+          const visible = isOpen ? passes : passes.slice(0, SHOW_INITIAL);
+          const hasMore = passes.length > SHOW_INITIAL;
+          return (
+            <Section>
+              <SectionTitle><Ticket size={16} color="#f59e0b" /> Passes Purchased ({passes.length})</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {visible.map((p: any) => (
+                  <StatCard key={p.id}>
+                    <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Ticket size={18} color="#fff" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{p.passTitle}</div>
+                      <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{p.venueName} · €{p.price} · {p.redeemedAt ? "Used" : "Active"}</div>
+                    </div>
+                    <Badge $type={p.redeemedAt ? "promo" : "pass"}>{p.redeemedAt ? "USED" : "ACTIVE"}</Badge>
+                  </StatCard>
+                ))}
+              </div>
+              {hasMore && (
+                <button onClick={() => setExpanded(prev => { const s = new Set(prev); isOpen ? s.delete(key) : s.add(key); return s; })}
+                  style={{ display: "block", width: "100%", padding: "8px 0", color: "#7c3aed", fontSize: "12px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textAlign: "center" }}>
+                  {isOpen ? "Show less ▲" : `Show all ${passes.length} ▼`}
+                </button>
+              )}
+            </Section>
+          );
+        })()}
 
         {!eventsCreated.length && !eventsJoined.length && !passes.length && (
           <div style={{ textAlign: "center", padding: "32px 16px", color: "#737373", fontSize: "14px" }}>

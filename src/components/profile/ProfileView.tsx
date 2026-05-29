@@ -24,6 +24,8 @@ export function ProfileView({ id }: { id: string }) {
 
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState("");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const LIMIT = 3;
 
   if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
   if (!profile || profile.error) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>User not found</div>;
@@ -155,36 +157,60 @@ export function ProfileView({ id }: { id: string }) {
       )}
 
       {/* Events Created */}
-      {created.length > 0 && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Created</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            {created.map((event: any) => (
-              <Card key={event.id} $accent="#3b82f644" onClick={() => window.location.href = `/events/${event.id}`}>
-                <Badge $type="event">EVENT</Badge>
-                <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
-                <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
-              </Card>
-            ))}
+      {created.length > 0 && (() => {
+        const key = "created";
+        const isOpen = expanded.has(key);
+        const visible = isOpen ? created : created.slice(0, LIMIT);
+        const hasMore = created.length > LIMIT;
+        return (
+          <div style={{ marginBottom: "20px" }}>
+            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Created ({created.length})</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {visible.map((event: any) => (
+                <Card key={event.id} $accent="#3b82f644" onClick={() => window.location.href = `/events/${event.id}`}>
+                  <Badge $type="event">EVENT</Badge>
+                  <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
+                  <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
+                </Card>
+              ))}
+            </div>
+            {hasMore && (
+              <button onClick={() => setExpanded(prev => { const s = new Set(prev); isOpen ? s.delete(key) : s.add(key); return s; })}
+                style={{ width: "100%", padding: "8px 0", color: "#7c3aed", fontSize: "12px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textAlign: "center" }}>
+                {isOpen ? "Show less ▲" : `Show all ${created.length} ▼`}
+              </button>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Events Joined */}
-      {joined.length > 0 && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Joined</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            {joined.map((event: any) => (
-              <Card key={event.id} onClick={() => window.location.href = `/events/${event.id}`}>
-                <Badge $type="event">EVENT</Badge>
-                <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
-                <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
-              </Card>
-            ))}
+      {joined.length > 0 && (() => {
+        const key = "joined";
+        const isOpen = expanded.has(key);
+        const visible = isOpen ? joined : joined.slice(0, LIMIT);
+        const hasMore = joined.length > LIMIT;
+        return (
+          <div style={{ marginBottom: "20px" }}>
+            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Events Joined ({joined.length})</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {visible.map((event: any) => (
+                <Card key={event.id} onClick={() => window.location.href = `/events/${event.id}`}>
+                  <Badge $type="event">EVENT</Badge>
+                  <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{event.title}</div>
+                  <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{event.venueName} · {formatEventTime(new Date(event.startTime))}</div>
+                </Card>
+              ))}
+            </div>
+            {hasMore && (
+              <button onClick={() => setExpanded(prev => { const s = new Set(prev); isOpen ? s.delete(key) : s.add(key); return s; })}
+                style={{ width: "100%", padding: "8px 0", color: "#7c3aed", fontSize: "12px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textAlign: "center" }}>
+                {isOpen ? "Show less ▲" : `Show all ${joined.length} ▼`}
+              </button>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {!created.length && !joined.length && (
         <div style={{ textAlign: "center", padding: "24px", color: "#737373", fontSize: "13px" }}>
