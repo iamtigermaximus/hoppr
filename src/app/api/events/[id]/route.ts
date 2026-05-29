@@ -11,6 +11,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       participants: {
         include: { user: { select: { id: true, username: true, avatarUrl: true } } },
       },
+      chatRoom: { select: { id: true } },
     },
   });
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });

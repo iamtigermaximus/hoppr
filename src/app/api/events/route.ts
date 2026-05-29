@@ -11,7 +11,10 @@ export async function GET(req: Request) {
   const where: any = { startTime: { gte: new Date() } };
   if (creatorId) where.creatorId = creatorId;
   if (userId) {
-    where.participants = { some: { userId } };
+    where.OR = [
+      { participants: { some: { userId } } },
+      { creatorId: userId },
+    ];
   }
 
   const events = await prisma.event.findMany({
