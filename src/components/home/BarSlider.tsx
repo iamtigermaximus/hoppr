@@ -7,32 +7,41 @@ import { House, Star } from "@phosphor-icons/react";
 
 const Slider = styled.div`
   display: flex; gap: 10px;
-  overflow-x: auto;
-  padding: 0 16px;
+  overflow-x: auto; padding: 0;
 
   @media (min-width: 768px) {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     overflow-x: visible;
-    padding: 0;
   }
 `;
 
 const BarCard = styled.div`
-  min-width: 130px;
-  background: #1a1a1a;
-  border: 1px solid #262626;
-  border-radius: 14px;
-  padding: 14px 12px;
-  text-align: center;
-  cursor: pointer;
-  position: relative;
+  min-width: 160px; width: 160px;
+  background: #1a1a1a; border: 1px solid #262626;
+  border-radius: 16px; overflow: hidden;
+  cursor: pointer; position: relative;
   transition: border-color 0.15s;
   &:hover { border-color: #7c3aed44; }
 
   @media (min-width: 768px) {
-    min-width: unset;
+    min-width: unset; width: auto;
   }
+`;
+
+const CardImage = styled.div`
+  height: 120px; width: 100%; position: relative; overflow: hidden; background: #262626;
+  img { width: 100%; height: 100%; object-fit: cover; }
+`;
+
+const CardPlaceholder = styled.div`
+  height: 100px; width: 100%;
+  background: linear-gradient(135deg, #1a0533, #2d1060);
+  display: flex; align-items: center; justify-content: center;
+`;
+
+const CardBody = styled.div`
+  padding: 10px 12px 12px;
 `;
 
 const ratings: Record<string, number> = {
@@ -52,24 +61,36 @@ export function BarSlider() {
       <Slider>
         {venues.slice(0, 8).map((venue: any) => (
           <BarCard key={venue.id} onClick={() => window.location.href = `/venues/${venue.id}`}>
-            {liveBars.has(venue.id) && (
-              <div style={{ position: "absolute", top: "8px", right: "8px", width: "6px", height: "6px", background: "#10b981", borderRadius: "50%" }} />
-            )}
             {venue.imageUrl ? (
-              <div style={{ width: "60px", height: "60px", borderRadius: "14px", margin: "0 auto", overflow: "hidden" }}>
-                <img src={venue.imageUrl} alt={venue.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </div>
+              <CardImage>
+                <img src={venue.imageUrl} alt={venue.name} />
+                <div style={{ position: "absolute", top: "6px", left: "6px", background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", padding: "2px 6px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                  <Star size={9} weight="fill" color="#f59e0b" />
+                  <span style={{ color: "#fff", fontSize: "10px", fontWeight: 600 }}>{ratings[venue.id] || 4.0}</span>
+                </div>
+                {liveBars.has(venue.id) && (
+                  <div style={{ position: "absolute", top: "6px", right: "6px", width: "8px", height: "8px", background: "#10b981", borderRadius: "50%", border: "2px solid rgba(0,0,0,0.5)" }} />
+                )}
+              </CardImage>
             ) : (
-              <div style={{ width: "60px", height: "60px", background: "#262626", borderRadius: "14px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <House size={28} color="#a3a3a3" weight="regular" />
-              </div>
+              <CardPlaceholder>
+                <House size={36} color="#a78bfa" weight="fill" opacity={0.3} />
+                <div style={{ position: "absolute", top: "6px", left: "6px", background: "rgba(0,0,0,0.5)", padding: "2px 6px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                  <Star size={9} weight="fill" color="#f59e0b" />
+                  <span style={{ color: "#fff", fontSize: "10px", fontWeight: 600 }}>{ratings[venue.id] || 4.0}</span>
+                </div>
+                {liveBars.has(venue.id) && (
+                  <div style={{ position: "absolute", top: "6px", right: "6px", width: "8px", height: "8px", background: "#10b981", borderRadius: "50%", border: "2px solid rgba(0,0,0,0.5)" }} />
+                )}
+              </CardPlaceholder>
             )}
-            <div style={{ color: "#fff", fontWeight: 600, fontSize: "12px", marginTop: "8px" }}>{venue.name}</div>
-            <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>{venue.type.replace(/_/g, " ")} · {venue.distance ? formatDistance(venue.distance) : "Nearby"}</div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "2px", marginTop: "4px" }}>
-              <Star size={10} weight="fill" color="#f59e0b" />
-              <span style={{ color: "#737373", fontSize: "10px" }}>{ratings[venue.id] || 4.0}</span>
-            </div>
+
+            <CardBody>
+              <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{venue.name}</div>
+              <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>
+                {venue.type?.replace(/_/g, " ")} · {venue.distance ? formatDistance(venue.distance) : "Nearby"}
+              </div>
+            </CardBody>
           </BarCard>
         ))}
       </Slider>
