@@ -75,10 +75,7 @@ export function AppHeader() {
     <Header>
       <Link href="/" style={{ textDecoration: "none" }}>
         <Logo>
-          <LogoIcon>
-            <BeerBottle size={18} color="#fff" weight="fill" />
-          </LogoIcon>
-          <LogoText>hoppr</LogoText>
+          <img src="/hoppr-neon-nobg.png" alt="Hoppr" style={{ height: "28px", width: "auto" }} />
         </Logo>
       </Link>
       <Actions>
