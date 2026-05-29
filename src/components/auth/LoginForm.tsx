@@ -16,7 +16,7 @@ export function LoginForm() {
     e.preventDefault(); setLoading(true); setError("");
     const res = await signIn("credentials", { email, password, redirect: false });
     if (res?.error) { setError("Invalid email or password"); setLoading(false); }
-    else router.push("/");
+    else router.push("/home");
   };
 
   return (
@@ -25,7 +25,7 @@ export function LoginForm() {
       <Input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       {error && <p style={{ color: "#ef4444", fontSize: "12px", textAlign: "center" }}>{error}</p>}
       <Button type="submit" fullWidth disabled={loading}>{loading ? "Signing in..." : "Sign In"}</Button>
-      <Button type="button" variant="secondary" fullWidth onClick={() => signIn("google", { callbackUrl: "/" })}>
+      <Button type="button" variant="secondary" fullWidth onClick={() => signIn("google", { callbackUrl: "/home" })}>
         Continue with Google
       </Button>
     </form>

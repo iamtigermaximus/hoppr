@@ -117,7 +117,7 @@ export function EventDetail({ id }: { id: string }) {
             </Button>
             <Button size="lg" variant="ghost" fullWidth style={{ marginTop: "8px", color: "#ef4444" }} onClick={() => {
               if (confirm("Delete this event? This cannot be undone.")) {
-                fetch(`/api/events/${id}`, { method: "DELETE" }).then(() => router.push("/"));
+                fetch(`/api/events/${id}`, { method: "DELETE" }).then(() => router.push("/home"));
               }
             }}>
               Delete Event

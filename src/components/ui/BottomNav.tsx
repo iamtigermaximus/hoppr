@@ -99,7 +99,7 @@ const FAB = styled(Link)`
 `;
 
 const tabs = [
-  { href: "/", label: "Home", icon: House },
+  { href: "/home", label: "Home", icon: House },
   { href: "/discover", label: "Discover", icon: MagnifyingGlass },
   { href: "/events/create", label: "Create", icon: Plus, isFab: true },
   { href: "/chat", label: "Chat", icon: ChatCircle },
@@ -134,7 +134,7 @@ export function BottomNav() {
       </SidebarLogo>
 
       {tabs.map(({ href, label, icon: Icon, isFab }) => {
-        const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+        const active = pathname === href || (href !== "/" && href !== "/home" && pathname.startsWith(href));
         if (isFab) {
           return <FAB key={href} href={href}><Plus size={24} weight="bold" color="#fff" /></FAB>;
         }

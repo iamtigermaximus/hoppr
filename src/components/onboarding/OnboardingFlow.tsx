@@ -47,10 +47,10 @@ export function OnboardingFlow() {
           </Chip>
         ))}
       </div>
-      <Button size="lg" fullWidth onClick={() => router.push("/")}>
+      <Button size="lg" fullWidth onClick={() => router.push("/home")}>
         Done — Show me the feed
       </Button>
-      <Button variant="ghost" onClick={() => router.push("/")}>Skip for now</Button>
+      <Button variant="ghost" onClick={() => router.push("/home")}>Skip for now</Button>
     </div>
   );
 }
