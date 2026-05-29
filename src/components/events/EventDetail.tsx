@@ -109,6 +109,21 @@ export function EventDetail({ id }: { id: string }) {
             Open Chat
           </Button>
         )}
+
+        {isCreator && (
+          <>
+            <Button size="lg" variant="secondary" fullWidth style={{ marginTop: "8px" }} onClick={() => router.push(`/events/${id}/edit`)}>
+              Edit Event
+            </Button>
+            <Button size="lg" variant="ghost" fullWidth style={{ marginTop: "8px", color: "#ef4444" }} onClick={() => {
+              if (confirm("Delete this event? This cannot be undone.")) {
+                fetch(`/api/events/${id}`, { method: "DELETE" }).then(() => router.push("/"));
+              }
+            }}>
+              Delete Event
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
