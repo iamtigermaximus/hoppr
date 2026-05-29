@@ -129,7 +129,7 @@ export function BottomNav() {
       {/* Desktop: Logo */}
       <NavLeft>
         <Link href="/home" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={90} height={32} style={{ objectFit: "contain" }} />
+          <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={140} height={48} style={{ objectFit: "contain" }} />
         </Link>
       </NavLeft>
 
