@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hoppr — Discover. Crawl. Connect.
+
+Finland's drinking establishments, unified. A mobile-first web app for discovering bars, events, promotions, and VIP passes.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router), React 19, TypeScript
+- **Database:** PostgreSQL (Neon) + Prisma 6 ORM
+- **Auth:** NextAuth.js v4 (email/password + Google OAuth, JWT strategy)
+- **Styling:** Styled Components v6 (Dark & Bold theme)
+- **Real-time:** Socket.io (separate server in `socket-server/`)
+- **Data Fetching:** TanStack Query v5
+- **Icons:** Phosphor Icons
+
+## Features
+
+- **Unified Discover Feed** — Events, promotions, and VIP passes in one scroll with time filters and type-grouped sections
+- **Event Management** — Create/edit/delete events, multi-venue bar crawls, cover images, join/leave with attendee photo bubbles
+- **Real-time Chat** — Private event chat rooms via Socket.io with live indicators
+- **VIP Passes** — Browse, purchase (mock), and redeem with QR codes
+- **Venue Discovery** — 15 Helsinki venues with hours, amenities, social links, and open/closed status
+- **User Profiles** — Photo uploads, gallery, social links, interests, languages, activity history
+- **Notifications** — Real-time badge on bell icon for joins, messages, and reminders
+- **Responsive** — Mobile-first with bottom nav, desktop with sidebar
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database (Neon recommended)
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/iamtigermaximus/hoppr.git
+cd hoppr
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Copy `.env.example` to `.env` and fill in:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+DATABASE_URL="postgresql://..."
+NEXTAUTH_SECRET="generate-a-random-string"
+NEXTAUTH_URL="http://localhost:3000"
+JWT_SECRET="shared-secret-for-socket-auth"
+NEXT_PUBLIC_SOCKET_URL="http://localhost:3001"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then:
 
-## Learn More
+```bash
+npx prisma db push    # Create database tables
+npm run db:seed       # Seed with test data
+npm run dev           # Start Next.js on port 3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+In a separate terminal for chat:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev:socket    # Start Socket.io on port 3001
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+### Test Accounts (after seeding)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Email | Password | Username |
+|---|---|---|
+| emma@example.com | password123 | emma_nights |
+| mikko@example.com | password123 | mikko_beers |
+| sofia@example.com | password123 | sofia_clubs |
+| alex@example.com | password123 | alex_sports |
+| leena@example.com | password123 | leena_wine |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── (authenticated)/     # Pages with nav + header
+│   │   ├── page.tsx         # Home: trending, promos, events, bars, categories
+│   │   ├── discover/        # Unified feed with time filters
+│   │   ├── events/          # Create, detail, chat, edit
+│   │   ├── venues/          # Rich venue detail pages
+│   │   ├── promotions/      # Promotion detail pages
+│   │   ├── passes/          # Marketplace, wallet, QR codes
+│   │   ├── bars/            # All bars with search + filters
+│   │   ├── chat/            # Chat list
+│   │   ├── profile/         # Own + public profiles
+│   │   ├── notifications/   # Notification center
+│   │   └── settings/        # Settings + sign out
+│   ├── login/ register/ onboarding/
+│   └── api/                 # REST + Socket.io routes
+├── components/
+│   ├── ui/                  # Design system primitives
+│   ├── feed/ home/ events/ chat/ venues/ passes/ profile/ auth/
+│   └── contexts/            # Auth, Theme, Socket, Query, Location
+├── hooks/                   # Data fetching hooks
+├── lib/                     # Prisma, auth, theme, utils, mocks
+└── types/                   # TypeScript types
+```
+
+## Scripts
+
+| Script | Description |
+|---|---|
+| `npm run dev` | Next.js development server |
+| `npm run build` | Production build |
+| `npm run dev:socket` | Socket.io server for real-time chat |
+| `npm run db:push` | Push Prisma schema to database |
+| `npm run db:seed` | Seed database with test data |
+| `npm run db:studio` | Open Prisma Studio |
+
+## Environment Variables
+
+See `.env.example` for the full list. Required:
+- `DATABASE_URL` — PostgreSQL connection string
+- `NEXTAUTH_SECRET` — Session encryption key
+- `JWT_SECRET` — Shared secret for Socket.io auth
+- `NEXT_PUBLIC_SOCKET_URL` — Socket.io server URL
