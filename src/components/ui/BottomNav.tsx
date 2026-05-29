@@ -187,8 +187,11 @@ export function BottomNav() {
 
       {/* Mobile: Bottom nav items */}
       <MobileOnly>
-        {tabs.map(({ href, label, icon: Icon }) => {
+        {tabs.map(({ href, label, icon: Icon, isFab }) => {
           const active = pathname === href || (href !== "/" && href !== "/home" && pathname.startsWith(href));
+          if (isFab) {
+            return <FAB key={href} href={href}><Plus size={24} weight="bold" color="#fff" /></FAB>;
+          }
           return (
             <NavItem key={href} href={href} $active={active}>
               <Icon size={24} weight={active ? "bold" : "regular"} />
@@ -196,7 +199,6 @@ export function BottomNav() {
             </NavItem>
           );
         })}
-        <FAB href="/events/create"><Plus size={24} weight="bold" color="#fff" /></FAB>
       </MobileOnly>
     </Nav>
   );
