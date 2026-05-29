@@ -2,7 +2,8 @@
 import styled from "styled-components";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, MagnifyingGlass, Plus, ChatCircle, User, BeerBottle } from "@phosphor-icons/react";
+import Image from "next/image";
+import { House, MagnifyingGlass, Plus, ChatCircle, User } from "@phosphor-icons/react";
 
 const SidebarLogo = styled(Link)`
   display: none;
@@ -84,7 +85,7 @@ export function BottomNav() {
   return (
     <Nav>
       <SidebarLogo href="/">
-        <img src="/hoppr-neon-nobg.png" alt="Hoppr" style={{ height: "40px", width: "auto" }} />
+        <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={40} height={40} />
       </SidebarLogo>
       {tabs.map(({ href, label, icon: Icon, isFab }) => {
         const active = pathname === href || (href !== "/" && pathname.startsWith(href));

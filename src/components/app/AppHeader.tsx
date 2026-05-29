@@ -3,7 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import styled from "styled-components";
-import { Bell, User, Gear, SignOut, BeerBottle } from "@phosphor-icons/react";
+import Image from "next/image";
+import { Bell, User, Gear, SignOut } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useMyProfile } from "@/hooks/useProfile";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -12,7 +13,7 @@ const Header = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 8px 10px;
   background: #0a0a0a;
   border-bottom: 1px solid #262626;
   position: sticky;
@@ -106,10 +107,11 @@ export function AppHeader() {
     <Header>
       <Link href="/" style={{ textDecoration: "none" }}>
         <Logo>
-          <img
+          <Image
             src="/hoppr-neon-nobg.png"
             alt="Hoppr"
-            style={{ height: "100px", width: "100px" }}
+            width={100} height={100}
+            priority
           />
         </Logo>
       </Link>
