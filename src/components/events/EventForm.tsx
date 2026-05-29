@@ -74,6 +74,8 @@ export function EventForm() {
   const [description, setDescription] = useState("");
   const [maxAttendees, setMaxAttendees] = useState("0");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const toggleType = (key: string) => {
@@ -126,7 +128,7 @@ export function EventForm() {
         startTime: new Date(startTime).toISOString(),
         endTime: endTime ? new Date(endTime).toISOString() : undefined,
         maxAttendees: parseInt(maxAttendees) || null, isPrivate,
-        // Extra crawl stops stored for future use
+        imageUrl: imageUrl || null,
         crawlStops: selectedVenues.length > 1 ? selectedVenues.slice(1) : [],
       },
       {
@@ -227,6 +229,42 @@ export function EventForm() {
 
       <label style={labelStyle}>Description (optional, max 500 chars)</label>
       <Textarea placeholder="What's the plan?" maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} />
+
+      <label style={labelStyle}>Cover image (optional)</label>
+      {imageUrl ? (
+        <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", height: "160px", background: "#1a1a1a" }}>
+          <img src={imageUrl} alt="Event cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <button
+            type="button"
+            onClick={() => setImageUrl("")}
+            style={{ position: "absolute", top: "8px", right: "8px", width: "28px", height: "28px", borderRadius: "50%", background: "rgba(0,0,0,0.7)", border: "none", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}
+          >✕</button>
+        </div>
+      ) : (
+        <>
+          <input
+            type="file" accept="image/*"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setUploading(true);
+              const fd = new FormData();
+              fd.append("file", file);
+              const res = await fetch("/api/upload", { method: "POST", body: fd });
+              if (res.ok) {
+                const data = await res.json();
+                setImageUrl(data.url);
+              }
+              setUploading(false);
+            }}
+            style={{ display: "none" }}
+            id="event-image-upload"
+          />
+          <Button type="button" variant="secondary" size="sm" fullWidth onClick={() => document.getElementById("event-image-upload")?.click()} disabled={uploading}>
+            {uploading ? "Uploading..." : "📷 Upload a cover photo"}
+          </Button>
+        </>
+      )}
 
       <label style={labelStyle}>Max attendees (0 = unlimited)</label>
       <Input type="number" min="0" value={maxAttendees} onChange={(e) => setMaxAttendees(e.target.value)} />

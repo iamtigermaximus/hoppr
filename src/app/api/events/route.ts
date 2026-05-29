@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { title, description, venueId, venueName, venueType, startTime, endTime, maxAttendees, isPrivate } = body;
+  const { title, description, venueId, venueName, venueType, startTime, endTime, maxAttendees, isPrivate, imageUrl } = body;
 
   if (!title || !venueId || !venueName || !startTime) {
     return NextResponse.json({ error: "Missing required fields: title, venueId, venueName, startTime" }, { status: 400 });
@@ -55,6 +55,7 @@ export async function POST(req: Request) {
       endTime: endTime ? new Date(endTime) : null,
       maxAttendees: maxAttendees || null,
       isPrivate: isPrivate || false,
+      imageUrl: imageUrl || null,
       creatorId,
       // Auto-join the creator as a participant
       participants: {

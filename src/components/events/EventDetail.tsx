@@ -39,6 +39,13 @@ export function EventDetail({ id }: { id: string }) {
       }}>
         ← Back
       </button>
+
+      {event.imageUrl && (
+        <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: "#1a1a1a" }}>
+          <img src={event.imageUrl} alt={event.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      )}
+
       <h1 style={{ fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "8px" }}>{event.title}</h1>
 
       <div style={{ color: "#a3a3a3", fontSize: "13px", marginBottom: "16px", lineHeight: 1.6 }}>
