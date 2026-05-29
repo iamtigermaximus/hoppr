@@ -57,7 +57,7 @@ const Nav = styled.nav`
 
   @media (min-width: 768px) {
     top: 0; bottom: 0; left: 0; right: auto;
-    width: 72px;
+    width: 80px;
     flex-direction: column;
     justify-content: center;
     gap: 24px;
@@ -130,7 +130,7 @@ export function BottomNav() {
   return (
     <Nav>
       <SidebarLogo href="/">
-        <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={56} height={56} />
+        <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={60} height={60} />
       </SidebarLogo>
 
       {tabs.map(({ href, label, icon: Icon, isFab }) => {

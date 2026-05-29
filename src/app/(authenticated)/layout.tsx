@@ -14,13 +14,13 @@ const Main = styled.main`
   @media (min-width: 768px) {
     max-width: 960px;
     padding-bottom: 20px;
-    padding-left: 88px;
+    padding-left: 96px;
     padding-right: 16px;
   }
 
   @media (min-width: 1024px) {
     max-width: 1024px;
-    padding-left: 88px;
+    padding-left: 96px;
     padding-right: 24px;
   }
 `;
