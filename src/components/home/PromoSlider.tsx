@@ -21,7 +21,7 @@ const Slider = styled.div`
   }
 `;
 
-const PromoCard = styled.div`
+const PromoCard = styled.div<{ $imageUrl?: string }>`
   min-width: 270px;
   border-radius: 16px;
   padding: 18px;
@@ -29,6 +29,20 @@ const PromoCard = styled.div`
   scroll-snap-align: start;
   cursor: pointer;
   position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  ${({ $imageUrl }) => $imageUrl && `
+    background-image: url(${$imageUrl});
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      border-radius: 16px;
+      z-index: 0;
+    }
+  `}
   @media (min-width: 768px) { min-width: unset; }
 `;
 
@@ -46,18 +60,21 @@ export function PromoSlider() {
         {promos.map((promo: any) => (
           <PromoCard
             key={promo.id}
+            $imageUrl={promo.imageUrl}
             onClick={() => window.location.href = `/venues/${promo.venueId}`}
-            style={{ background: `linear-gradient(135deg, ${promo.accentColor || "#1a0533"}, ${promo.accentColor ? promo.accentColor + "cc" : "#2d1060"})` }}
+            style={{ background: promo.imageUrl ? undefined : `linear-gradient(135deg, ${promo.accentColor || "#1a0533"}, ${promo.accentColor ? promo.accentColor + "cc" : "#2d1060"})` }}
           >
-            <Badge $type="promo">PROMO</Badge>
-            <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px", marginTop: "8px" }}>{promo.title}</div>
-            <div style={{ color: "#a3a3a3", fontSize: "11px", marginTop: "4px" }}>
-              {promo.venueName} · {formatEventTime(new Date(promo.validFrom))}
-            </div>
-            <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
-              <span style={{ background: "rgba(255,255,255,0.08)", color: "#a3a3a3", fontSize: "9px", padding: "2px 8px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                <MapPin size={10} /> {formatDistance(promo.distance)}
-              </span>
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <Badge $type="promo">PROMO</Badge>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px", marginTop: "8px" }}>{promo.title}</div>
+              <div style={{ color: "#a3a3a3", fontSize: "11px", marginTop: "4px" }}>
+                {promo.venueName} · {formatEventTime(new Date(promo.validFrom))}
+              </div>
+              <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
+                <span style={{ background: "rgba(255,255,255,0.08)", color: "#a3a3a3", fontSize: "9px", padding: "2px 8px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                  <MapPin size={10} /> {formatDistance(promo.distance)}
+                </span>
+              </div>
             </div>
           </PromoCard>
         ))}

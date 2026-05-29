@@ -59,9 +59,15 @@ export default function PassDetailPage() {
       </button>
 
       <Hero>
-        <div style={{ width: "64px", height: "64px", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-          <Ticket size={32} color="#fff" weight="fill" />
-        </div>
+        {pass.imageUrl ? (
+          <div style={{ width: "64px", height: "64px", borderRadius: "18px", overflow: "hidden", margin: "0 auto 12px" }}>
+            <img src={pass.imageUrl} alt={pass.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        ) : (
+          <div style={{ width: "64px", height: "64px", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: "18px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+            <Ticket size={32} color="#fff" weight="fill" />
+          </div>
+        )}
         <div style={{ display: "flex", gap: "6px", justifyContent: "center", marginBottom: "8px" }}>
           <Badge $type="pass">VIP PASS</Badge>
           {savingsPercent > 0 && <Badge $type="featured">SAVE {savingsPercent}%</Badge>}

@@ -38,6 +38,7 @@ export type FeedItem =
       originalPrice?: number;
       validUntil: string;
       distance: number;
+      imageUrl?: string;
     };
 
 export type TimeFilter = "now" | "today" | "tomorrow" | "afternoon" | "evening" | "night";

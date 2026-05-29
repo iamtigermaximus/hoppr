@@ -8,7 +8,21 @@ import { formatDistance, formatEventTime } from "@/lib/utils";
 import { MapPin, Clock, Calendar, ArrowLeft, NavigationArrow, Fire } from "@phosphor-icons/react";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
-const Hero = styled.div`border-radius: 20px; overflow: hidden; height: 220px; position: relative; margin-bottom: 20px;`;
+const Hero = styled.div<{ $imageUrl?: string }>`
+  border-radius: 20px; overflow: hidden; height: 220px; position: relative; margin-bottom: 20px;
+  ${({ $imageUrl }) => $imageUrl && `
+    background-image: url(${$imageUrl});
+    background-size: cover;
+    background-position: center;
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      border-radius: 20px;
+    }
+  `}
+`;
 const Content = styled.div`padding: 0 4px;`;
 
 const InfoCard = styled.div`
@@ -43,8 +57,8 @@ export default function PromotionDetailPage() {
         <ArrowLeft size={16} /> Back
       </button>
 
-      <Hero style={{ background: `linear-gradient(135deg, ${promo.accentColor || "#1a0533"}, ${promo.accentColor ? promo.accentColor + "88" : "#0a0a0a"})` }}>
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px", background: "linear-gradient(transparent, rgba(0,0,0,0.9))" }}>
+      <Hero $imageUrl={promo.imageUrl} style={{ background: promo.imageUrl ? undefined : `linear-gradient(135deg, ${promo.accentColor || "#1a0533"}, ${promo.accentColor ? promo.accentColor + "88" : "#0a0a0a"})` }}>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px", background: promo.imageUrl ? "linear-gradient(transparent, rgba(0,0,0,0.9))" : "linear-gradient(transparent, rgba(0,0,0,0.9))", zIndex: 1 }}>
           <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
             <Badge $type="featured">PROMOTION</Badge>
             {isActive && <Badge $type="promo">ACTIVE</Badge>}

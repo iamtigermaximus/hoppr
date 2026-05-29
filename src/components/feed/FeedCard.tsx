@@ -94,13 +94,13 @@ export function FeedCard({ item }: { item: FeedItem }) {
   return (
     <CardWrapper $color={color} $type={item.type} onClick={handleClick}>
       <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-        {"image" in item && item.image ? (
+        {("image" in item && item.image) || ("imageUrl" in item && (item as any).imageUrl) ? (
           <div style={{
             minWidth: "52px", width: "52px", height: "52px",
             borderRadius: "14px", overflow: "hidden",
             background: "#262626",
           }}>
-            <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={("image" in item ? item.image : (item as any).imageUrl) as string} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         ) : (
           <IconBox $color={color} $type={item.type}>

@@ -17,7 +17,7 @@ const Carousel = styled.div`
   @media (min-width: 768px) { height: 300px; }
 `;
 
-const Slide = styled.div<{ $active: boolean }>`
+const Slide = styled.div<{ $active: boolean; $imageUrl?: string }>`
   position: absolute; inset: 0;
   transition: opacity 0.6s ease, transform 0.6s ease;
   opacity: ${({ $active }) => $active ? 1 : 0};
@@ -26,6 +26,19 @@ const Slide = styled.div<{ $active: boolean }>`
   cursor: pointer;
   padding: 28px;
   display: flex; flex-direction: column; justify-content: flex-end;
+  ${({ $imageUrl }) => $imageUrl && `
+    background-image: url(${$imageUrl});
+    background-size: cover;
+    background-position: center;
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background: linear-gradient(transparent 30%, rgba(0,0,0,0.85));
+      z-index: 0;
+    }
+  `}
 `;
 
 const Dots = styled.div`
@@ -116,19 +129,20 @@ export function TrendingCarousel() {
           <Slide
             key={`${t.type}-${t.id}`}
             $active={i === current}
+            $imageUrl={t.type === "promo" ? (t as any).imageUrl : (t as any).imageUrl}
             onClick={() => {
               if (t.type === "promo") window.location.href = `/venues/${t.venueId}`;
               else window.location.href = `/venues/${t.id}`;
             }}
             style={{
-              background: currentGradient,
+              background: (t.type === "promo" ? (t as any).imageUrl : (t as any).imageUrl) ? undefined : currentGradient,
             }}
           >
-            <div style={{ position: "absolute", top: "20px", left: "28px", display: "flex", gap: "6px" }}>
+            <div style={{ position: "absolute", top: "20px", left: "28px", display: "flex", gap: "6px", zIndex: 1 }}>
               <Badge $type={isPromo ? "promo" : "pass"}>{isPromo ? "PROMO" : "HOT VENUE"}</Badge>
             </div>
 
-            <div style={{ marginTop: "auto" }}>
+            <div style={{ marginTop: "auto", position: "relative", zIndex: 1 }}>
               <div style={{ color: "#fff", fontWeight: 800, fontSize: "22px", lineHeight: 1.2 }}>
                 {isPromo ? item.title : item.name}
               </div>

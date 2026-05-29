@@ -13,9 +13,9 @@ const Header = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* padding: 8px 10px; */
+  padding: 0px 10px;
   background: var(--color-header-bg, #0a0a0a);
-  border-bottom: 1px solid var(--color-header-border, #262626);
+  /* border-bottom: 1px solid var(--color-header-border, #262626); */
   position: sticky;
   top: 0;
   z-index: 40;
@@ -110,8 +110,8 @@ export function AppHeader() {
           <Image
             src="/hoppr-neon-nobg.png"
             alt="Hoppr"
-            width={100}
-            height={85}
+            width={80}
+            height={65}
             priority
           />
         </Logo>
