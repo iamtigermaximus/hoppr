@@ -31,10 +31,10 @@ export function ChatRoom() {
         <button onClick={() => router.back()} style={{ padding: "4px" }}>
           <CaretLeft size={24} color="#fff" />
         </button>
-        <div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => router.push(`/events/${eventId}`)}>
           <div style={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>{event?.title || "Chat"}</div>
           <div style={{ color: "#737373", fontSize: "11px" }}>
-            {event?.participants?.length || 0} participants
+            {event?.participants?.length || 0} participants · Tap for details
             {isConnected && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#10b981", fontSize: "10px", fontWeight: 600, marginLeft: "8px" }}>
                 <span style={{ width: "6px", height: "6px", background: "#10b981", borderRadius: "50%" }} />
