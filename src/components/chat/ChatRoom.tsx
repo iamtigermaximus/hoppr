@@ -26,7 +26,7 @@ export function ChatRoom() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", background: "#0a0a0a" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: "calc(100dvh - 120px)", background: "#0a0a0a" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderBottom: "1px solid #262626" }}>
         <button onClick={() => router.back()} style={{ padding: "4px" }}>
           <CaretLeft size={24} color="#fff" />
