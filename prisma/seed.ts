@@ -16,7 +16,7 @@ async function main() {
       create: {
         email: "emma@example.com", username: "emma_nights", passwordHash,
         bio: "Helsinki nightlife explorer. Love pub crawls and live music! 🍻",
-        avatarUrl: null,
+        avatarUrl: "https://i.pravatar.cc/200?u=emma"
         instagram: "@emmahelsinki", interests: ["pub crawls", "live music", "karaoke"],
         languages: ["Finnish", "English", "Swedish"],
         drinkPrefs: ["PUB", "LIVE_MUSIC", "KARAOKE_BAR"],
@@ -29,7 +29,7 @@ async function main() {
       create: {
         email: "mikko@example.com", username: "mikko_beers", passwordHash,
         bio: "Craft beer enthusiast. BrewDog regular. Always hunting for the best IPA in Finland.",
-        avatarUrl: null,
+        avatarUrl: "https://i.pravatar.cc/200?u=mikko"
         instagram: "@mikkobeers", interests: ["craft beer", "brewery tours", "beer tasting"],
         languages: ["Finnish", "English"],
         drinkPrefs: ["BREWERY_TAPROOM", "PUB"],
@@ -42,7 +42,7 @@ async function main() {
       create: {
         email: "sofia@example.com", username: "sofia_clubs", passwordHash,
         bio: "DJ and nightlife lover. You'll find me at Club X most weekends.",
-        avatarUrl: null,
+        avatarUrl: "https://i.pravatar.cc/200?u=sofia"
         instagram: "@sofiaclubs", interests: ["techno", "house music", "dancing"],
         languages: ["Finnish", "English", "Spanish"],
         drinkPrefs: ["CLUB", "COCKTAIL_LOUNGE"],
@@ -55,7 +55,7 @@ async function main() {
       create: {
         email: "alex@example.com", username: "alex_sports", passwordHash,
         bio: "Sports fanatic. Premier League every weekend at O'Malley's. Game day is sacred.",
-        avatarUrl: null,
+        avatarUrl: "https://i.pravatar.cc/200?u=alex"
         interests: ["football", "NFL", "darts"],
         languages: ["English", "Finnish"],
         drinkPrefs: ["SPORTS_BAR", "PUB"],
@@ -68,7 +68,7 @@ async function main() {
       create: {
         email: "leena@example.com", username: "leena_wine", passwordHash,
         bio: "Sommelier in training. Love discovering new wines and cozy wine bars.",
-        avatarUrl: null,
+        avatarUrl: "https://i.pravatar.cc/200?u=leena"
         instagram: "@leenawine", interests: ["wine tasting", "cheese pairing", "quiet evenings"],
         languages: ["Finnish", "English", "French", "Italian"],
         drinkPrefs: ["WINE_BAR", "COCKTAIL_LOUNGE"],

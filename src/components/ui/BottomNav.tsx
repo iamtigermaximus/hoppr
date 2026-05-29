@@ -101,6 +101,7 @@ const MenuItem = styled.button`
 const tabs = [
   { href: "/home", label: "Home", icon: House },
   { href: "/discover", label: "Discover", icon: MagnifyingGlass },
+  { href: "/events/create", label: "Create", icon: Plus, isFab: true },
   { href: "/chat", label: "Chat", icon: ChatCircle },
   { href: "/profile/me", label: "Profile", icon: User },
 ];
@@ -135,8 +136,15 @@ export function BottomNav() {
 
       {/* Desktop: Nav items */}
       <NavCenter>
-        {tabs.map(({ href, label, icon: Icon }) => {
+        {tabs.map(({ href, label, icon: Icon, isFab }) => {
           const active = pathname === href || (href !== "/" && href !== "/home" && pathname.startsWith(href));
+          if (isFab) {
+            return (
+              <FAB key={href} href={href}>
+                <Plus size={20} weight="bold" color="#fff" />
+              </FAB>
+            );
+          }
           return (
             <NavItem key={href} href={href} $active={active}>
               <Icon size={20} weight={active ? "bold" : "regular"} />
@@ -144,7 +152,6 @@ export function BottomNav() {
             </NavItem>
           );
         })}
-        <FAB href="/events/create"><Plus size={20} weight="bold" color="#fff" /></FAB>
       </NavCenter>
 
       {/* Desktop: Bell + Avatar */}
