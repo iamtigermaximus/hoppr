@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatEventTime } from "@/lib/utils";
 import { Calendar, Ticket, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin } from "@phosphor-icons/react";
+import { useSession } from "next-auth/react";
 
 const Section = styled.div`margin-bottom: 24px;`;
 const SectionTitle = styled.h3`
@@ -33,6 +34,7 @@ const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "11px", fo
 export function ProfileEdit() {
   const { data: profile, isLoading } = useMyProfile();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
+  const { update } = useSession();
   const { data: history } = useQuery({
     queryKey: ["profile", "history"],
     queryFn: () => fetch("/api/users/me/history").then(r => r.json()),
@@ -72,7 +74,13 @@ export function ProfileEdit() {
       languages: languages ? languages.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
       avatarUrl: avatarUrl || null,
       gallery,
-    }, { onSuccess: () => setSaved(true) });
+    }, {
+      onSuccess: async () => {
+        setSaved(true);
+        // Refresh the session so the header avatar updates immediately
+        await update({ image: avatarUrl || null, name: username });
+      }
+    });
   };
 
   if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;

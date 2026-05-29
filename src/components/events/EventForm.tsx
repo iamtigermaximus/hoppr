@@ -9,7 +9,7 @@ import { useCreateEvent } from "@/hooks/useEvents";
 import { useVenues } from "@/hooks/useVenues";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { formatDistance } from "@/lib/utils";
-import { MapPin, CheckCircle, House } from "@phosphor-icons/react";
+import { MapPin, CheckCircle, House, X, ArrowRight } from "@phosphor-icons/react";
 
 const VENUE_TYPES = [
   { key: "PUB", label: "Pubs" },
@@ -46,6 +46,18 @@ const Filters = styled.div`
   display: flex; gap: 6px; flex-wrap: wrap;
 `;
 
+const SelectedBar = styled.div`
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #7c3aed22; border: 1px solid #7c3aed44;
+  border-radius: 8px; padding: 6px 10px;
+  font-size: 12px; color: #fff; font-weight: 500;
+`;
+
+const RouteLine = styled.div`
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 4px;
+`;
+
 const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "12px", fontWeight: 600 };
 
 export function EventForm() {
@@ -55,7 +67,7 @@ export function EventForm() {
   const { data: venues = [] } = useVenues();
 
   const [title, setTitle] = useState("");
-  const [selectedVenue, setSelectedVenue] = useState<any>(null);
+  const [selectedVenues, setSelectedVenues] = useState<any[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -70,7 +82,19 @@ export function EventForm() {
     );
   };
 
-  // Filter venues: if categories selected, only show those types. Add distance.
+  const toggleVenue = (venue: any) => {
+    setSelectedVenues(prev => {
+      const exists = prev.find(v => v.id === venue.id);
+      if (exists) return prev.filter(v => v.id !== venue.id);
+      return [...prev, venue];
+    });
+  };
+
+  const removeVenue = (venueId: string) => {
+    setSelectedVenues(prev => prev.filter(v => v.id !== venueId));
+  };
+
+  // Filter venues
   const filteredVenues = venues
     .map((v: any) => ({
       ...v,
@@ -78,21 +102,32 @@ export function EventForm() {
     }))
     .filter((v: any) => selectedTypes.length === 0 || selectedTypes.includes(v.type))
     .sort((a: any, b: any) => a.distance - b.distance)
-    .slice(0, 8);
+    .slice(0, 10);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault(); setError("");
-    if (!title || !selectedVenue || !startTime) {
-      setError("Please fill in all required fields and select a venue"); return;
+    if (!title || selectedVenues.length === 0 || !startTime) {
+      setError("Please fill in all required fields and select at least one venue"); return;
     }
+
+    // Build crawl route: primary is first venue, route is all joined
+    const primary = selectedVenues[0];
+    const venueName = selectedVenues.length === 1
+      ? primary.name
+      : selectedVenues.map(v => v.name).join(" → ");
+    const venueType = selectedVenues.length === 1 ? primary.type : "CRAWL";
+
     createEvent(
       {
         title, description: description || undefined,
-        venueId: selectedVenue.id, venueName: selectedVenue.name,
-        venueType: selectedVenue.type,
+        venueId: primary.id,
+        venueName,
+        venueType,
         startTime: new Date(startTime).toISOString(),
         endTime: endTime ? new Date(endTime).toISOString() : undefined,
         maxAttendees: parseInt(maxAttendees) || null, isPrivate,
+        // Extra crawl stops stored for future use
+        crawlStops: selectedVenues.length > 1 ? selectedVenues.slice(1) : [],
       },
       {
         onSuccess: (data: any) => {
@@ -119,9 +154,33 @@ export function EventForm() {
         ))}
       </Filters>
 
+      {/* Selected venues route display */}
+      {selectedVenues.length > 0 && (
+        <div>
+          <div style={{ ...labelStyle, marginBottom: "6px" }}>
+            Your crawl route ({selectedVenues.length} {selectedVenues.length === 1 ? "bar" : "bars"})
+          </div>
+          <RouteLine>
+            {selectedVenues.map((v, i) => (
+              <span key={v.id} style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                <SelectedBar>
+                  {v.name}
+                  <button type="button" onClick={() => removeVenue(v.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#a3a3a3" }}>
+                    <X size={12} />
+                  </button>
+                </SelectedBar>
+                {i < selectedVenues.length - 1 && <ArrowRight size={12} color="#737373" />}
+              </span>
+            ))}
+          </RouteLine>
+        </div>
+      )}
+
       <label style={labelStyle}>
-        {selectedTypes.length > 0 ? `Nearby ${selectedTypes.map(t => VENUE_TYPES.find(vt => vt.key === t)?.label).join(" & ")}` : "Nearby venues"}
-        {selectedVenue && <span style={{ color: "#10b981", marginLeft: "8px" }}>— Selected</span>}
+        {selectedTypes.length > 0
+          ? `Nearby ${selectedTypes.map(t => VENUE_TYPES.find(vt => vt.key === t)?.label).join(" & ")}`
+          : "Nearby venues"}
+        <span style={{ color: "#737373", fontWeight: 400, marginLeft: "4px" }}>(tap to select, tap again to remove)</span>
       </label>
 
       <VenueList>
@@ -130,26 +189,34 @@ export function EventForm() {
             No venues found. Try different categories.
           </div>
         )}
-        {filteredVenues.map((venue: any) => (
-          <VenueOption
-            key={venue.id}
-            $selected={selectedVenue?.id === venue.id}
-            onClick={() => setSelectedVenue(venue)}
-          >
-            <div style={{ width: "36px", height: "36px", background: "#262626", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              {selectedVenue?.id === venue.id
-                ? <CheckCircle size={18} color="#7c3aed" weight="fill" />
-                : <House size={18} color="#737373" weight="regular" />
-              }
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{venue.name}</div>
-              <div style={{ color: "#737373", fontSize: "10px", marginTop: "1px" }}>
-                {venue.type.replace(/_/g, " ")} · {venue.district} · <MapPin size={10} style={{ display: "inline" }} /> {formatDistance(venue.distance)}
+        {filteredVenues.map((venue: any) => {
+          const isSelected = selectedVenues.some(v => v.id === venue.id);
+          return (
+            <VenueOption
+              key={venue.id}
+              $selected={isSelected}
+              onClick={() => toggleVenue(venue)}
+            >
+              <div style={{ width: "36px", height: "36px", background: isSelected ? "#7c3aed22" : "#262626", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {isSelected
+                  ? <CheckCircle size={18} color="#7c3aed" weight="fill" />
+                  : <House size={18} color="#737373" weight="regular" />
+                }
               </div>
-            </div>
-          </VenueOption>
-        ))}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{venue.name}</div>
+                <div style={{ color: "#737373", fontSize: "10px", marginTop: "1px" }}>
+                  {venue.type.replace(/_/g, " ")} · {venue.district} · <MapPin size={10} style={{ display: "inline" }} /> {formatDistance(venue.distance)}
+                </div>
+              </div>
+              {isSelected && (
+                <span style={{ color: "#7c3aed", fontSize: "10px", fontWeight: 600 }}>
+                  #{selectedVenues.findIndex(v => v.id === venue.id) + 1}
+                </span>
+              )}
+            </VenueOption>
+          );
+        })}
       </VenueList>
 
       <label style={labelStyle}>Start date & time *</label>
@@ -172,7 +239,7 @@ export function EventForm() {
 
       {error && <p style={{ color: "#ef4444", fontSize: "12px" }}>{error}</p>}
       <Button type="submit" size="lg" fullWidth disabled={isPending}>
-        {isPending ? "Creating..." : "Create Event"}
+        {isPending ? "Creating..." : `Create Event${selectedVenues.length > 1 ? ` (${selectedVenues.length} stops)` : ""}`}
       </Button>
     </form>
   );
