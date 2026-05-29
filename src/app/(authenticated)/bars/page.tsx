@@ -7,7 +7,7 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import { formatDistance } from "@/lib/utils";
-import { House, MapPin, Star, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { House, MapPin, Star, MagnifyingGlass, X, NavigationArrow, Clock } from "@phosphor-icons/react";
 
 const VENUE_TYPES = [
   { key: "PUB", label: "Pubs" },
@@ -50,6 +50,37 @@ const BarCard = styled.div`
 `;
 
 const List = styled.div`display: flex; flex-direction: column; gap: 8px;`;
+
+function isVenueOpen(hours?: Record<string, string>): boolean {
+  if (!hours) return false;
+  const now = new Date();
+  const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const today = days[now.getDay()];
+  const timeStr = hours[today];
+  if (!timeStr || timeStr === "Closed") return false;
+
+  // Parse "4 PM – 2 AM" format
+  const parts = timeStr.split("–").map(s => s.trim());
+  if (parts.length !== 2) return false;
+
+  const parseTime = (s: string): number => {
+    const match = s.match(/(\d+)(?::(\d+))?\s*(AM|PM)?/i);
+    if (!match) return -1;
+    let hour = parseInt(match[1]);
+    const min = match[2] ? parseInt(match[2]) : 0;
+    const ampm = match[3]?.toUpperCase();
+    if (ampm === "PM" && hour !== 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
+    return hour * 60 + min;
+  };
+
+  const openMin = parseTime(parts[0]);
+  let closeMin = parseTime(parts[1]);
+  if (closeMin < openMin) closeMin += 24 * 60; // next day
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  return nowMin >= openMin && nowMin < closeMin;
+}
 
 const PAGE_SIZE = 10;
 
@@ -160,13 +191,29 @@ export default function BarsPage() {
               <div style={{ color: "#a3a3a3", fontSize: "12px", marginTop: "3px" }}>
                 {venue.type?.replace(/_/g, " ")} · {venue.district}
               </div>
-              <div style={{ display: "flex", gap: "12px", marginTop: "6px" }}>
+              <div style={{ display: "flex", gap: "12px", marginTop: "6px", alignItems: "center" }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", color: "#737373", fontSize: "11px" }}>
                   <MapPin size={12} /> {venue.address?.split(",")[0]}
                 </span>
-                <span style={{ color: "#7c3aed", fontSize: "11px", fontWeight: 500 }}>
-                  {formatDistance(venue.distance)}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#7c3aed", fontSize: "11px", fontWeight: 500 }}>
+                  <NavigationArrow size={11} /> {formatDistance(venue.distance)}
                 </span>
+                {(() => {
+                  const open = isVenueOpen(venue.hours);
+                  return (
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", gap: "4px",
+                      color: open ? "#10b981" : "#ef4444",
+                      fontSize: "11px", fontWeight: 500,
+                    }}>
+                      <span style={{
+                        width: "6px", height: "6px", borderRadius: "50%",
+                        background: open ? "#10b981" : "#ef4444",
+                      }} />
+                      <Clock size={11} /> {open ? "Open now" : "Closed"}
+                    </span>
+                  );
+                })()}
               </div>
             </div>
           </BarCard>
