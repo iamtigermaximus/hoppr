@@ -26,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <ThemeProvider>
       <SocketProvider>
         <ToastProvider>
+          <AppHeader />
           <Main>{children}</Main>
           <BottomNav />
         </ToastProvider>
