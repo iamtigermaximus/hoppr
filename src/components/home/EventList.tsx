@@ -35,8 +35,12 @@ export function EventList() {
         {events.map((event: any) => (
           <Card key={event.id} onClick={() => window.location.href = `/events/${event.id}`} $accent="#3b82f644">
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <div style={{ minWidth: "48px", height: "48px", background: "linear-gradient(135deg, #7c3aed, #5b21b6)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Calendar size={20} color="#fff" />
+              <div style={{ minWidth: "52px", width: "52px", height: "52px", borderRadius: "14px", overflow: "hidden", background: event.image ? "#262626" : "linear-gradient(135deg, #7c3aed, #5b21b6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {event.image ? (
+                  <img src={event.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <Calendar size={20} color="#fff" />
+                )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>

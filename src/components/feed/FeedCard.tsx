@@ -94,9 +94,19 @@ export function FeedCard({ item }: { item: FeedItem }) {
   return (
     <CardWrapper $color={color} $type={item.type} onClick={handleClick}>
       <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-        <IconBox $color={color} $type={item.type}>
-          <IconComponent size={22} color={item.type === "promotion" ? "#fff" : color} weight={item.type === "promotion" ? "fill" : "fill"} />
-        </IconBox>
+        {"image" in item && item.image ? (
+          <div style={{
+            minWidth: "52px", width: "52px", height: "52px",
+            borderRadius: "14px", overflow: "hidden",
+            background: "#262626",
+          }}>
+            <img src={item.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        ) : (
+          <IconBox $color={color} $type={item.type}>
+            <IconComponent size={22} color={item.type === "promotion" ? "#fff" : color} weight="fill" />
+          </IconBox>
+        )}
 
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Type label + distance */}
