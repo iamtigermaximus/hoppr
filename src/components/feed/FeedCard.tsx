@@ -87,8 +87,8 @@ export function FeedCard({ item }: { item: FeedItem }) {
 
   const handleClick = () => {
     if (item.type === "event") router.push(`/events/${item.id}`);
-    else if (item.type === "promotion") router.push(`/venues/${item.venueId}`);
-    else router.push(`/passes`);
+    else if (item.type === "promotion") router.push(`/promotions/${item.id}`);
+    else router.push(`/passes/${item.id}`);
   };
 
   return (
@@ -164,7 +164,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
                     </span>
                   )}
                 </span>
-                <Button size="sm" onClick={(e) => { e.stopPropagation(); router.push("/passes"); }}>
+                <Button size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/passes/${item.id}`); }}>
                   <CurrencyCircleDollar size={12} /> Buy
                 </Button>
               </>
