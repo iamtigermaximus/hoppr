@@ -201,11 +201,14 @@ export function EventForm() {
               $selected={isSelected}
               onClick={() => toggleVenue(venue)}
             >
-              <div style={{ width: "36px", height: "36px", background: isSelected ? "#7c3aed22" : "#262626", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                {isSelected
-                  ? <CheckCircle size={18} color="#7c3aed" weight="fill" />
-                  : <House size={18} color="#737373" weight="regular" />
-                }
+              <div style={{ width: "36px", height: "36px", borderRadius: "8px", overflow: "hidden", flexShrink: 0, background: isSelected ? "#7c3aed22" : "var(--color-card-border, #262626)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {venue.imageUrl ? (
+                  <img src={venue.imageUrl} alt={venue.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : isSelected ? (
+                  <CheckCircle size={18} color="#7c3aed" weight="fill" />
+                ) : (
+                  <House size={18} color="var(--color-text-muted, #737373)" weight="regular" />
+                )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{venue.name}</div>
