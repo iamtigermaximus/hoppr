@@ -11,10 +11,11 @@ export default function HomePage() {
 
   return (
     <>
-      <div style={{ padding: "4px 16px 12px", display: "flex", alignItems: "center", gap: "6px" }}>
-        <span style={{ fontWeight: 800, fontSize: "18px", color: "#fff", letterSpacing: "-0.5px" }}>Helsinki</span>
-        <span style={{ color: "#737373", fontSize: "12px" }}>▾</span>
-        <span style={{ color: "#737373", fontSize: "12px", marginLeft: "auto" }}>{dateStr}</span>
+      <div style={{ padding: "4px 16px 12px" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+          <span style={{ fontWeight: 800, fontSize: "18px", color: "#fff", letterSpacing: "-0.5px" }}>Helsinki</span>
+          <span style={{ color: "#737373", fontSize: "12px" }}>{dateStr}</span>
+        </div>
       </div>
       <TrendingCarousel />
       <PromoSlider />
