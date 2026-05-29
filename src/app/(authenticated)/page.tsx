@@ -1,8 +1,18 @@
+"use client";
+import { HomeHeader } from "@/components/home/HomeHeader";
+import { PromoSlider } from "@/components/home/PromoSlider";
+import { EventList } from "@/components/home/EventList";
+import { BarSlider } from "@/components/home/BarSlider";
+import { CategoryGrid } from "@/components/home/CategoryGrid";
+
 export default function HomePage() {
   return (
-    <div style={{ padding: 16 }}>
-      <h1 style={{ color: "#fff", fontWeight: 800, fontSize: 20 }}>Home</h1>
-      <p style={{ color: "#737373", fontSize: 14 }}>Home page coming soon.</p>
-    </div>
+    <>
+      <HomeHeader />
+      <PromoSlider />
+      <EventList />
+      <BarSlider />
+      <CategoryGrid />
+    </>
   );
 }
