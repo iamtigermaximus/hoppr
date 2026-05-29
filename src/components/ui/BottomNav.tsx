@@ -9,6 +9,17 @@ const Nav = styled.nav`
   background: #0a0a0a; border-top: 1px solid #262626;
   padding: 8px 20px env(safe-area-inset-bottom, 8px) 20px;
   display: flex; justify-content: space-around; align-items: center;
+
+  @media (min-width: 768px) {
+    top: 0; bottom: 0; left: 0; right: auto;
+    width: 72px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    border-top: none;
+    border-right: 1px solid #262626;
+    padding: 20px 0;
+  }
 `;
 
 const NavItem = styled(Link)<{ $active: boolean }>`
@@ -31,6 +42,11 @@ const FAB = styled(Link)`
   transition: transform 0.15s, box-shadow 0.15s;
   text-decoration: none;
   &:hover { transform: scale(1.05); box-shadow: 0 6px 24px rgba(124,58,237,0.6); }
+
+  @media (min-width: 768px) {
+    margin-top: 0;
+    width: 44px; height: 44px;
+  }
 `;
 
 const tabs = [

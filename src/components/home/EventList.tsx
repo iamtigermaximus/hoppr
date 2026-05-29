@@ -1,4 +1,5 @@
 "use client";
+import styled from "styled-components";
 import { useFeed } from "@/hooks/useFeed";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -9,17 +10,28 @@ import { Card } from "@/components/ui/Card";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { Calendar, MapPin } from "@phosphor-icons/react";
 
+const List = styled.div`
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 0 16px;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0;
+  }
+`;
+
 export function EventList() {
   const { lat, lng } = useGeolocation();
   const { data: items = [] } = useFeed({ lat, lng, time: "today" });
-  const events = items.filter((i: any) => i.type === "event").slice(0, 5);
+  const events = items.filter((i: any) => i.type === "event").slice(0, 6);
 
   if (!events.length) return null;
 
   return (
-    <div style={{ marginBottom: "18px" }}>
+    <div style={{ marginBottom: "18px", padding: "0 16px" }}>
       <SectionHeader title="Events near you" onSeeAll={() => window.location.href = "/discover"} />
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "0 16px" }}>
+      <List>
         {events.map((event: any) => (
           <Card key={event.id} onClick={() => window.location.href = `/events/${event.id}`} $accent="#3b82f644">
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -46,7 +58,7 @@ export function EventList() {
             </div>
           </Card>
         ))}
-      </div>
+      </List>
     </div>
   );
 }

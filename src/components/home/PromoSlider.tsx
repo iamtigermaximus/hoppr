@@ -1,10 +1,41 @@
 "use client";
+import styled from "styled-components";
 import { useFeed } from "@/hooks/useFeed";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Badge } from "@/components/ui/Badge";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { MapPin } from "@phosphor-icons/react";
+
+const Slider = styled.div`
+  display: flex; gap: 10px;
+  overflow-x: auto;
+  padding: 0 16px;
+  scroll-snap-type: x mandatory;
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding: 0;
+  }
+`;
+
+const PromoCard = styled.div`
+  min-width: 270px;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid #333;
+  scroll-snap-align: start;
+  cursor: pointer;
+  position: relative;
+
+  @media (min-width: 768px) {
+    min-width: unset;
+    scroll-snap-align: unset;
+  }
+`;
 
 export function PromoSlider() {
   const { lat, lng } = useGeolocation();
@@ -14,18 +45,14 @@ export function PromoSlider() {
   if (!promos.length) return null;
 
   return (
-    <div style={{ marginBottom: "18px" }}>
+    <div style={{ marginBottom: "18px", padding: "0 16px" }}>
       <SectionHeader title="Promotions near you" onSeeAll={() => window.location.href = "/discover"} />
-      <div style={{ display: "flex", gap: "10px", overflowX: "auto", padding: "0 16px", scrollSnapType: "x mandatory" }}>
+      <Slider>
         {promos.map((promo: any) => (
-          <div
+          <PromoCard
             key={promo.id}
             onClick={() => window.location.href = `/venues/${promo.venueId}`}
-            style={{
-              minWidth: "270px", borderRadius: "16px", padding: "16px",
-              background: `linear-gradient(135deg, ${promo.accentColor || "#1a0533"}, ${promo.accentColor ? promo.accentColor + "cc" : "#2d1060"})`,
-              border: "1px solid #333", scrollSnapAlign: "start", cursor: "pointer", position: "relative",
-            }}
+            style={{ background: `linear-gradient(135deg, ${promo.accentColor || "#1a0533"}, ${promo.accentColor ? promo.accentColor + "cc" : "#2d1060"})` }}
           >
             <Badge $type="promo">PROMO</Badge>
             <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px", marginTop: "8px" }}>{promo.title}</div>
@@ -37,9 +64,9 @@ export function PromoSlider() {
                 <MapPin size={10} /> {formatDistance(promo.distance)}
               </span>
             </div>
-          </div>
+          </PromoCard>
         ))}
-      </div>
+      </Slider>
     </div>
   );
 }

@@ -12,7 +12,8 @@ export async function GET() {
     where: { id: userId },
     select: {
       id: true, email: true, username: true, bio: true, avatarUrl: true,
-      phoneNumber: true, drinkPrefs: true, createdAt: true,
+      phoneNumber: true, drinkPrefs: true, interests: true, languages: true,
+      instagram: true, facebook: true, twitter: true, gallery: true, createdAt: true,
     },
   });
 
@@ -25,7 +26,7 @@ export async function PUT(req: Request) {
   const userId = (session.user as any).id;
 
   const data = await req.json();
-  const allowed = ["username", "bio", "avatarUrl", "drinkPrefs", "phoneNumber"];
+  const allowed = ["username", "bio", "avatarUrl", "drinkPrefs", "interests", "languages", "instagram", "facebook", "twitter", "phoneNumber", "gallery"];
   const updateData: any = {};
   for (const key of allowed) {
     if (data[key] !== undefined) updateData[key] = data[key];

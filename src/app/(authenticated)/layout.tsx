@@ -9,8 +9,19 @@ const Main = styled.main`
   min-height: 100dvh;
   max-width: 600px;
   margin: 0 auto;
-  @media (min-width: 768px) { max-width: 960px; padding-bottom: 20px; }
-  @media (min-width: 1024px) { max-width: 960px; }
+
+  @media (min-width: 768px) {
+    max-width: 960px;
+    padding-bottom: 20px;
+    padding-left: 88px;
+    padding-right: 16px;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 1024px;
+    padding-left: 88px;
+    padding-right: 24px;
+  }
 `;
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

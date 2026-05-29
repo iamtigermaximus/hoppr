@@ -16,6 +16,12 @@ model User {
   phoneNumber    String?   @unique
   bio            String?   @db.Text
   avatarUrl      String?
+  instagram      String?
+  facebook       String?
+  twitter        String?
+  interests      String[]  @default([])
+  languages      String[]  @default([])
+  gallery        String[]  @default([])
   locationLat    Float?
   locationLng    Float?
   drinkPrefs     String[]  @default([])

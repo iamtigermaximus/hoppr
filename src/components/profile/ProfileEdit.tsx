@@ -1,43 +1,310 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import styled from "styled-components";
 import { useMyProfile, useUpdateProfile } from "@/hooks/useProfile";
+import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/ui/Avatar";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { formatEventTime } from "@/lib/utils";
+import { Calendar, Ticket, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin } from "@phosphor-icons/react";
+
+const Section = styled.div`margin-bottom: 24px;`;
+const SectionTitle = styled.h3`
+  color: #fff; font-weight: 700; font-size: 14px;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+`;
+
+const SocialRow = styled.div`
+  display: flex; gap: 10px;
+  @media (min-width: 768px) { gap: 12px; }
+`;
+
+const StatCard = styled(Card)`
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px;
+`;
+
+const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "11px", fontWeight: 600, marginBottom: "2px" };
 
 export function ProfileEdit() {
   const { data: profile, isLoading } = useMyProfile();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
+  const { data: history } = useQuery({
+    queryKey: ["profile", "history"],
+    queryFn: () => fetch("/api/users/me/history").then(r => r.json()),
+  });
+
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [twitter, setTwitter] = useState("");
+  const [interests, setInterests] = useState("");
+  const [languages, setLanguages] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [gallery, setGallery] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
 
-  if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
-
-  // Initialize state once profile loads
-  if (profile && !username && !bio) {
-    setUsername(profile.username || "");
-    setBio(profile.bio || "");
-  }
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || "");
+      setBio(profile.bio || "");
+      setInstagram(profile.instagram || "");
+      setFacebook(profile.facebook || "");
+      setTwitter(profile.twitter || "");
+      setInterests((profile.interests || []).join(", "));
+      setLanguages((profile.languages || []).join(", "));
+      setAvatarUrl(profile.avatarUrl || "");
+      setGallery(profile.gallery || []);
+    }
+  }, [profile]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfile({ username, bio: bio || null }, { onSuccess: () => setSaved(true) });
+    e.preventDefault(); setSaved(false);
+    updateProfile({
+      username, bio: bio || null,
+      instagram: instagram || null, facebook: facebook || null, twitter: twitter || null,
+      interests: interests ? interests.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+      languages: languages ? languages.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+      avatarUrl: avatarUrl || null,
+      gallery,
+    }, { onSuccess: () => setSaved(true) });
   };
 
+  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
+  if (!profile) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Failed to load profile</div>;
+
+  const eventsCreated = history?.eventsCreated || [];
+  const eventsJoined = history?.eventsJoined || [];
+  const passes = history?.passes || [];
+
   return (
-    <div style={{ padding: "24px 16px", maxWidth: "480px", margin: "0 auto" }}>
+    <div style={{ padding: "20px 16px", maxWidth: "680px", margin: "0 auto" }}>
+      <h1 style={{ fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "20px" }}>Edit Profile</h1>
+
+      {/* Avatar + Name */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px" }}>
-        <Avatar src={profile?.avatarUrl} name={profile?.username} size={80} />
+        <Avatar src={profile.avatarUrl} name={profile.username} size={88} />
+        <div style={{ color: "#fff", fontWeight: 700, fontSize: "18px", marginTop: "10px" }}>{profile.username}</div>
+        <div style={{ color: "#737373", fontSize: "12px" }}>{profile.email}</div>
       </div>
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "24px" }}>
+        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+          <div style={{ color: "#7c3aed", fontWeight: 700, fontSize: "22px" }}>{eventsCreated.length}</div>
+          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Created</div>
+        </div>
+        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+          <div style={{ color: "#3b82f6", fontWeight: 700, fontSize: "22px" }}>{eventsJoined.length}</div>
+          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Joined</div>
+        </div>
+        <div style={{ background: "#1a1a1a", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid #262626" }}>
+          <div style={{ color: "#f59e0b", fontWeight: 700, fontSize: "22px" }}>{passes.length}</div>
+          <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>Passes</div>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-        <label style={{ color: "#a3a3a3", fontSize: "12px", fontWeight: 600 }}>Username</label>
-        <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <label style={{ color: "#a3a3a3", fontSize: "12px", fontWeight: 600 }}>Bio</label>
-        <Textarea placeholder="Tell us about yourself..." value={bio} onChange={(e) => setBio(e.target.value)} maxLength={300} />
-        {saved && <p style={{ color: "#10b981", fontSize: "12px" }}>Profile updated!</p>}
+        {/* Basic Info */}
+        <Section>
+          <SectionTitle>Basic Info</SectionTitle>
+          <div style={labelStyle}>Username</div>
+          <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <div style={{ ...labelStyle, marginTop: "10px" }}>Bio</div>
+          <Textarea placeholder="Tell us about yourself..." value={bio} onChange={(e) => setBio(e.target.value)} maxLength={300} />
+        </Section>
+
+        {/* Profile Photo */}
+        <Section>
+          <SectionTitle>Profile Photo</SectionTitle>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <Avatar src={avatarUrl || undefined} name={username} size={80} />
+            <div style={{ flex: 1 }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  const res = await fetch("/api/upload", { method: "POST", body: formData });
+                  if (res.ok) {
+                    const data = await res.json();
+                    setAvatarUrl(data.url);
+                  }
+                }}
+                style={{ display: "none" }}
+                id="avatar-upload"
+              />
+              <Button type="button" variant="secondary" size="sm" fullWidth onClick={() => document.getElementById("avatar-upload")?.click()}>
+                Upload Photo
+              </Button>
+              <Input
+                placeholder="Or paste image URL..."
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                style={{ marginTop: "8px" }}
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* Social Links */}
+        <Section>
+          <SectionTitle>Social Links <span style={{ color: "#737373", fontWeight: 400, fontSize: "11px" }}>(optional)</span></SectionTitle>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ position: "relative" }}>
+              <InstagramLogo size={18} color="#737373" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
+              <Input placeholder="Instagram username" value={instagram} onChange={(e) => setInstagram(e.target.value)} style={{ paddingLeft: "42px" }} />
+            </div>
+            <div style={{ position: "relative" }}>
+              <FacebookLogo size={18} color="#737373" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
+              <Input placeholder="Facebook profile" value={facebook} onChange={(e) => setFacebook(e.target.value)} style={{ paddingLeft: "42px" }} />
+            </div>
+            <div style={{ position: "relative" }}>
+              <TwitterLogo size={18} color="#737373" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
+              <Input placeholder="Twitter / X handle" value={twitter} onChange={(e) => setTwitter(e.target.value)} style={{ paddingLeft: "42px" }} />
+            </div>
+          </div>
+        </Section>
+
+        {/* Gallery */}
+        <Section>
+          <SectionTitle>Photo Gallery <span style={{ color: "#737373", fontWeight: 400, fontSize: "11px" }}>(optional)</span></SectionTitle>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={async (e) => {
+              const files = e.target.files;
+              if (!files?.length) return;
+              for (const file of Array.from(files)) {
+                const formData = new FormData();
+                formData.append("file", file);
+                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                if (res.ok) {
+                  const data = await res.json();
+                  setGallery(prev => [...prev, data.url]);
+                }
+              }
+            }}
+            style={{ display: "none" }}
+            id="gallery-upload"
+          />
+          <Button type="button" variant="secondary" size="sm" fullWidth onClick={() => document.getElementById("gallery-upload")?.click()}>
+            Upload Photos
+          </Button>
+          {gallery.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginTop: "12px" }}>
+              {gallery.map((url, i) => (
+                <div key={i} style={{ position: "relative", aspectRatio: "1", borderRadius: "10px", overflow: "hidden", background: "#1a1a1a" }}>
+                  <img src={url} alt={`Gallery ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <button
+                    type="button"
+                    onClick={() => setGallery(prev => prev.filter((_, idx) => idx !== i))}
+                    style={{ position: "absolute", top: "4px", right: "4px", width: "24px", height: "24px", background: "rgba(0,0,0,0.7)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "12px", border: "none", cursor: "pointer" }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* Interests & Languages */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+          <div>
+            <div style={labelStyle}>Interests <span style={{ fontWeight: 400, color: "#737373" }}>(comma-separated)</span></div>
+            <Input placeholder="e.g., techno, craft beer, karaoke" value={interests} onChange={(e) => setInterests(e.target.value)} />
+          </div>
+          <div>
+            <div style={labelStyle}>Languages <span style={{ fontWeight: 400, color: "#737373" }}>(comma-separated)</span></div>
+            <Input placeholder="e.g., Finnish, English, Swedish" value={languages} onChange={(e) => setLanguages(e.target.value)} />
+          </div>
+        </div>
+
+        {saved && <p style={{ color: "#10b981", fontSize: "13px", fontWeight: 600, textAlign: "center" }}>Profile updated!</p>}
         <Button type="submit" size="lg" fullWidth disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>
       </form>
+
+      {/* Activity History */}
+      <div style={{ marginTop: "32px" }}>
+        <h2 style={{ fontWeight: 700, fontSize: "18px", color: "#fff", marginBottom: "16px" }}>Activity History</h2>
+
+        {eventsCreated.length > 0 && (
+          <Section>
+            <SectionTitle><Calendar size={16} color="#7c3aed" /> Events Created ({eventsCreated.length})</SectionTitle>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {eventsCreated.map((e: any) => (
+                <StatCard key={e.id} onClick={() => window.location.href = `/events/${e.id}`}>
+                  <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #7c3aed, #5b21b6)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Calendar size={18} color="#fff" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
+                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · {e.participants?.length || 0} joined</div>
+                  </div>
+                  <Badge $type="event">CREATED</Badge>
+                </StatCard>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {eventsJoined.length > 0 && (
+          <Section>
+            <SectionTitle><Calendar size={16} color="#3b82f6" /> Events Joined ({eventsJoined.length})</SectionTitle>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {eventsJoined.map((e: any) => (
+                <StatCard key={e.id} onClick={() => window.location.href = `/events/${e.id}`}>
+                  <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Calendar size={18} color="#fff" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{e.title}</div>
+                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{e.venueName} · {formatEventTime(new Date(e.startTime))} · by {e.creator?.username || "Unknown"}</div>
+                  </div>
+                  <Badge $type="event">JOINED</Badge>
+                </StatCard>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {passes.length > 0 && (
+          <Section>
+            <SectionTitle><Ticket size={16} color="#f59e0b" /> Passes Purchased ({passes.length})</SectionTitle>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {passes.map((p: any) => (
+                <StatCard key={p.id}>
+                  <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Ticket size={18} color="#fff" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{p.passTitle}</div>
+                    <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{p.venueName} · €{p.price} · {p.redeemedAt ? "Used" : "Active"}</div>
+                  </div>
+                  <Badge $type={p.redeemedAt ? "promo" : "pass"}>{p.redeemedAt ? "USED" : "ACTIVE"}</Badge>
+                </StatCard>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {!eventsCreated.length && !eventsJoined.length && !passes.length && (
+          <div style={{ textAlign: "center", padding: "32px 16px", color: "#737373", fontSize: "14px" }}>
+            <Calendar size={40} color="#737373" style={{ marginBottom: "10px" }} />
+            <p>No activity yet. Create or join an event to get started!</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
