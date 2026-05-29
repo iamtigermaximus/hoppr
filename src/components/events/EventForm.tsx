@@ -135,7 +135,7 @@ export function EventForm() {
         onSuccess: (data: any) => {
           if (data.id) router.push(`/events/${data.id}`);
         },
-        onError: (err: any) => setError(err?.error || "Failed to create event"),
+        onError: (err: any) => setError(err?.message || err?.error || "Failed to create event"),
       }
     );
   };

@@ -1,6 +1,13 @@
 "use client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+async function fetchOrThrow(url: string, options?: RequestInit) {
+  const res = await fetch(url, options);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
 export function useEvents(params?: Record<string, string>) {
   const query = params ? new URLSearchParams(params).toString() : "";
   return useQuery({
@@ -21,11 +28,11 @@ export function useCreateEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: any) =>
-      fetch("/api/events", {
+      fetchOrThrow("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      }).then((r) => r.json()),
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["events"] });
       qc.invalidateQueries({ queryKey: ["feed"] });
@@ -36,8 +43,7 @@ export function useCreateEvent() {
 export function useJoinEvent(eventId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () =>
-      fetch(`/api/events/${eventId}/join`, { method: "POST" }).then((r) => r.json()),
+    mutationFn: () => fetchOrThrow(`/api/events/${eventId}/join`, { method: "POST" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["event", eventId] });
       qc.invalidateQueries({ queryKey: ["events"] });
@@ -49,8 +55,7 @@ export function useJoinEvent(eventId: string) {
 export function useLeaveEvent(eventId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () =>
-      fetch(`/api/events/${eventId}/join`, { method: "DELETE" }).then((r) => r.json()),
+    mutationFn: () => fetchOrThrow(`/api/events/${eventId}/join`, { method: "DELETE" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["event", eventId] });
       qc.invalidateQueries({ queryKey: ["events"] });
@@ -62,8 +67,7 @@ export function useLeaveEvent(eventId: string) {
 export function useDeleteEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) =>
-      fetch(`/api/events/${id}`, { method: "DELETE" }).then((r) => r.json()),
+    mutationFn: (id: string) => fetchOrThrow(`/api/events/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["events"] });
       qc.invalidateQueries({ queryKey: ["feed"] });
