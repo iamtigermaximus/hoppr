@@ -1,5 +1,6 @@
 "use client";
 import { ThemeProvider } from "@/components/contexts/ThemeContext";
+import { SocketProvider } from "@/components/contexts/SocketContext";
 import { BottomNav } from "@/components/ui/BottomNav";
 import styled from "styled-components";
 
@@ -15,8 +16,10 @@ const Main = styled.main`
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <Main>{children}</Main>
-      <BottomNav />
+      <SocketProvider>
+        <Main>{children}</Main>
+        <BottomNav />
+      </SocketProvider>
     </ThemeProvider>
   );
 }

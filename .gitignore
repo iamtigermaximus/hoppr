@@ -19,6 +19,9 @@
 
 # production
 /build
+/dist
+socket-server/node_modules
+socket-server/dist
 
 # misc
 .DS_Store
