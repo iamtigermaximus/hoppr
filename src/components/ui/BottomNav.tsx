@@ -84,7 +84,7 @@ export function BottomNav() {
   return (
     <Nav>
       <SidebarLogo href="/">
-        <img src="/hoppr-neon-nobg.png" alt="Hoppr" style={{ height: "28px", width: "auto" }} />
+        <img src="/hoppr-neon-nobg.png" alt="Hoppr" style={{ height: "40px", width: "auto" }} />
       </SidebarLogo>
       {tabs.map(({ href, label, icon: Icon, isFab }) => {
         const active = pathname === href || (href !== "/" && pathname.startsWith(href));
