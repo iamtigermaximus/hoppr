@@ -50,6 +50,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     applyCSSVars(theme);
+    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
     localStorage.setItem("hoppr-theme", isDark ? "dark" : "light");
   }, [theme, isDark]);
 

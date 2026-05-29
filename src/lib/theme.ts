@@ -1,5 +1,5 @@
 export const darkTheme = {
-  name: "dark",
+  name: "dark" as string,
   colors: {
     bg: "#0a0a0a", surface: "#121212", card: "#1a1a1a", cardHover: "#1e1e1e",
     cardBorder: "#262626", primary: "#7c3aed", primaryHover: "#6d28d9",
@@ -16,7 +16,7 @@ export const darkTheme = {
   touchTarget: "44px",
 } as const;
 
-export const lightTheme = {
+export const lightTheme: AppTheme = {
   name: "light",
   colors: {
     bg: "#f8f9fa", surface: "#ffffff", card: "#ffffff", cardHover: "#f1f3f5",
@@ -32,6 +32,6 @@ export const lightTheme = {
   fontSize: { xs: "10px", sm: "11px", md: "12px", base: "14px", lg: "16px", xl: "20px", xxl: "28px" },
   fontWeight: { normal: 400, medium: 500, semibold: 600, bold: 700, extrabold: 800 },
   touchTarget: "44px",
-} as const;
+};
 
 export type AppTheme = typeof darkTheme;
