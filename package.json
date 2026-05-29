@@ -10,13 +10,16 @@
     "db:seed": "npx tsx prisma/seed.ts",
     "dev:socket": "cd socket-server && DATABASE_URL=\"postgresql://neondb_owner:npg_9ehgHuyUYQ4I@ep-delicate-wildflower-al1zhxhw-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require\" JWT_SECRET=\"hoppr-jwt-secret-2026-change-in-production\" npx tsx server.ts"
   },
-  "prisma": { "seed": "npx tsx prisma/seed.ts" },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
     "@phosphor-icons/react": "^2.1.10",
     "@prisma/client": "^6.19.3",
     "@tanstack/react-query": "^5.100.14",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "jsonwebtoken": "^9.0.3",
     "next": "16.2.6",
     "next-auth": "^4.24.14",
