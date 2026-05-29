@@ -10,61 +10,38 @@ import { useMyProfile } from "@/hooks/useProfile";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useState, useRef, useEffect } from "react";
 
-const SidebarLogo = styled(Link)`
-  display: none;
-  @media (min-width: 768px) {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    text-decoration: none; margin-bottom: 8px;
-    position: absolute; top: 20px;
-  }
-`;
-
-const DesktopActions = styled.div`
-  display: none;
-  @media (min-width: 768px) {
-    display: flex; flex-direction: column; align-items: center; gap: 20px;
-    position: absolute; bottom: 20px;
-  }
-`;
-
-const DesktopBell = styled(Link)`
-  position: relative;
-  @media (min-width: 768px) { display: flex; }
-`;
-
-const DesktopAvatar = styled.div`position: relative;`;
-
-const Dropdown = styled.div`
-  position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%);
-  background: #1a1a1a; border: 1px solid #262626; border-radius: 12px;
-  padding: 6px; min-width: 180px; z-index: 60;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-`;
-
-const MenuItem = styled.button`
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: 8px;
-  font-size: 13px; width: 100%;
-  background: none; border: none; cursor: pointer; color: #a3a3a3;
-  &:hover { background: #262626; }
-`;
-
 const Nav = styled.nav`
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-  background: var(--color-header-bg, #0a0a0a); border-top: 1px solid var(--color-header-border, #262626);
+  background: var(--color-header-bg, #0a0a0a);
+  border-top: 1px solid var(--color-header-border, #262626);
   padding: 8px 20px env(safe-area-inset-bottom, 8px) 20px;
   display: flex; justify-content: space-around; align-items: center;
 
   @media (min-width: 768px) {
-    top: 0; bottom: 0; left: 0; right: auto;
-    width: 80px;
-    flex-direction: column;
-    justify-content: center;
-    gap: 24px;
+    top: 0; bottom: auto; left: 0; right: 0;
+    height: 56px;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0;
     border-top: none;
-    border-right: 1px solid #262626;
-    padding: 20px 0;
+    border-bottom: 1px solid var(--color-header-border, #262626);
+    padding: 0 24px;
   }
+`;
+
+const NavLeft = styled.div`
+  display: none;
+  @media (min-width: 768px) { display: flex; align-items: center; gap: 32px; }
+`;
+
+const NavCenter = styled.div`
+  display: none;
+  @media (min-width: 768px) { display: flex; align-items: center; gap: 4px; }
+`;
+
+const NavRight = styled.div`
+  display: none;
+  @media (min-width: 768px) { display: flex; align-items: center; gap: 16px; }
 `;
 
 const NavItem = styled(Link)<{ $active: boolean }>`
@@ -77,7 +54,12 @@ const NavItem = styled(Link)<{ $active: boolean }>`
   &:hover { color: ${({ $active }) => $active ? "#7c3aed" : "#a3a3a3"}; }
 
   @media (min-width: 768px) {
-    span { display: none; }
+    flex-direction: row; gap: 6px;
+    min-width: unset; min-height: unset;
+    padding: 8px 14px; border-radius: 10px;
+    background: ${({ $active }) => $active ? "rgba(124,58,237,0.1)" : "transparent"};
+    span { font-size: 13px; font-weight: ${({ $active }) => $active ? 600 : 500}; }
+    &:hover { background: rgba(255,255,255,0.05); }
   }
 `;
 
@@ -93,15 +75,32 @@ const FAB = styled(Link)`
   &:hover { transform: scale(1.05); box-shadow: 0 6px 24px rgba(124,58,237,0.6); }
 
   @media (min-width: 768px) {
-    margin-top: 0;
-    width: 44px; height: 44px;
+    margin-top: 0; width: auto; height: auto; border-radius: 10px;
+    padding: 8px 18px; box-shadow: none; gap: 6px; font-size: 13px;
+    font-weight: 600; color: #fff; display: inline-flex;
+    &:hover { transform: none; box-shadow: 0 4px 16px rgba(124,58,237,0.3); }
+    &::after { content: "Create"; }
   }
+`;
+
+const Dropdown = styled.div`
+  position: absolute; top: 48px; right: 0;
+  background: #1a1a1a; border: 1px solid #262626; border-radius: 12px;
+  padding: 6px; min-width: 180px; z-index: 60;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+`;
+
+const MenuItem = styled.button`
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  font-size: 13px; width: 100%;
+  background: none; border: none; cursor: pointer; color: #a3a3a3;
+  &:hover { background: #262626; }
 `;
 
 const tabs = [
   { href: "/home", label: "Home", icon: House },
   { href: "/discover", label: "Discover", icon: MagnifyingGlass },
-  { href: "/events/create", label: "Create", icon: Plus, isFab: true },
   { href: "/chat", label: "Chat", icon: ChatCircle },
   { href: "/profile/me", label: "Profile", icon: User },
 ];
@@ -123,50 +122,44 @@ export function BottomNav() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  if (pathname === "/login" || pathname === "/register" || pathname === "/onboarding") {
-    return null;
-  }
+  if (pathname === "/login" || pathname === "/register" || pathname === "/onboarding") return null;
 
   return (
     <Nav>
-      <SidebarLogo href="/">
-        <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={60} height={60} />
-      </SidebarLogo>
+      {/* Desktop: Logo */}
+      <NavLeft>
+        <Link href="/home" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+          <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={90} height={32} style={{ objectFit: "contain" }} />
+        </Link>
+      </NavLeft>
 
-      {tabs.map(({ href, label, icon: Icon, isFab }) => {
-        const active = pathname === href || (href !== "/" && href !== "/home" && pathname.startsWith(href));
-        if (isFab) {
-          return <FAB key={href} href={href}><Plus size={24} weight="bold" color="#fff" /></FAB>;
-        }
-        return (
-          <NavItem key={href} href={href} $active={active}>
-            <Icon size={24} weight={active ? "bold" : "regular"} />
-            <span>{label}</span>
-          </NavItem>
-        );
-      })}
+      {/* Desktop: Nav items */}
+      <NavCenter>
+        {tabs.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || (href !== "/" && href !== "/home" && pathname.startsWith(href));
+          return (
+            <NavItem key={href} href={href} $active={active}>
+              <Icon size={20} weight={active ? "bold" : "regular"} />
+              <span>{label}</span>
+            </NavItem>
+          );
+        })}
+        <FAB href="/events/create"><Plus size={20} weight="bold" color="#fff" /></FAB>
+      </NavCenter>
 
-      {/* Desktop-only: notification bell + avatar at bottom of sidebar */}
-      <DesktopActions>
-        <DesktopBell href="/notifications">
+      {/* Desktop: Bell + Avatar */}
+      <NavRight>
+        <Link href="/notifications" style={{ position: "relative" }}>
           <Bell size={22} color="#737373" />
           {unreadCount > 0 && (
-            <span style={{
-              position: "absolute", top: "-6px", right: "-8px",
-              background: "#ef4444", color: "#fff",
-              fontSize: "10px", fontWeight: 700,
-              minWidth: "18px", height: "18px", borderRadius: "9px",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "0 4px",
-            }}>
+            <span style={{ position: "absolute", top: "-6px", right: "-8px", background: "#ef4444", color: "#fff", fontSize: "10px", fontWeight: 700, minWidth: "18px", height: "18px", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-        </DesktopBell>
-
-        <DesktopAvatar ref={menuRef}>
+        </Link>
+        <div ref={menuRef} style={{ position: "relative" }}>
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            <Avatar src={profile?.avatarUrl} name={profile?.username || session?.user?.name || undefined} size={32} />
+            <Avatar src={profile?.avatarUrl} name={profile?.username || session?.user?.name || undefined} size={34} />
           </button>
           {menuOpen && (
             <Dropdown>
@@ -182,8 +175,27 @@ export function BottomNav() {
               </MenuItem>
             </Dropdown>
           )}
-        </DesktopAvatar>
-      </DesktopActions>
+        </div>
+      </NavRight>
+
+      {/* Mobile: Bottom nav items */}
+      <MobileOnly>
+        {tabs.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || (href !== "/" && href !== "/home" && pathname.startsWith(href));
+          return (
+            <NavItem key={href} href={href} $active={active}>
+              <Icon size={24} weight={active ? "bold" : "regular"} />
+              <span>{label}</span>
+            </NavItem>
+          );
+        })}
+        <FAB href="/events/create"><Plus size={24} weight="bold" color="#fff" /></FAB>
+      </MobileOnly>
     </Nav>
   );
 }
+
+const MobileOnly = styled.div`
+  display: flex; justify-content: space-around; align-items: center; width: 100%;
+  @media (min-width: 768px) { display: none; }
+`;

@@ -10,24 +10,14 @@ const Main = styled.main`
   padding: 0 16px 80px;
   min-height: 100dvh;
   max-width: 100%;
-  margin: 0 auto;
 
   @media (min-width: 768px) {
-    max-width: 960px;
-    padding: 0 24px 20px;
-    padding-left: 120px;
+    padding: 72px 24px 24px;
+    max-width: 100%;
   }
 
   @media (min-width: 1024px) {
-    max-width: 1200px;
-    padding-left: 120px;
-    padding-right: 32px;
-  }
-
-  @media (min-width: 1440px) {
-    max-width: 1400px;
-    padding-left: 120px;
-    padding-right: 40px;
+    padding: 72px 32px 32px;
   }
 `;
 
@@ -36,7 +26,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <ThemeProvider>
       <SocketProvider>
         <ToastProvider>
-          <AppHeader />
           <Main>{children}</Main>
           <BottomNav />
         </ToastProvider>
