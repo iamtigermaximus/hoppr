@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { StyledComponentsRegistry } from "@/lib/registry";
 import { AuthProvider } from "@/components/contexts/AuthContext";
+import { QueryProvider } from "@/components/contexts/QueryProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,7 +14,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <StyledComponentsRegistry>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <QueryProvider>{children}</QueryProvider>
+          </AuthProvider>
         </StyledComponentsRegistry>
       </body>
     </html>
