@@ -10,8 +10,8 @@ import type { FeedItem } from "@/types/feed";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 
 const CardWrapper = styled.div<{ $color: string }>`
-  background: #1a1a1a;
-  border: 1px solid #262626;
+  background: var(--color-card, #1a1a1a);
+  border: 1px solid var(--color-card-border, #262626);
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;

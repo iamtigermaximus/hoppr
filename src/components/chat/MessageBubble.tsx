@@ -15,10 +15,15 @@ export function MessageBubble({ message }: { message: Message }) {
   return (
     <div style={{ display: "flex", gap: "8px", flexDirection: isMine ? "row-reverse" : "row", alignItems: "flex-end", marginBottom: "12px" }}>
       {!isMine && <Avatar src={message.author.image} name={message.author.username || undefined} size={28} />}
-      <div style={{ maxWidth: "75%", background: isMine ? "#7c3aed" : "#1a1a1a", border: isMine ? "none" : "1px solid #262626", borderRadius: "14px", padding: "10px 14px" }}>
-        {!isMine && <div style={{ color: "#a78bfa", fontSize: "10px", fontWeight: 600, marginBottom: "2px" }}>{message.author.username}</div>}
-        <div style={{ color: "#fff", fontSize: "13px", lineHeight: 1.4 }}>{message.content}</div>
-        <div style={{ color: isMine ? "rgba(255,255,255,0.5)" : "#737373", fontSize: "9px", marginTop: "4px", textAlign: "right" }}>{time}</div>
+      <div style={{
+        maxWidth: "75%",
+        background: isMine ? "#7c3aed" : "var(--color-card, #1a1a1a)",
+        border: isMine ? "none" : "1px solid var(--color-card-border, #262626)",
+        borderRadius: "14px", padding: "10px 14px",
+      }}>
+        {!isMine && <div style={{ color: isMine ? "var(--color-text-primary, #fff)" : "#a78bfa", fontSize: "10px", fontWeight: 600, marginBottom: "2px" }}>{message.author.username}</div>}
+        <div style={{ color: isMine ? "#fff" : "var(--color-text-primary, #fff)", fontSize: "13px", lineHeight: 1.4 }}>{message.content}</div>
+        <div style={{ color: isMine ? "rgba(255,255,255,0.5)" : "var(--color-text-muted, #737373)", fontSize: "9px", marginTop: "4px", textAlign: "right" }}>{time}</div>
       </div>
     </div>
   );

@@ -30,8 +30,8 @@ export function ChatRoom() {
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: "calc(100dvh - 120px)", background: "#0a0a0a" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderBottom: "1px solid #262626" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: "calc(100dvh - 120px)", background: "var(--color-bg, #0a0a0a)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderBottom: "1px solid var(--color-card-border, #262626)" }}>
           <button onClick={() => router.back()} style={{ padding: "4px" }}>
             <CaretLeft size={24} color="#fff" />
           </button>
@@ -65,7 +65,7 @@ export function ChatRoom() {
         <div style={{ position: "fixed", inset: 0, zIndex: 150, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
           onClick={() => setShowInfo(false)}>
           <div style={{
-            background: "#1a1a1a", border: "1px solid #262626",
+            background: "var(--color-card, #1a1a1a)", border: "1px solid var(--color-card-border, #262626)",
             borderRadius: "20px 20px 0 0", width: "100%", maxWidth: "500px",
             maxHeight: "80vh", overflowY: "auto", padding: "24px 20px 32px",
           }} onClick={e => e.stopPropagation()}>
@@ -93,7 +93,7 @@ export function ChatRoom() {
                   onClick={() => { setShowInfo(false); router.push(`/profile/${p.user.id}`); }}
                   style={{
                     display: "flex", alignItems: "center", gap: "10px",
-                    padding: "10px 12px", background: "#0a0a0a", border: "1px solid #262626",
+                    padding: "10px 12px", background: "var(--color-bg, #0a0a0a)", border: "1px solid var(--color-card-border, #262626)",
                     borderRadius: "10px", cursor: "pointer",
                   }}
                 >

@@ -37,16 +37,16 @@ export const Button = styled.button.withConfig({
 
   ${({ variant }) => variant === "secondary" && css`
     background: transparent;
-    color: #a3a3a3;
-    border: 1px solid #262626;
-    &:hover:not(:disabled) { background: #1a1a1a; color: #fff; }
+    color: var(--color-text-secondary, #a3a3a3);
+    border: 1px solid var(--color-card-border, #262626);
+    &:hover:not(:disabled) { background: var(--color-card-hover, #1e1e1e); color: var(--color-text-primary, #fff); }
   `}
 
   ${({ variant }) => variant === "ghost" && css`
     background: transparent;
-    color: #a3a3a3;
+    color: var(--color-text-secondary, #a3a3a3);
     border: none;
-    &:hover:not(:disabled) { color: #fff; }
+    &:hover:not(:disabled) { color: var(--color-text-primary, #fff); }
   `}
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }

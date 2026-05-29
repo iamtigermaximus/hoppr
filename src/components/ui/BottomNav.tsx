@@ -85,7 +85,7 @@ const FAB = styled(Link)`
 
 const Dropdown = styled.div`
   position: absolute; top: 48px; right: 0;
-  background: #1a1a1a; border: 1px solid #262626; border-radius: 12px;
+  background: var(--color-card, #1a1a1a); border: 1px solid var(--color-card-border, #262626); border-radius: 12px;
   padding: 6px; min-width: 180px; z-index: 60;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 `;

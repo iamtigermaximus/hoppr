@@ -64,7 +64,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalBox = styled.div`
-  background: #1a1a1a; border: 1px solid #262626;
+  background: var(--color-card, #1a1a1a); border: 1px solid var(--color-card-border, #262626);
   border-radius: 16px; padding: 24px;
   max-width: 360px; width: 100%;
 `;
