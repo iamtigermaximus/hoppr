@@ -31,6 +31,14 @@ export function EventDetail({ id }: { id: string }) {
 
   return (
     <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
+      <button onClick={() => router.back()} style={{
+        display: "inline-flex", alignItems: "center", gap: "6px",
+        color: "#a3a3a3", fontSize: "13px", fontWeight: 500,
+        background: "none", border: "none", cursor: "pointer", padding: 0,
+        marginBottom: "12px",
+      }}>
+        ← Back
+      </button>
       <h1 style={{ fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "8px" }}>{event.title}</h1>
 
       <div style={{ color: "#a3a3a3", fontSize: "13px", marginBottom: "16px", lineHeight: 1.6 }}>

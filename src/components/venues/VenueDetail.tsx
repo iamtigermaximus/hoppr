@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import styled from "styled-components";
 import { useVenue } from "@/hooks/useVenues";
 import { useEvents } from "@/hooks/useEvents";
@@ -78,6 +78,7 @@ const SectionCard = styled.div`
 
 export function VenueDetail() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const { data: venue, isLoading } = useVenue(id);
   const { lat, lng } = useGeolocation();
@@ -96,6 +97,16 @@ export function VenueDetail() {
 
   return (
     <div style={{ padding: "16px", maxWidth: "680px", margin: "0 auto" }}>
+      {/* Back button */}
+      <button onClick={() => router.back()} style={{
+        display: "inline-flex", alignItems: "center", gap: "6px",
+        color: "#a3a3a3", fontSize: "13px", fontWeight: 500,
+        background: "none", border: "none", cursor: "pointer", padding: 0,
+        marginBottom: "12px",
+      }}>
+        ← Back to bars
+      </button>
+
       {/* Header */}
       <div style={{ marginBottom: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
