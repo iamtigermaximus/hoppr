@@ -59,7 +59,41 @@ export async function GET(req: Request) {
     };
   });
 
-  // 4. Fetch passes (mock) and map
+  // 4. Fetch promotions from shared database (business-created promos)
+  const mockPromoKeys = new Set(mockPromotions.map((p) => `${p.title}|${p.venueName}`));
+
+  const dbPromotions = await prisma.promotion.findMany({
+    where: {
+      isActive: true,
+      startDate: { lte: end },
+      endDate: { gte: start },
+    },
+    include: { bar: true },
+    orderBy: { startDate: "asc" },
+    take: 20,
+  });
+
+  for (const dbp of dbPromotions) {
+    const key = `${dbp.title}|${dbp.bar.name}`;
+    if (mockPromoKeys.has(key)) continue; // deduplicate by title + venue name
+
+    const distance = haversineDistance(lat, lng, dbp.bar.latitude, dbp.bar.longitude);
+
+    promoItems.push({
+      type: "promotion" as const,
+      id: dbp.id,
+      title: dbp.title,
+      venueId: dbp.barId,
+      venueName: dbp.bar.name,
+      description: dbp.description || "",
+      validFrom: dbp.startDate.toISOString(),
+      validTo: dbp.endDate.toISOString(),
+      distance,
+      image: dbp.imageUrl || undefined,
+    });
+  }
+
+  // 5. Fetch passes (mock) and map
   const passItems: FeedItem[] = mockPasses.map((p) => {
     const venue = mockVenues.find((v) => v.id === p.venueId);
     const distance = venue ? haversineDistance(lat, lng, venue.lat, venue.lng) : 99;
@@ -70,7 +104,7 @@ export async function GET(req: Request) {
     };
   });
 
-  // 5. Merge, filter by radius, sort by time
+  // 6. Merge, filter by radius, sort by time
   const allItems = [...eventItems, ...promoItems, ...passItems]
     .filter((item) => item.distance <= radius)
     .sort((a, b) => {
