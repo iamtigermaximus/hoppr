@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { StyledComponentsRegistry } from "@/lib/registry";
 import { AuthProvider } from "@/components/contexts/AuthContext";
 import { QueryProvider } from "@/components/contexts/QueryProvider";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
