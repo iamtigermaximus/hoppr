@@ -35,13 +35,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   if (!bar) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Fetch promotions for this bar
+  // Fetch promotions for this bar — only approved, compliant, and currently active
   const now = new Date();
   const promotions = await prisma.barPromotion.findMany({
     where: {
       barId: id,
       isActive: true,
       isApproved: true,
+      complianceStatus: "COMPLIANT",
       startDate: { lte: now },
       endDate: { gte: now },
     },

@@ -11,6 +11,7 @@ export async function GET(req: Request) {
   const where: any = {
     isActive: true,
     isApproved: true,
+    complianceStatus: "COMPLIANT",
     startDate: { lte: new Date() },
     endDate: { gte: new Date() },
   };
