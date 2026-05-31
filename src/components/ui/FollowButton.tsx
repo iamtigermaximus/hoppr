@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import { Heart, Spinner } from "@phosphor-icons/react";
-import useSWR from "swr";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ---- Styled ----
 
@@ -46,10 +46,6 @@ interface FollowButtonProps {
   compact?: boolean;
 }
 
-// ---- Fetcher ----
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
 // ---- Component ----
 
 export function FollowButton({
@@ -65,18 +61,19 @@ export function FollowButton({
     count: number;
   } | null>(null);
 
+  const queryClient = useQueryClient();
+  const queryKey = ["follow", barId];
+
   // Fetch follow state from API
-  const { data, mutate } = useSWR(
-    `/api/bars/${barId}/follow`,
-    fetcher,
-    {
-      fallbackData: {
-        isFollowing: initialIsFollowing,
-        followerCount: initialFollowerCount,
-      },
-      revalidateOnFocus: false,
+  const { data } = useQuery({
+    queryKey,
+    queryFn: () => fetch(`/api/bars/${barId}/follow`).then((r) => r.json()),
+    initialData: {
+      isFollowing: initialIsFollowing,
+      followerCount: initialFollowerCount,
     },
-  );
+    refetchOnWindowFocus: false,
+  });
 
   const isFollowing = optimistic?.following ?? data?.isFollowing ?? false;
   const followerCount = optimistic?.count ?? data?.followerCount ?? 0;
@@ -106,7 +103,7 @@ export function FollowButton({
         const json = await res.json();
         // Sync with server response
         setOptimistic(null);
-        mutate({
+        queryClient.setQueryData(queryKey, {
           isFollowing: json.following,
           followerCount: json.following
             ? followerCount + (isFollowing ? 0 : 1)
