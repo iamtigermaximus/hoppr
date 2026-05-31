@@ -12,11 +12,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       participants: {
         include: { user: { select: { id: true, username: true, image: true } } },
       },
+      event_crawl_stops: { orderBy: { order: "asc" } },
       chatRoom: { select: { id: true } },
+      venue: { select: { latitude: true, longitude: true } },
     },
   });
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(event);
+  return NextResponse.json({
+    ...event,
+    crawlStops: event.event_crawl_stops,
+    event_crawl_stops: undefined,
+  });
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

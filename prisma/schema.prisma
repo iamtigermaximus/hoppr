@@ -580,7 +580,7 @@ model CrowdReport {
 }
 
 model bar_follows {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   barId     String
   createdAt DateTime @default(now())
@@ -591,7 +591,7 @@ model bar_follows {
 }
 
 model event_crawl_stops {
-  id        String    @id
+  id        String    @id @default(cuid())
   eventId   String
   venueId   String
   venueName String

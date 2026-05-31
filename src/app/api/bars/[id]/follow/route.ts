@@ -26,7 +26,7 @@ export async function POST(
   }
 
   // Upsert: create follow if not exists (idempotent)
-  const follow = await prisma.barFollow.upsert({
+  const follow = await prisma.bar_follows.upsert({
     where: {
       userId_barId: { userId, barId },
     },
@@ -55,7 +55,7 @@ export async function DELETE(
   const { id: barId } = await params;
 
   try {
-    await prisma.barFollow.delete({
+    await prisma.bar_follows.delete({
       where: {
         userId_barId: { userId, barId },
       },
@@ -83,7 +83,7 @@ export async function GET(
   const { id: barId } = await params;
 
   // Count total followers (always public)
-  const followerCount = await prisma.barFollow.count({
+  const followerCount = await prisma.bar_follows.count({
     where: { barId },
   });
 
@@ -91,7 +91,7 @@ export async function GET(
   let isFollowing = false;
   if (session?.user) {
     const userId = (session.user as Record<string, unknown>).id as string;
-    const follow = await prisma.barFollow.findUnique({
+    const follow = await prisma.bar_follows.findUnique({
       where: {
         userId_barId: { userId, barId },
       },

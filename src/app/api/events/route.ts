@@ -27,11 +27,16 @@ export async function GET(req: Request) {
       participants: {
         include: { user: { select: { id: true, username: true, image: true } } },
       },
+      event_crawl_stops: { orderBy: { order: "asc" } },
     },
     orderBy: { startTime: "asc" },
     take: 50,
   });
-  return NextResponse.json(events);
+  return NextResponse.json(events.map((e) => ({
+    ...e,
+    crawlStops: e.event_crawl_stops,
+    event_crawl_stops: undefined,
+  })));
 }
 
 export async function POST(req: Request) {
@@ -39,7 +44,7 @@ export async function POST(req: Request) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { title, description, venueId, venueName, venueType, startTime, endTime, maxAttendees, isPrivate, imageUrl } = body;
+  const { title, description, venueId, venueName, venueType, startTime, endTime, maxAttendees, isPrivate, imageUrl, crawlStops } = body;
 
   if (!title || !venueId || !venueName || !startTime) {
     return NextResponse.json({ error: "Missing required fields: title, venueId, venueName, startTime" }, { status: 400 });
@@ -64,17 +69,37 @@ export async function POST(req: Request) {
       participants: {
         create: { userId: creatorId },
       },
+      // Persist crawl stops if provided
+      ...(crawlStops && crawlStops.length > 0
+        ? {
+            event_crawl_stops: {
+              create: crawlStops.map((stop: any, i: number) => ({
+                venueId: stop.id || stop.venueId,
+                venueName: stop.name || stop.venueName || `Stop ${i + 1}`,
+                venueType: stop.type || stop.venueType || null,
+                order: i,
+                arriveAt: stop.arriveAt ? new Date(stop.arriveAt) : undefined,
+                leaveAt: stop.leaveAt ? new Date(stop.leaveAt) : undefined,
+              })),
+            },
+          }
+        : {}),
     },
     include: {
       creator: { select: { id: true, username: true, image: true } },
       participants: {
         include: { user: { select: { id: true, username: true, image: true } } },
       },
+      event_crawl_stops: { orderBy: { order: "asc" } },
     },
   });
 
   // Auto-create chat room
   await prisma.eventChatRoom.create({ data: { eventId: event.id } });
 
-  return NextResponse.json(event, { status: 201 });
+  return NextResponse.json({
+    ...event,
+    crawlStops: event.event_crawl_stops,
+    event_crawl_stops: undefined,
+  }, { status: 201 });
 }
