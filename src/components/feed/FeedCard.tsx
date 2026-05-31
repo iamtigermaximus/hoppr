@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Calendar, MapPin, Ticket, Users, Clock, CurrencyCircleDollar, CheckCircle } from "@phosphor-icons/react";
+import { Calendar, MapPin, Ticket, Users, Clock, CurrencyCircleDollar, CheckCircle, Sparkle } from "@phosphor-icons/react";
 import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/Badge";
 import { AvatarGroup } from "@/components/ui/AvatarGroup";
@@ -114,6 +114,31 @@ export function FeedCard({ item }: { item: FeedItem }) {
         <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
           <MapPin size={10} />{formatDistance(item.distance)}
         </div>
+
+        {/* Recommendation reasons — shown when personalized */}
+        {item.recommendationReasons && item.recommendationReasons.length > 0 && (
+          <div style={{ display: "flex", gap: "4px", marginBottom: "6px", flexWrap: "wrap" }}>
+            {item.recommendationReasons.map((reason, i) => (
+              <span
+                key={i}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "3px",
+                  background: `${color}18`,
+                  color: color,
+                  fontSize: "9px",
+                  fontWeight: 600,
+                  padding: "2px 6px",
+                  borderRadius: "3px",
+                }}
+              >
+                <Sparkle size={9} weight="fill" />
+                {reason}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           {item.type === "event" && item.attendees && item.attendees.length > 0 ? (

@@ -1,7 +1,15 @@
 import type { User } from "@prisma/client";
 
+/** Common metadata added by the feed personalization engine */
+interface RecommendationMeta {
+  /** Human-readable reasons this item was recommended (max 2) */
+  recommendationReasons?: string[];
+  /** Personalization score (0–1), only set for authenticated users */
+  score?: number;
+}
+
 export type FeedItem =
-  | {
+  | (RecommendationMeta & {
       type: "event";
       id: string;
       title: string;
@@ -14,8 +22,8 @@ export type FeedItem =
       distance: number;
       image?: string;
       attendees?: { id: string; name: string | null; image: string | null }[];
-    }
-  | {
+    })
+  | (RecommendationMeta & {
       type: "promotion";
       id: string;
       title: string;
@@ -27,8 +35,8 @@ export type FeedItem =
       distance: number;
       image?: string;
       accentColor?: string;
-    }
-  | {
+    })
+  | (RecommendationMeta & {
       type: "pass";
       id: string;
       title: string;
@@ -39,6 +47,6 @@ export type FeedItem =
       validUntil: string;
       distance: number;
       imageUrl?: string;
-    };
+    });
 
 export type TimeFilter = "now" | "today" | "tomorrow" | "afternoon" | "evening" | "night";
