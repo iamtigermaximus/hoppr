@@ -1,13 +1,15 @@
 "use client";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Calendar, MapPin, Ticket, Users, Clock, CurrencyCircleDollar, CheckCircle, Sparkle } from "@phosphor-icons/react";
+import { Calendar, MapPin, Ticket, Users, Clock, CurrencyCircleDollar, CheckCircle, Sparkle, Storefront } from "@phosphor-icons/react";
 import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/Badge";
 import { AvatarGroup } from "@/components/ui/AvatarGroup";
 import { Button } from "@/components/ui/Button";
 import { FollowButton } from "@/components/ui/FollowButton";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
+import SponsoredBadge from "@/components/ads/SponsoredBadge";
 import type { FeedItem } from "@/types/feed";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 
@@ -57,6 +59,7 @@ const TypeLabel = styled.div<{ $color: string }>`
 `;
 
 const typeLabels = {
+  featured: { label: "FEATURED", icon: Storefront, color: "#a78bfa" },
   event: { label: "EVENT", icon: Calendar, color: "#3b82f6" },
   promotion: { label: "PROMO", icon: MapPin, color: "#10b981" },
   pass: { label: "VIP PASS", icon: Ticket, color: "#f59e0b" },
@@ -64,24 +67,59 @@ const typeLabels = {
 
 export function FeedCard({ item }: { item: FeedItem }) {
   const router = useRouter();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const trackedRef = useRef(false);
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id as string | undefined;
   const t = typeLabels[item.type];
   const color = t.color;
   const IconComponent = t.icon;
   const imageSrc = "image" in item ? (item as any).image : (item as any).imageUrl;
+  const isSponsored = item.isSponsored === true;
+  const campaignId = (item as any).campaignId as string | undefined;
 
   const handleClick = () => {
-    if (item.type === "event") router.push(`/events/${item.id}`);
+    if (isSponsored && campaignId) {
+      fetch(`/api/campaigns/${campaignId}/track`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "click" }),
+      }).catch(() => {});
+    }
+    if (item.type === "featured") router.push(`/venues/${item.venueId}`);
+    else if (item.type === "event") router.push(`/events/${item.id}`);
     else if (item.type === "promotion") router.push(`/promotions/${item.id}`);
     else router.push(`/passes/${item.id}`);
   };
+
+  // Impression tracking via IntersectionObserver
+  useEffect(() => {
+    if (!isSponsored || !campaignId || trackedRef.current) return;
+    const el = cardRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          trackedRef.current = true;
+          observer.disconnect();
+          fetch(`/api/campaigns/${campaignId}/track`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "impression" }),
+          }).catch(() => {});
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isSponsored, campaignId]);
 
   // Check user status for this item
   const isEventJoined = item.type === "event" && userId && (item as any).attendees?.some((a: any) => a.id === userId);
 
   return (
-    <CardWrapper $color={color} onClick={handleClick}>
+    <CardWrapper $color={color} onClick={handleClick} ref={cardRef}>
       {imageSrc ? (
         <CardImage>
           <img src={imageSrc} alt="" />
@@ -108,6 +146,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
         </div>
 
         <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "6px" }}>
+          {item.type === "featured" && `${item.venueType?.replace(/_/g, " ") || "Venue"}${(item as any).district ? ` · ${(item as any).district}` : ""}`}
           {item.type === "event" && `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`}
           {item.type === "promotion" && `${item.venueName} · ${formatEventTime(new Date(item.validFrom))}`}
           {item.type === "pass" && `${item.venueName} · ${formatEventTime(new Date(item.validUntil))}`}
@@ -128,6 +167,13 @@ export function FeedCard({ item }: { item: FeedItem }) {
         <div style={{ marginBottom: "4px" }}>
           <FollowButton barId={item.venueId} compact />
         </div>
+
+        {/* Sponsored badge */}
+        {isSponsored && (
+          <div style={{ marginBottom: "4px" }}>
+            <SponsoredBadge />
+          </div>
+        )}
 
         {/* Recommendation reasons — shown when personalized */}
         {item.recommendationReasons && item.recommendationReasons.length > 0 && (
@@ -155,6 +201,18 @@ export function FeedCard({ item }: { item: FeedItem }) {
         )}
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {item.type === "featured" && (
+            <>
+              {(item as any).qualityScore != null && (
+                <span style={{ color: "#a78bfa", fontSize: "12px", fontWeight: 600 }}>
+                  ★ {(item as any).qualityScore} quality
+                </span>
+              )}
+              <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); router.push(`/venues/${item.venueId}`); }}>
+                <Storefront size={12} /> Visit
+              </Button>
+            </>
+          )}
           {item.type === "event" && item.attendees && item.attendees.length > 0 ? (
             <AvatarGroup users={item.attendees} max={4} size={24} />
           ) : <div />}

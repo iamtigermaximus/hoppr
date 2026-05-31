@@ -1,9 +1,12 @@
 "use client";
+import { useMemo } from "react";
 import styled from "styled-components";
 import { useVenues } from "@/hooks/useVenues";
+import { useQuery } from "@tanstack/react-query";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import SponsoredBadge from "@/components/ads/SponsoredBadge";
 import { formatDistance } from "@/lib/utils";
-import { House, Star } from "@phosphor-icons/react";
+import { House, Star, Megaphone } from "@phosphor-icons/react";
 
 const Slider = styled.div`
   display: flex; gap: 10px;
@@ -56,22 +59,59 @@ const liveBars = new Set(["v1", "v3", "v7"]);
 
 export function BarSlider() {
   const { data: venues = [] } = useVenues();
+  const { data: campaigns = [] } = useQuery<any[]>({
+    queryKey: ["campaigns", "bar-slider"],
+    queryFn: () => fetch("/api/campaigns").then((r) => r.json()),
+  });
+
+  const displayBars = useMemo(() => {
+    const maxSlots = 8;
+    const featured = campaigns
+      .filter((c: any) => c.type === "FEATURED_LISTING")
+      .slice(0, 2); // max 2 featured in slider
+
+    const featuredBars = featured
+      .map((c: any) => {
+        const bar = (venues as any[]).find((v: any) => v.id === c.barId);
+        return bar ? { ...bar, isFeatured: true } : null;
+      })
+      .filter(Boolean);
+
+    const featuredIds = new Set(featuredBars.map((b: any) => b.id));
+    const organic = (venues as any[]).filter((v: any) => !featuredIds.has(v.id));
+    const result = [...featuredBars, ...organic].slice(0, maxSlots);
+    return result;
+  }, [venues, campaigns]);
+
   if (!venues.length) return null;
 
   return (
     <div style={{ marginBottom: "18px", padding: "0 16px" }}>
       <SectionHeader title="Bars near you" onSeeAll={() => window.location.href = "/bars"} />
       <Slider>
-        {venues.slice(0, 8).map((venue: any) => (
-          <BarCard key={venue.id} onClick={() => window.location.href = `/venues/${venue.id}`}>
+        {displayBars.map((venue: any) => (
+          <BarCard
+            key={venue.id}
+            style={venue.isFeatured ? { borderColor: "#7c3aed44", background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(124,58,237,0.02))" } : undefined}
+            onClick={() => window.location.href = `/venues/${venue.id}`}
+          >
             {venue.imageUrl ? (
               <CardImage>
                 <img src={venue.imageUrl} alt={venue.name} />
                 <div style={{ position: "absolute", top: "6px", left: "6px", background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", padding: "2px 6px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                  <Star size={9} weight="fill" color="#f59e0b" />
-                  <span style={{ color: "#fff", fontSize: "10px", fontWeight: 600 }}>{ratings[venue.id] || 4.0}</span>
+                  {venue.isFeatured ? (
+                    <>
+                      <Megaphone size={9} weight="fill" color="#a78bfa" />
+                      <span style={{ color: "#a78bfa", fontSize: "10px", fontWeight: 600 }}>Ad</span>
+                    </>
+                  ) : (
+                    <>
+                      <Star size={9} weight="fill" color="#f59e0b" />
+                      <span style={{ color: "#fff", fontSize: "10px", fontWeight: 600 }}>{ratings[venue.id] || 4.0}</span>
+                    </>
+                  )}
                 </div>
-                {liveBars.has(venue.id) && (
+                {!venue.isFeatured && liveBars.has(venue.id) && (
                   <div style={{ position: "absolute", top: "6px", right: "6px", width: "8px", height: "8px", background: "#10b981", borderRadius: "50%", border: "2px solid rgba(0,0,0,0.5)" }} />
                 )}
               </CardImage>
@@ -79,10 +119,19 @@ export function BarSlider() {
               <CardPlaceholder>
                 <House size={36} color="#a78bfa" weight="fill" opacity={0.3} />
                 <div style={{ position: "absolute", top: "6px", left: "6px", background: "rgba(0,0,0,0.5)", padding: "2px 6px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                  <Star size={9} weight="fill" color="#f59e0b" />
-                  <span style={{ color: "#fff", fontSize: "10px", fontWeight: 600 }}>{ratings[venue.id] || 4.0}</span>
+                  {venue.isFeatured ? (
+                    <>
+                      <Megaphone size={9} weight="fill" color="#a78bfa" />
+                      <span style={{ color: "#a78bfa", fontSize: "10px", fontWeight: 600 }}>Ad</span>
+                    </>
+                  ) : (
+                    <>
+                      <Star size={9} weight="fill" color="#f59e0b" />
+                      <span style={{ color: "#fff", fontSize: "10px", fontWeight: 600 }}>{ratings[venue.id] || 4.0}</span>
+                    </>
+                  )}
                 </div>
-                {liveBars.has(venue.id) && (
+                {!venue.isFeatured && liveBars.has(venue.id) && (
                   <div style={{ position: "absolute", top: "6px", right: "6px", width: "8px", height: "8px", background: "#10b981", borderRadius: "50%", border: "2px solid rgba(0,0,0,0.5)" }} />
                 )}
               </CardPlaceholder>
@@ -93,6 +142,11 @@ export function BarSlider() {
               <div style={{ color: "#737373", fontSize: "10px", marginTop: "2px" }}>
                 {venue.type?.replace(/_/g, " ")} · {venue.distance ? formatDistance(venue.distance) : "Nearby"}
               </div>
+              {venue.isFeatured && (
+                <div style={{ marginTop: "4px" }}>
+                  <SponsoredBadge />
+                </div>
+              )}
             </CardBody>
           </BarCard>
         ))}

@@ -8,7 +8,9 @@ import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import { formatDistance } from "@/lib/utils";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
-import { House, MapPin, Star, MagnifyingGlass, X, NavigationArrow, Clock, ListBullets, ChartBar } from "@phosphor-icons/react";
+import SponsoredBadge from "@/components/ads/SponsoredBadge";
+import { useQuery } from "@tanstack/react-query";
+import { House, MapPin, Star, MagnifyingGlass, X, NavigationArrow, Clock, ListBullets, ChartBar, Megaphone } from "@phosphor-icons/react";
 
 const VENUE_TYPES = [
   { key: "PUB", label: "Pubs" },
@@ -239,6 +241,39 @@ export default function BarsPage() {
   const [page, setPage] = useState(1);
   const [view, setView] = useState<"list" | "heatmap">("list");
 
+  const { data: campaigns = [] } = useQuery<any[]>({
+    queryKey: ["campaigns", "featured-bars"],
+    queryFn: () => fetch("/api/campaigns").then((r) => r.json()),
+  });
+
+  // Build featured bar items from FEATURED_LISTING campaigns
+  const featuredBarIds = new Set(
+    campaigns
+      .filter((c: any) => c.type === "FEATURED_LISTING")
+      .map((c: any) => c.barId),
+  );
+
+  const featuredBars = useMemo(() => {
+    const featured = campaigns
+      .filter((c: any) => c.type === "FEATURED_LISTING")
+      .map((c: any) => {
+        const bar = (venues as any[]).find((v: any) => v.id === c.barId);
+        if (!bar) return null;
+        const distance = lat && lng && bar.latitude && bar.longitude
+          ? Math.sqrt((bar.latitude - lat) ** 2 + (bar.longitude - lng) ** 2) * 111.32
+          : 99;
+        return {
+          ...bar,
+          distance,
+          campaignId: c.id,
+          campaignTitle: c.title,
+          isFeatured: true as const,
+        };
+      })
+      .filter(Boolean);
+    return featured;
+  }, [campaigns, venues, lat, lng]);
+
   const toggleType = (key: string) => {
     setSelectedTypes(prev =>
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
@@ -383,6 +418,59 @@ export default function BarsPage() {
             </HeatSection>
           ))
         )
+      )}
+
+      {/* Featured listings (list view only) */}
+      {view === "list" && featuredBars.length > 0 && (
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px", padding: "0 4px" }}>
+            <Megaphone size={14} color="#a78bfa" weight="fill" />
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.5px" }}>Featured</span>
+          </div>
+          <List>
+            {featuredBars.map((bar: any) => (
+              <BarCard
+                key={`featured-${bar.id}`}
+                style={{ borderColor: "#7c3aed44", background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(124,58,237,0.02))" }}
+                onClick={() => router.push(`/venues/${bar.id}`)}
+              >
+                {bar.imageUrl || bar.coverImage ? (
+                  <BarImage>
+                    <img src={bar.imageUrl || bar.coverImage} alt={bar.name} />
+                    <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", gap: "6px", zIndex: 2 }}>
+                      <div style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", color: "#fff", fontSize: "10px", fontWeight: 600, padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                        <Star size={10} weight="fill" color="#a78bfa" /> Featured
+                      </div>
+                    </div>
+                  </BarImage>
+                ) : (
+                  <div style={{ height: "100px", background: "linear-gradient(135deg, rgba(124,58,237,0.15), rgba(124,58,237,0.05))", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                    <Megaphone size={40} color="#a78bfa" weight="fill" opacity={0.2} />
+                    <div style={{ position: "absolute", top: "10px", left: "10px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "10px", fontWeight: 600, padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                      <Star size={10} weight="fill" color="#a78bfa" /> Featured
+                    </div>
+                  </div>
+                )}
+                <BarBody>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px" }}>{bar.name}</div>
+                      <div style={{ color: "#a3a3a3", fontSize: "12px", marginTop: "2px" }}>
+                        {bar.type?.replace(/_/g, " ")} · {bar.district}
+                      </div>
+                    </div>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", color: "#7c3aed", fontSize: "12px", fontWeight: 600 }}>
+                      <NavigationArrow size={12} /> {formatDistance(bar.distance)}
+                    </span>
+                  </div>
+                  <div style={{ marginTop: "6px" }}>
+                    <SponsoredBadge />
+                  </div>
+                </BarBody>
+              </BarCard>
+            ))}
+          </List>
+        </div>
       )}
 
       {/* Venue list */}

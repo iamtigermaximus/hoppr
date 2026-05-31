@@ -10,6 +10,21 @@ interface RecommendationMeta {
 
 export type FeedItem =
   | (RecommendationMeta & {
+      type: "featured";
+      id: string;
+      title: string;
+      venueId: string;
+      venueName: string;
+      venueType?: string;
+      distance: number;
+      image?: string;
+      district?: string;
+      qualityScore?: number;
+      campaignId: string;
+      campaignType: string;
+      isSponsored: true;
+    })
+  | (RecommendationMeta & {
       type: "event";
       id: string;
       title: string;
@@ -24,6 +39,9 @@ export type FeedItem =
       attendees?: { id: string; name: string | null; image: string | null }[];
       crowdLevel?: string;
       crowdReportedAt?: string;
+      isSponsored?: boolean;
+      campaignId?: string;
+      campaignType?: string;
     })
   | (RecommendationMeta & {
       type: "promotion";
@@ -39,6 +57,9 @@ export type FeedItem =
       accentColor?: string;
       crowdLevel?: string;
       crowdReportedAt?: string;
+      isSponsored?: boolean;
+      campaignId?: string;
+      campaignType?: string;
     })
   | (RecommendationMeta & {
       type: "pass";
@@ -53,6 +74,9 @@ export type FeedItem =
       imageUrl?: string;
       crowdLevel?: string;
       crowdReportedAt?: string;
+      isSponsored?: boolean;
+      campaignId?: string;
+      campaignType?: string;
     });
 
 export type TimeFilter = "now" | "today" | "tomorrow" | "afternoon" | "evening" | "night";

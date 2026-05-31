@@ -81,16 +81,27 @@ export function TrendingCarousel() {
     queryFn: () => fetch("/api/promotions").then((r) => r.json()),
   });
 
+  const { data: adCampaigns = [] } = useQuery<any[]>({
+    queryKey: ["campaigns", "banner"],
+    queryFn: () => fetch("/api/campaigns").then((r) => r.json()),
+  });
+
+  // Pick the highest-budget BANNER_AD for a reserved carousel slot
+  const bannerAd = (adCampaigns as any[])
+    .filter((c: any) => c.type === "BANNER_AD")
+    .sort((a: any, b: any) => (b.budgetCents || 0) - (a.budgetCents || 0))[0];
+
   // Build trending items: high-priority promos + top-rated venues
   const topPromos = promotions
     .filter((p: any) => p.priority && p.priority >= 1)
     .slice(0, 2)
     .map((p: any) => ({ ...p, itemType: "promo" as const }));
 
+  const maxVenues = bannerAd ? 1 : 2;
   const topVenues = (venues as any[])
     .filter((v: any) => v.qualityScore != null && v.qualityScore > 0)
     .sort((a: any, b: any) => (b.qualityScore || 0) - (a.qualityScore || 0))
-    .slice(0, 2)
+    .slice(0, maxVenues)
     .map((v: any) => {
       const distance = lat && lng && v.lat && v.lng
         ? Math.sqrt((v.lat - lat) ** 2 + (v.lng - lng) ** 2) * 111.32
@@ -99,6 +110,20 @@ export function TrendingCarousel() {
     });
 
   const trending = [...topPromos, ...topVenues].slice(0, 4);
+
+  // Inject banner ad at position 2 (index 1) if available
+  if (bannerAd) {
+    const adItem = {
+      ...bannerAd,
+      itemType: "ad" as const,
+      name: bannerAd.title,
+      imageUrl: bannerAd.imageUrl || bannerAd.bar?.coverImage,
+      venueName: bannerAd.bar?.name,
+      description: bannerAd.description,
+    };
+    trending.splice(Math.min(1, trending.length), 0, adItem);
+    if (trending.length > 4) trending.length = 4;
+  }
 
   const next = useCallback(() => setCurrent((prev) => (prev + 1) % trending.length), [trending.length]);
   const prev = useCallback(() => setCurrent((p) => (p - 1 + trending.length) % trending.length), [trending.length]);
@@ -110,9 +135,6 @@ export function TrendingCarousel() {
   }, [next, trending.length]);
 
   if (!trending.length) return null;
-
-  const item = trending[current];
-  const isPromo = item.itemType === "promo";
 
   const gradients = [
     "linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #1a0533 100%)",
@@ -132,7 +154,8 @@ export function TrendingCarousel() {
             $active={i === current}
             $imageUrl={t.imageUrl || t.coverImage}
             onClick={() => {
-              if (t.itemType === "promo") window.location.href = `/promotions/${t.id}`;
+              if (t.itemType === "ad") window.location.href = t.targetUrl || `/venues/${t.barId}`;
+              else if (t.itemType === "promo") window.location.href = `/promotions/${t.id}`;
               else window.location.href = `/venues/${t.id}`;
             }}
             style={{
@@ -140,25 +163,29 @@ export function TrendingCarousel() {
             }}
           >
             <div style={{ position: "absolute", top: "20px", left: "28px", display: "flex", gap: "6px", zIndex: 1 }}>
-              <Badge $type={isPromo ? "promo" : "pass"}>{isPromo ? "PROMO" : "TRENDING"}</Badge>
+              <Badge $type={t.itemType === "ad" ? "ad" : t.itemType === "promo" ? "promo" : "pass"}>
+                {t.itemType === "ad" ? "SPONSORED" : t.itemType === "promo" ? "PROMO" : "TRENDING"}
+              </Badge>
             </div>
 
             <div style={{ marginTop: "auto", position: "relative", zIndex: 1 }}>
               <div style={{ color: "#fff", fontWeight: 800, fontSize: "22px", lineHeight: 1.2 }}>
-                {isPromo ? t.title : t.name}
+                {t.itemType === "ad" ? t.title || t.name : t.itemType === "promo" ? t.title : t.name}
               </div>
               <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginTop: "6px" }}>
-                {isPromo
-                  ? `${t.venueName} · ${formatEventTime(new Date(t.validFrom))}`
-                  : `${t.type?.replace(/_/g, " ")} · ${t.district} · ${t.distance ? formatDistance(t.distance) : "Nearby"}`
+                {t.itemType === "ad"
+                  ? `${t.venueName || t.bar?.name || ""} · Sponsored`
+                  : t.itemType === "promo"
+                    ? `${t.venueName || ""}${t.validFrom ? ` · ${formatEventTime(new Date(t.validFrom))}` : ""}`
+                    : `${t.type?.replace(/_/g, " ") || "Venue"}${t.district ? ` · ${t.district}` : ""}${t.distance ? ` · ${formatDistance(t.distance)}` : ""}`
                 }
               </div>
-              {isPromo && t.description && (
+              {(t.itemType === "ad" || t.itemType === "promo") && t.description && (
                 <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", marginTop: "6px", marginBottom: 0 }}>
                   {t.description.slice(0, 80)}{t.description.length > 80 ? "..." : ""}
                 </p>
               )}
-              {!isPromo && (
+              {t.itemType !== "promo" && t.itemType !== "ad" && (
                 <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "rgba(255,255,255,0.7)", fontSize: "12px" }}>
                     <Star size={14} weight="fill" color="#f59e0b" /> {t.qualityScore || 0} quality

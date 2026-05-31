@@ -15,7 +15,24 @@ export async function GET(req: Request) {
 
   const { start, end } = getTimeFilterWindow(time);
 
-  // 1. Optionally authenticate the user for personalization
+  // 1. Fetch active ad campaigns for sponsored content injection
+  const now = new Date();
+  const campaigns = await prisma.adCampaign.findMany({
+    where: {
+      status: "ACTIVE",
+      startDate: { lte: now },
+      endDate: { gte: now },
+      complianceStatus: "COMPLIANT",
+    },
+  });
+  const boostedCampaigns = campaigns.filter(
+    (c) => c.type === "BOOSTED_PROMO" || c.type === "SPONSORED_EVENT",
+  );
+  const featuredCampaigns = campaigns.filter(
+    (c) => c.type === "FEATURED_LISTING",
+  );
+
+  // 2. Optionally authenticate the user for personalization
   let session;
   try {
     session = await getServerSession(authOptions);
@@ -26,7 +43,7 @@ export async function GET(req: Request) {
     | string
     | undefined;
 
-  // 2. Fetch items from the database (same as before, but also fetch
+  // 3. Fetch items from the database (same as before, but also fetch
   //    additional metadata the ranker needs)
   const [events, dbPromotions, dbPasses, userProfile, userHistory] =
     await Promise.all([
@@ -113,7 +130,7 @@ export async function GET(req: Request) {
         : Promise.resolve(null),
     ]);
 
-  // 3. Build event items with venue coordinates
+  // 4. Build event items with venue coordinates
   const eventVenueIds = [
     ...new Set(events.map((e) => e.venueId)),
   ];
@@ -151,7 +168,7 @@ export async function GET(req: Request) {
     };
   });
 
-  // 4. Build promotion items
+  // 5. Build promotion items
   const promoItems: FeedItem[] = dbPromotions.map((dbp) => {
     const distance =
       dbp.bar.latitude != null && dbp.bar.longitude != null
@@ -172,7 +189,7 @@ export async function GET(req: Request) {
     };
   });
 
-  // 5. Build pass items
+  // 6. Build pass items
   const passItems: FeedItem[] = dbPasses.map((p) => {
     const distance =
       p.bar.latitude != null && p.bar.longitude != null
@@ -191,7 +208,7 @@ export async function GET(req: Request) {
     };
   });
 
-  // 6. Fetch crowd data for all venues in the feed
+  // 7. Fetch crowd data for all venues in the feed
   const allVenueIds = [
     ...new Set(
       [...eventItems, ...promoItems, ...passItems].map((i) => i.venueId),
@@ -225,14 +242,79 @@ export async function GET(req: Request) {
       : item;
   };
 
-  // 7. Merge and filter by radius
+  // Attach sponsored flags for BOOSTED_PROMO / SPONSORED_EVENT campaigns
+  const boostedById = new Map(
+    boostedCampaigns
+      .filter((c) => c.promotedItemId)
+      .map((c) => [c.promotedItemId!, c]),
+  );
+
+  const attachCampaign = <T extends { id: string }>(item: T) => {
+    const campaign = boostedById.get(item.id);
+    return campaign
+      ? {
+          ...item,
+          isSponsored: true as const,
+          campaignId: campaign.id,
+          campaignType: campaign.type,
+        }
+      : item;
+  };
+
+  // 8. Build featured listing items from FEATURED_LISTING campaigns
+  const featuredItems: FeedItem[] = [];
+  if (featuredCampaigns.length > 0) {
+    const featuredBarIds = [
+      ...new Set(featuredCampaigns.map((c) => c.barId)),
+    ];
+    const featuredBars = await prisma.bar.findMany({
+      where: { id: { in: featuredBarIds } },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        district: true,
+        latitude: true,
+        longitude: true,
+        coverImage: true,
+        qualityScore: true,
+      },
+    });
+    const barMap = new Map(featuredBars.map((b) => [b.id, b]));
+
+    for (const fc of featuredCampaigns) {
+      const bar = barMap.get(fc.barId);
+      if (!bar) continue;
+      const distance =
+        bar.latitude != null && bar.longitude != null
+          ? haversineDistance(lat, lng, bar.latitude, bar.longitude)
+          : 99;
+      featuredItems.push({
+        type: "featured" as const,
+        id: fc.id,
+        title: bar.name,
+        venueId: fc.barId,
+        venueName: bar.name,
+        venueType: bar.type || undefined,
+        distance,
+        image: bar.coverImage || undefined,
+        district: bar.district || undefined,
+        qualityScore: bar.qualityScore || undefined,
+        campaignId: fc.id,
+        campaignType: fc.type,
+        isSponsored: true as const,
+      });
+    }
+  }
+
+  // 9. Merge and filter by radius
   const withinRadius = [
-    ...eventItems.map(attachCrowd),
-    ...promoItems.map(attachCrowd),
+    ...eventItems.map(attachCrowd).map(attachCampaign),
+    ...promoItems.map(attachCrowd).map(attachCampaign),
     ...passItems.map(attachCrowd),
   ].filter((item) => item.distance <= radius);
 
-  // 8. Rank with personalization (or chronological fallback)
+  // 10. Rank with personalization (or chronological fallback)
   const ranked =
     userProfile && userHistory
       ? rankFeed(
@@ -242,5 +324,26 @@ export async function GET(req: Request) {
         )
       : rankFeed(withinRadius, null, null);
 
-  return NextResponse.json(ranked);
+  // 11. Boost sponsored items (1.5x score multiplier) and re-sort
+  const boosted = ranked.map((item) => {
+    if ((item as any).isSponsored && item.score != null) {
+      return { ...item, score: Math.min(1, item.score * 1.5) };
+    }
+    return item;
+  });
+  boosted.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+  // 12. Inject featured listings at positions 2 and 5 (1-indexed)
+  const result = [...boosted];
+  const insertPositions = [1, 4]; // 0-indexed: position 2 → index 1, position 5 → index 4
+  for (
+    let i = 0;
+    i < featuredItems.length && i < insertPositions.length;
+    i++
+  ) {
+    const pos = Math.min(insertPositions[i], result.length);
+    result.splice(pos, 0, featuredItems[i]);
+  }
+
+  return NextResponse.json(result);
 }

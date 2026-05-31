@@ -276,7 +276,10 @@ function computeFreshnessScore(item: FeedItem): number {
   let startTime: number;
   let endTime: number;
 
-  if (item.type === "event") {
+  if (item.type === "featured") {
+    // Featured listings are always "fresh"
+    return 0.9;
+  } else if (item.type === "event") {
     startTime = new Date(item.startTime).getTime();
     endTime = item.endTime ? new Date(item.endTime).getTime() : startTime + 4 * 3600 * 1000;
   } else if (item.type === "promotion") {
@@ -356,6 +359,7 @@ function enrichItem(item: FeedItem, signals: RankingSignals): FeedItem {
 function sortChronologically(items: FeedItem[]): FeedItem[] {
   return [...items].sort((a, b) => {
     const getTime = (item: FeedItem): number => {
+      if (item.type === "featured") return Date.now();
       if (item.type === "event") return new Date(item.startTime).getTime();
       if (item.type === "promotion") return new Date(item.validFrom).getTime();
       return new Date(item.validUntil).getTime();

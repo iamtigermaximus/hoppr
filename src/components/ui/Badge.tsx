@@ -1,13 +1,14 @@
 "use client";
 import styled, { css } from "styled-components";
 
-type BadgeType = "event" | "promo" | "pass" | "featured";
+type BadgeType = "event" | "promo" | "pass" | "featured" | "ad";
 
 const badgeColors = {
   event: { bg: "rgba(59,130,246,0.15)", color: "#3b82f6" },
   promo: { bg: "rgba(16,185,129,0.15)", color: "#10b981" },
   pass: { bg: "rgba(245,158,11,0.15)", color: "#f59e0b" },
   featured: { bg: "#f59e0b", color: "#000" },
+  ad: { bg: "rgba(124,58,237,0.15)", color: "#a78bfa" },
 };
 
 export const Badge = styled.span<{ $type: BadgeType }>`

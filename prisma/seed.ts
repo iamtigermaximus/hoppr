@@ -214,6 +214,77 @@ async function main() {
   ]);
   console.log(`✅ Created ${crowdReports.length} crowd reports`);
 
+  // Create sample ad campaigns
+  const thirtyDays = 30 * 86400000;
+  const adCampaigns = await Promise.all([
+    prisma.adCampaign.create({
+      data: {
+        barId: barIds["Bar Loose"],
+        title: "Bar Loose — Helsinki's Best Pub",
+        description: "Come experience Helsinki's most authentic pub atmosphere. Great drinks, better company.",
+        type: "FEATURED_LISTING",
+        status: "ACTIVE",
+        budgetCents: 5000,
+        spentCents: 1200,
+        impressions: 450,
+        clicks: 32,
+        startDate: new Date(Date.now() - 7 * 86400000),
+        endDate: new Date(Date.now() + 23 * 86400000),
+        complianceStatus: "COMPLIANT",
+      },
+    }),
+    prisma.adCampaign.create({
+      data: {
+        barId: barIds["Club X"],
+        title: "Club X — Weekend VIP",
+        description: "The ultimate nightlife experience in Helsinki. VIP entry, premium drinks.",
+        type: "BANNER_AD",
+        status: "ACTIVE",
+        budgetCents: 8000,
+        spentCents: 3200,
+        impressions: 820,
+        clicks: 67,
+        imageUrl: null,
+        startDate: new Date(Date.now() - 3 * 86400000),
+        endDate: new Date(Date.now() + 27 * 86400000),
+        complianceStatus: "COMPLIANT",
+      },
+    }),
+    prisma.adCampaign.create({
+      data: {
+        barId: barIds["BrewDog Helsinki"],
+        title: "Craft Beer Special — Boosted",
+        description: "Check out our rotating craft beer selection. New taps every week.",
+        type: "BOOSTED_PROMO",
+        status: "ACTIVE",
+        budgetCents: 3000,
+        spentCents: 800,
+        impressions: 280,
+        clicks: 18,
+        startDate: new Date(Date.now() - 5 * 86400000),
+        endDate: new Date(Date.now() + 25 * 86400000),
+        complianceStatus: "COMPLIANT",
+      },
+    }),
+    prisma.adCampaign.create({
+      data: {
+        barId: barIds["O'Malley's"],
+        title: "O'Malley's Sports Night",
+        description: "Watch the game with us! Best sports bar experience in Punavuori.",
+        type: "FEATURED_LISTING",
+        status: "DRAFT",
+        budgetCents: 4000,
+        spentCents: 0,
+        impressions: 0,
+        clicks: 0,
+        startDate: new Date(Date.now() + 14 * 86400000),
+        endDate: new Date(Date.now() + 44 * 86400000),
+        complianceStatus: "PENDING_REVIEW",
+      },
+    }),
+  ]);
+  console.log(`✅ Created ${adCampaigns.length} ad campaigns`);
+
   // Create events
   const now = new Date();
   const tomorrow = new Date(now.getTime() + 86400000);
