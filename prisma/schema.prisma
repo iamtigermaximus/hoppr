@@ -105,6 +105,13 @@ enum VIPPassStatus {
   CANCELLED
 }
 
+enum RedemptionMode {
+  SINGLE_USE
+  ONCE_PER_DAY
+  MULTI_USE
+  LIMITED_MULTI
+}
+
 enum ComplianceStatus {
   COMPLIANT
   FLAGGED_AUTO
@@ -649,9 +656,11 @@ model VIPPassEnhanced {
   validDays     String[]
   validHours    Json?
 
-  totalQuantity Int
-  soldCount     Int     @default(0)
-  maxPerUser    Int     @default(1)
+  totalQuantity    Int
+  soldCount        Int            @default(0)
+  maxPerUser       Int            @default(1)
+  redemptionMode   RedemptionMode @default(SINGLE_USE)
+  maxRedemptions   Int?
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
