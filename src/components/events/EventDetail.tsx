@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
+import ShareButton from "@/components/ui/ShareButton";
 import { formatEventTime } from "@/lib/utils";
 
 export function EventDetail({ id }: { id: string }) {
@@ -34,14 +35,16 @@ export function EventDetail({ id }: { id: string }) {
 
   return (
     <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
-      <button onClick={() => router.back()} style={{
-        display: "inline-flex", alignItems: "center", gap: "6px",
-        color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", fontWeight: 500,
-        background: "none", border: "none", cursor: "pointer", padding: 0,
-        marginBottom: "12px",
-      }}>
-        ← Back
-      </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <button onClick={() => router.back()} style={{
+          display: "inline-flex", alignItems: "center", gap: "6px",
+          color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", fontWeight: 500,
+          background: "none", border: "none", cursor: "pointer", padding: 0,
+        }}>
+          ← Back
+        </button>
+        <ShareButton title={event.title} text={event.description} />
+      </div>
 
       <div style={{ borderRadius: "16px", overflow: "hidden", height: "200px", marginBottom: "16px", background: event.imageUrl ? "var(--color-card, #1a1a1a)" : "linear-gradient(135deg, #1a0533, #2d1060, #0a0a0a)", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {event.imageUrl ? (

@@ -81,7 +81,7 @@ export async function GET(req: Request) {
       }),
       // VIP passes
       prisma.vIPPassEnhanced.findMany({
-        where: { validityEnd: { gte: new Date() } },
+        where: { isActive: true, validityEnd: { gte: new Date() } },
         include: {
           bar: {
             select: { name: true, latitude: true, longitude: true, type: true },

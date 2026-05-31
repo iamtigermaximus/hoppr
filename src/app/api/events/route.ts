@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { findDuplicates } from "@/lib/duplicate-detector";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -93,5 +94,35 @@ export async function POST(req: Request) {
   // Auto-create chat room
   await prisma.eventChatRoom.create({ data: { eventId: event.id } });
 
-  return NextResponse.json(event, { status: 201 });
+  // Duplicate detection: check for similar events at OTHER venues (last 30 days)
+  const recentEvents = await prisma.event.findMany({
+    where: {
+      id: { not: event.id },
+      venueId: { not: event.venueId },
+      startTime: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      venueId: true,
+      venueName: true,
+    },
+    take: 50,
+  });
+
+  const dupResult = findDuplicates(
+    event.title,
+    event.description,
+    recentEvents,
+    event.venueId,
+  );
+
+  return NextResponse.json(
+    {
+      ...event,
+      duplicateWarning: dupResult.isDuplicate ? dupResult.matches.slice(0, 5) : null,
+    },
+    { status: 201 },
+  );
 }

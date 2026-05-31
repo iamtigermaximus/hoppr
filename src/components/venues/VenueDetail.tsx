@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
+import ShareButton from "@/components/ui/ShareButton";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import {
@@ -99,14 +100,16 @@ export function VenueDetail() {
   return (
     <div style={{ padding: "16px", maxWidth: "680px", margin: "0 auto" }}>
       {/* Back button */}
-      <button onClick={() => router.back()} style={{
-        display: "inline-flex", alignItems: "center", gap: "6px",
-        color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", fontWeight: 500,
-        background: "none", border: "none", cursor: "pointer", padding: 0,
-        marginBottom: "12px",
-      }}>
-        ← Back to bars
-      </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <button onClick={() => router.back()} style={{
+          display: "inline-flex", alignItems: "center", gap: "6px",
+          color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", fontWeight: 500,
+          background: "none", border: "none", cursor: "pointer", padding: 0,
+        }}>
+          ← Back to bars
+        </button>
+        <ShareButton title={venue.name} text={`${venue.type?.replace(/_/g, " ")} in ${venue.district}`} />
+      </div>
 
       {/* Hero Image */}
       {venue.imageUrl && (
