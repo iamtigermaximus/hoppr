@@ -8,7 +8,10 @@ export async function GET(req: Request) {
   const creatorId = searchParams.get("creatorId");
   const userId = searchParams.get("userId");
 
-  const where: any = { startTime: { gte: new Date() } };
+  const where: any = {
+    startTime: { gte: new Date() },
+    complianceStatus: "COMPLIANT",
+  };
   if (creatorId) where.creatorId = creatorId;
   if (userId) {
     where.OR = [

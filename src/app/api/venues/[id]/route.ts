@@ -41,6 +41,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     where: {
       barId: id,
       isActive: true,
+      isApproved: true,
       startDate: { lte: now },
       endDate: { gte: now },
     },

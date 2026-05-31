@@ -641,6 +641,7 @@ model VIPPassEnhanced {
   barId       String
   name        String
   description String?
+  imageUrl    String?     @db.Text
   type        VIPPassType @default(SKIP_LINE)
 
   priceCents         Int
@@ -668,6 +669,7 @@ model VIPPassEnhanced {
 
   bar        Bar           @relation(fields: [barId], references: [id], onDelete: Cascade)
   userPasses UserVIPPass[]
+  complianceChecks ComplianceCheck[]
 
   @@map("vip_passes_enhanced")
 }
@@ -775,6 +777,7 @@ model ComplianceCheck {
   id           String           @id @default(cuid())
   promotionId  String?
   eventId      String?
+  passId       String?
   adCampaignId String?
   status       ComplianceStatus @default(COMPLIANT)
   violations   Json?            // [{ rule, keyword, severity, message }]
@@ -784,7 +787,8 @@ model ComplianceCheck {
 
   promotion  BarPromotion? @relation(fields: [promotionId], references: [id], onDelete: Cascade)
   event      Event?        @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  adCampaign AdCampaign?   @relation(fields: [adCampaignId], references: [id], onDelete: Cascade)
+  adCampaign AdCampaign?     @relation(fields: [adCampaignId], references: [id], onDelete: Cascade)
+  vipPass    VIPPassEnhanced? @relation(fields: [passId], references: [id], onDelete: Cascade)
 
   @@map("compliance_checks")
 }

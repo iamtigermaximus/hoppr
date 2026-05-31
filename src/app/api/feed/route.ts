@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 
   // 1. Fetch events from DB with participants and venue bar
   const events = await prisma.event.findMany({
-    where: { startTime: { gte: start, lte: end } },
+    where: { startTime: { gte: start, lte: end }, complianceStatus: "COMPLIANT" },
     include: {
       participants: {
         include: { user: { select: { id: true, username: true, image: true } } },
@@ -60,6 +60,7 @@ export async function GET(req: Request) {
   const dbPromotions = await prisma.barPromotion.findMany({
     where: {
       isActive: true,
+      isApproved: true,
       startDate: { lte: end },
       endDate: { gte: start },
     },

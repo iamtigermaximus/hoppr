@@ -10,6 +10,7 @@ export async function GET(req: Request) {
 
   const where: any = {
     isActive: true,
+    isApproved: true,
     startDate: { lte: new Date() },
     endDate: { gte: new Date() },
   };
