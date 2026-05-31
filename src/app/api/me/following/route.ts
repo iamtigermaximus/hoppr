@@ -11,10 +11,10 @@ export async function GET() {
 
   const userId = (session.user as Record<string, unknown>).id as string;
 
-  const follows = await prisma.bar_follows.findMany({
+  const follows = await prisma.barFollow.findMany({
     where: { userId },
     include: {
-      bars: {
+      bar: {
         select: {
           id: true,
           name: true,
@@ -27,7 +27,7 @@ export async function GET() {
           qualityScore: true,
           cityName: true,
           _count: {
-            select: { bar_follows: true },
+            select: { followers: true },
           },
         },
       },
@@ -36,18 +36,18 @@ export async function GET() {
   });
 
   const bars = follows.map((f) => ({
-    id: f.bars.id,
-    name: f.bars.name,
-    type: f.bars.type,
-    address: f.bars.address,
-    district: f.bars.district,
+    id: f.bar.id,
+    name: f.bar.name,
+    type: f.bar.type,
+    address: f.bar.address,
+    district: f.bar.district,
     imageUrl:
-      f.bars.coverImage ||
-      (f.bars.imageUrls?.length > 0 ? f.bars.imageUrls[0] : null) ||
-      f.bars.logoUrl,
-    qualityScore: f.bars.qualityScore,
-    cityName: f.bars.cityName,
-    followerCount: f.bars._count.bar_follows,
+      f.bar.coverImage ||
+      (f.bar.imageUrls?.length > 0 ? f.bar.imageUrls[0] : null) ||
+      f.bar.logoUrl,
+    qualityScore: f.bar.qualityScore,
+    cityName: f.bar.cityName,
+    followerCount: f.bar._count.followers,
     followedAt: f.createdAt.toISOString(),
   }));
 

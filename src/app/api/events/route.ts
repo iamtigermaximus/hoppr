@@ -27,16 +27,12 @@ export async function GET(req: Request) {
       participants: {
         include: { user: { select: { id: true, username: true, image: true } } },
       },
-      event_crawl_stops: { orderBy: { order: "asc" } },
+      crawlStops: { orderBy: { order: "asc" } },
     },
     orderBy: { startTime: "asc" },
     take: 50,
   });
-  return NextResponse.json(events.map((e) => ({
-    ...e,
-    crawlStops: e.event_crawl_stops,
-    event_crawl_stops: undefined,
-  })));
+  return NextResponse.json(events);
 }
 
 export async function POST(req: Request) {
@@ -72,7 +68,7 @@ export async function POST(req: Request) {
       // Persist crawl stops if provided
       ...(crawlStops && crawlStops.length > 0
         ? {
-            event_crawl_stops: {
+            crawlStops: {
               create: crawlStops.map((stop: any, i: number) => ({
                 venueId: stop.id || stop.venueId,
                 venueName: stop.name || stop.venueName || `Stop ${i + 1}`,
@@ -90,16 +86,12 @@ export async function POST(req: Request) {
       participants: {
         include: { user: { select: { id: true, username: true, image: true } } },
       },
-      event_crawl_stops: { orderBy: { order: "asc" } },
+      crawlStops: { orderBy: { order: "asc" } },
     },
   });
 
   // Auto-create chat room
   await prisma.eventChatRoom.create({ data: { eventId: event.id } });
 
-  return NextResponse.json({
-    ...event,
-    crawlStops: event.event_crawl_stops,
-    event_crawl_stops: undefined,
-  }, { status: 201 });
+  return NextResponse.json(event, { status: 201 });
 }
