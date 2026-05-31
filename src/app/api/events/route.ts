@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { findDuplicates } from "@/lib/duplicate-detector";
+import { checkRateLimit, RateLimits } from "@/lib/rate-limiter";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -48,6 +49,14 @@ export async function POST(req: Request) {
   }
 
   const creatorId = (session.user as any).id;
+
+  const rateCheck = checkRateLimit(`create-event:${creatorId}`, RateLimits.CREATE);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many events created. Wait before creating another." },
+      { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } },
+    );
+  }
 
   const event = await prisma.event.create({
     data: {
