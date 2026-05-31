@@ -65,7 +65,7 @@ export function ProfileEdit() {
       setTwitter(profile.twitter || "");
       setInterests((profile.interests || []).join(", "));
       setLanguages((profile.languages || []).join(", "));
-      setAvatarUrl(profile.avatarUrl || "");
+      setAvatarUrl(profile.image || "");
       setGallery(profile.gallery || []);
     }
   }, [profile]);
@@ -77,7 +77,7 @@ export function ProfileEdit() {
       instagram: instagram || null, facebook: facebook || null, twitter: twitter || null,
       interests: interests ? interests.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
       languages: languages ? languages.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
-      avatarUrl: avatarUrl || null,
+      image: avatarUrl || null,
       gallery,
     }, {
       onSuccess: async () => {
@@ -101,7 +101,7 @@ export function ProfileEdit() {
 
       {/* Avatar + Name */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px" }}>
-        <Avatar src={profile.avatarUrl} name={profile.username} size={88} />
+        <Avatar src={profile.image} name={profile.username} size={88} />
         <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "18px", marginTop: "10px" }}>{profile.username}</div>
         <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "12px" }}>{profile.email}</div>
       </div>

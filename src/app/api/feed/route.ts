@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { mockPromotions, mockPasses, mockVenues } from "@/lib/marketing-api";
 import { haversineDistance, getTimeFilterWindow } from "@/lib/utils";
 import type { FeedItem } from "@/types/feed";
 
@@ -13,21 +12,30 @@ export async function GET(req: Request) {
 
   const { start, end } = getTimeFilterWindow(time);
 
-  // 1. Fetch events from DB within time window
+  // 1. Fetch events from DB with participants and venue bar
   const events = await prisma.event.findMany({
     where: { startTime: { gte: start, lte: end } },
     include: {
       participants: {
-        include: { user: { select: { id: true, username: true, avatarUrl: true } } },
+        include: { user: { select: { id: true, username: true, image: true } } },
       },
     },
     orderBy: { startTime: "asc" },
   });
 
-  // 2. Map events to FeedItems with distance
+  // Fetch bar coordinates for all event venues in one query
+  const eventVenueIds = [...new Set(events.map((e) => e.venueId))];
+  const eventBars = await prisma.bar.findMany({
+    where: { id: { in: eventVenueIds } },
+    select: { id: true, latitude: true, longitude: true },
+  });
+  const barCoordMap = new Map(eventBars.map((b) => [b.id, { lat: b.latitude, lng: b.longitude }]));
+
   const eventItems: FeedItem[] = events.map((e) => {
-    const venue = mockVenues.find((v) => v.id === e.venueId);
-    const distance = venue ? haversineDistance(lat, lng, venue.lat, venue.lng) : 99;
+    const coords = barCoordMap.get(e.venueId);
+    const distance = coords?.lat != null && coords?.lng != null
+      ? haversineDistance(lat, lng, coords.lat, coords.lng)
+      : 99;
     return {
       type: "event" as const,
       id: e.id,
@@ -43,68 +51,69 @@ export async function GET(req: Request) {
       attendees: e.participants.map((p) => ({
         id: p.user.id,
         name: p.user.username,
-        image: p.user.avatarUrl,
+        image: p.user.image,
       })),
     };
   });
 
-  // 3. Fetch promotions (mock) and map
-  const promoItems: FeedItem[] = mockPromotions.map((p) => {
-    const venue = mockVenues.find((v) => v.id === p.venueId);
-    const distance = venue ? haversineDistance(lat, lng, venue.lat, venue.lng) : 99;
-    return {
-      ...p,
-      type: "promotion" as const,
-      distance,
-    };
-  });
-
-  // 4. Fetch promotions from shared database (business-created promos)
-  const mockPromoKeys = new Set(mockPromotions.map((p) => `${p.title}|${p.venueName}`));
-
-  const dbPromotions = await prisma.promotion.findMany({
+  // 2. Fetch promotions from database
+  const dbPromotions = await prisma.barPromotion.findMany({
     where: {
       isActive: true,
       startDate: { lte: end },
       endDate: { gte: start },
     },
-    include: { bar: true },
+    include: { bar: { select: { name: true, latitude: true, longitude: true } } },
     orderBy: { startDate: "asc" },
-    take: 20,
+    take: 30,
   });
 
-  for (const dbp of dbPromotions) {
-    const key = `${dbp.title}|${dbp.bar.name}`;
-    if (mockPromoKeys.has(key)) continue; // deduplicate by title + venue name
-
-    const distance = haversineDistance(lat, lng, dbp.bar.latitude, dbp.bar.longitude);
-
-    promoItems.push({
+  const promoItems: FeedItem[] = dbPromotions.map((dbp) => {
+    const distance = dbp.bar.latitude != null && dbp.bar.longitude != null
+      ? haversineDistance(lat, lng, dbp.bar.latitude, dbp.bar.longitude)
+      : 99;
+    return {
       type: "promotion" as const,
       id: dbp.id,
       title: dbp.title,
       venueId: dbp.barId,
       venueName: dbp.bar.name,
-      description: dbp.description || "",
+      description: dbp.description,
       validFrom: dbp.startDate.toISOString(),
       validTo: dbp.endDate.toISOString(),
       distance,
       image: dbp.imageUrl || undefined,
-    });
-  }
-
-  // 5. Fetch passes (mock) and map
-  const passItems: FeedItem[] = mockPasses.map((p) => {
-    const venue = mockVenues.find((v) => v.id === p.venueId);
-    const distance = venue ? haversineDistance(lat, lng, venue.lat, venue.lng) : 99;
-    return {
-      ...p,
-      type: "pass" as const,
-      distance,
     };
   });
 
-  // 6. Merge, filter by radius, sort by time
+  // 3. Fetch VIP passes from database
+  const dbPasses = await prisma.vIPPassEnhanced.findMany({
+    where: {
+      validityEnd: { gte: new Date() },
+    },
+    include: { bar: { select: { name: true, latitude: true, longitude: true } } },
+    orderBy: { priceCents: "asc" },
+    take: 20,
+  });
+
+  const passItems: FeedItem[] = dbPasses.map((p) => {
+    const distance = p.bar.latitude != null && p.bar.longitude != null
+      ? haversineDistance(lat, lng, p.bar.latitude, p.bar.longitude)
+      : 99;
+    return {
+      type: "pass" as const,
+      id: p.id,
+      title: p.name,
+      venueId: p.barId,
+      venueName: p.bar.name,
+      price: p.priceCents / 100,
+      validUntil: p.validityEnd.toISOString(),
+      distance,
+      imageUrl: undefined,
+    };
+  });
+
+  // 4. Merge, filter by radius, sort by time
   const allItems = [...eventItems, ...promoItems, ...passItems]
     .filter((item) => item.distance <= radius)
     .sort((a, b) => {
@@ -123,14 +132,5 @@ export async function GET(req: Request) {
       return aTime - bTime;
     });
 
-  // Boost promoted items with priority > 1 to the top while preserving relative order
-  const sorted = [...allItems].sort((a, b) => {
-    const aBoost = a.type === "promotion" && (a as any).priority > 1;
-    const bBoost = b.type === "promotion" && (b as any).priority > 1;
-    if (aBoost && !bBoost) return -1;
-    if (!aBoost && bBoost) return 1;
-    return 0;
-  });
-
-  return NextResponse.json(sorted);
+  return NextResponse.json(allItems);
 }

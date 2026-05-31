@@ -20,9 +20,9 @@ export async function GET(req: Request) {
   const events = await prisma.event.findMany({
     where,
     include: {
-      creator: { select: { id: true, username: true, avatarUrl: true } },
+      creator: { select: { id: true, username: true, image: true } },
       participants: {
-        include: { user: { select: { id: true, username: true, avatarUrl: true } } },
+        include: { user: { select: { id: true, username: true, image: true } } },
       },
     },
     orderBy: { startTime: "asc" },
@@ -63,15 +63,15 @@ export async function POST(req: Request) {
       },
     },
     include: {
-      creator: { select: { id: true, username: true, avatarUrl: true } },
+      creator: { select: { id: true, username: true, image: true } },
       participants: {
-        include: { user: { select: { id: true, username: true, avatarUrl: true } } },
+        include: { user: { select: { id: true, username: true, image: true } } },
       },
     },
   });
 
   // Auto-create chat room
-  await prisma.chatRoom.create({ data: { eventId: event.id } });
+  await prisma.eventChatRoom.create({ data: { eventId: event.id } });
 
   return NextResponse.json(event, { status: 201 });
 }

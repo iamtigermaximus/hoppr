@@ -11,9 +11,9 @@ export async function POST(req: Request) {
   const { id, all } = await req.json();
 
   if (all) {
-    await prisma.notification.updateMany({ where: { userId, isRead: false }, data: { isRead: true } });
+    await prisma.notification.updateMany({ where: { userId, read: false }, data: { read: true } });
   } else if (id) {
-    await prisma.notification.updateMany({ where: { id, userId }, data: { isRead: true } });
+    await prisma.notification.updateMany({ where: { id, userId }, data: { read: true } });
   }
 
   return NextResponse.json({ success: true });

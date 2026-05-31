@@ -6,7 +6,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const user = await prisma.user.findUnique({
     where: { id },
     select: {
-      id: true, username: true, bio: true, avatarUrl: true,
+      id: true, username: true, bio: true, image: true,
       drinkPrefs: true, interests: true, languages: true,
       instagram: true, facebook: true, twitter: true, gallery: true, createdAt: true,
     },

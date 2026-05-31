@@ -97,7 +97,7 @@ export function ChatRoom() {
                     borderRadius: "10px", cursor: "pointer",
                   }}
                 >
-                  <Avatar src={p.user.avatarUrl || p.user.image} name={p.user.username || p.user.name} size={32} />
+                  <Avatar src={p.user.image} name={p.user.username || p.user.name} size={32} />
                   <div style={{ flex: 1 }}>
                     <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{p.user.username || p.user.name}</div>
                   </div>

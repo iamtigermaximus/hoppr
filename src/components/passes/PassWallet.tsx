@@ -10,8 +10,8 @@ import { Ticket, CheckCircle, XCircle } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
 
 function getStatusBadge(pass: any) {
-  if (pass.redeemedAt) return <Badge $type="promo">USED</Badge>;
-  if (new Date(pass.validUntil) < new Date()) return <Badge $type="featured">EXPIRED</Badge>;
+  if (pass.status === "USED" || pass.scannedAt) return <Badge $type="promo">USED</Badge>;
+  if (new Date(pass.expiresAt) < new Date()) return <Badge $type="featured">EXPIRED</Badge>;
   return <Badge $type="pass">ACTIVE</Badge>;
 }
 
@@ -21,8 +21,12 @@ export function PassWallet() {
 
   if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
 
-  const active = passes.filter((p: any) => !p.redeemedAt && new Date(p.validUntil) >= new Date());
-  const used = passes.filter((p: any) => p.redeemedAt || new Date(p.validUntil) < new Date());
+  const active = passes.filter((p: any) =>
+    p.status !== "USED" && !p.scannedAt && new Date(p.expiresAt) >= new Date()
+  );
+  const used = passes.filter((p: any) =>
+    p.status === "USED" || p.scannedAt || new Date(p.expiresAt) < new Date()
+  );
 
   return (
     <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
@@ -37,8 +41,10 @@ export function PassWallet() {
               <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                 <Ticket size={24} color="#f59e0b" />
                 <div>
-                  <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{pass.passTitle}</div>
-                  <div style={{ color: "#a3a3a3", fontSize: "11px" }}>{pass.venueName} · Valid until {formatEventTime(new Date(pass.validUntil))}</div>
+                  <div style={{ color: "#fff", fontWeight: 600, fontSize: "13px" }}>{pass.vipPass?.name || "Pass"}</div>
+                  <div style={{ color: "#a3a3a3", fontSize: "11px" }}>
+                    {pass.bar?.name} · Valid until {formatEventTime(new Date(pass.expiresAt))}
+                  </div>
                   <div style={{ marginTop: "4px" }}>{getStatusBadge(pass)}</div>
                 </div>
               </div>
@@ -55,10 +61,12 @@ export function PassWallet() {
             <Card key={pass.id} style={{ marginBottom: "8px", opacity: 0.5 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  {pass.redeemedAt ? <CheckCircle size={24} color="#10b981" /> : <XCircle size={24} color="#ef4444" />}
+                  {(pass.status === "USED" || pass.scannedAt) ? <CheckCircle size={24} color="#10b981" /> : <XCircle size={24} color="#ef4444" />}
                   <div>
-                    <div style={{ color: "#a3a3a3", fontWeight: 600, fontSize: "13px" }}>{pass.passTitle}</div>
-                    <div style={{ color: "#737373", fontSize: "11px" }}>{pass.venueName} · €{pass.price}</div>
+                    <div style={{ color: "#a3a3a3", fontWeight: 600, fontSize: "13px" }}>{pass.vipPass?.name || "Pass"}</div>
+                    <div style={{ color: "#737373", fontSize: "11px" }}>
+                      {pass.bar?.name} · €{(pass.purchasePriceCents / 100).toFixed(2)}
+                    </div>
                     <div style={{ marginTop: "4px" }}>{getStatusBadge(pass)}</div>
                   </div>
                 </div>

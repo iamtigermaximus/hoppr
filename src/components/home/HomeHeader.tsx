@@ -38,7 +38,7 @@ export function HomeHeader() {
         </Link>
         <div ref={menuRef} style={{ position: "relative" }}>
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ cursor: "pointer", background: "none", border: "none", padding: 0 }}>
-            <Avatar src={profile?.avatarUrl} name={profile?.username || user?.name || undefined} size={34} />
+            <Avatar src={profile?.image} name={profile?.username || user?.name || undefined} size={34} />
           </button>
           {menuOpen && (
             <div style={{

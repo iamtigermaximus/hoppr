@@ -8,8 +8,12 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = (session.user as any).id;
 
-  const purchases = await prisma.passPurchase.findMany({
+  const purchases = await prisma.userVIPPass.findMany({
     where: { userId },
+    include: {
+      vipPass: { select: { name: true, type: true } },
+      bar: { select: { name: true } },
+    },
     orderBy: { purchasedAt: "desc" },
   });
 

@@ -1,5 +1,12 @@
+// ============================================
+// Hoppr — Unified Prisma Schema
+// Shared by Consumer App (hoppr) + Business App (hoppr-business)
+// Single DATABASE_URL, single source of truth
+// ============================================
+
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
@@ -7,34 +14,255 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  CONSUMER
+  BAR_OWNER
+  BAR_MANAGER
+  BAR_STAFF
+  SUPER_ADMIN
+}
+
+enum BarStaffRole {
+  OWNER
+  MANAGER
+  PROMOTIONS_MANAGER
+  STAFF
+  VIEWER
+}
+
+enum BarType {
+  PUB
+  CLUB
+  LOUNGE
+  COCKTAIL_BAR
+  RESTAURANT_BAR
+  SPORTS_BAR
+  KARAOKE
+  LIVE_MUSIC
+  WINE_BAR
+  BREWERY_TAPROOM
+  COCKTAIL_LOUNGE
+}
+
+enum BarStatus {
+  UNCLAIMED
+  CLAIMED
+  VERIFIED
+  SUSPENDED
+}
+
+enum BarPerformanceTier {
+  ACTIVE
+  GROWING
+  STAGNANT
+  DEAD
+  NEW
+}
+
+enum PriceRange {
+  BUDGET
+  MODERATE
+  PREMIUM
+  LUXURY
+}
+
+enum PromotionType {
+  HAPPY_HOUR
+  STUDENT_DISCOUNT
+  LADIES_NIGHT
+  THEME_NIGHT
+  FOOD_SPECIAL
+  DRINK_SPECIAL
+  COVER_DISCOUNT
+  VIP_OFFER
+  LIVE_MUSIC_EVENT
+  GAME_NIGHT
+  WEEKEND_SPECIAL
+}
+
+enum RedemptionRule {
+  SINGLE_USE
+  ONCE_PER_DAY
+  MULTI_USE
+  LIMITED_MULTI
+}
+
+enum VIPPassType {
+  SKIP_LINE
+  COVER_INCLUDED
+  PREMIUM_ENTRY
+  DRINK_PACKAGE
+}
+
+enum VIPPassStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  CANCELLED
+}
+
+enum ComplianceStatus {
+  COMPLIANT
+  FLAGGED_AUTO
+  PENDING_REVIEW
+  REJECTED
+  OVERRIDDEN
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum AdCampaignType {
+  FEATURED_LISTING
+  BANNER_AD
+  BOOSTED_PROMO
+  SPONSORED_EVENT
+}
+
+enum AdCampaignStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PROMO_VIEW
+  PROMO_CLICK
+  PROMO_REDEMPTION
+  EVENT_VIEW
+  EVENT_JOIN
+  PASS_VIEW
+  PASS_PURCHASE
+  PASS_SCAN
+  BAR_VIEW
+  BAR_DIRECTION
+  BAR_CALL
+  BAR_WEBSITE
+  BAR_SHARE
+  SEARCH
+  FEED_SCROLL
+}
+
+enum OutreachMethod {
+  EMAIL
+  PHONE_CALL
+  IN_PERSON
+  SOCIAL_MEDIA
+}
+
+enum OutreachStatus {
+  NOT_CONTACTED
+  EMAILED
+  CALLED
+  IN_DISCUSSION
+  CLAIMED
+  DECLINED
+}
+
+enum NotificationType {
+  // Consumer: messages & events
+  SYSTEM
+  MESSAGE
+  EVENT_REMINDER
+  EVENT_UPDATED
+  EVENT_CANCELLED
+  EVENT_INVITE
+  // Consumer: passes
+  PASS_PURCHASED
+  PASS_EXPIRING
+  PASS_SCANNED
+  // Consumer: promos & bars
+  PROMO_NEW
+  PROMO_EXPIRING
+  BAR_VERIFIED
+  // Business: staff workflow
+  STAFF_INVITE
+  STAFF_APPROVED
+  SUBMISSION_APPROVED
+  SUBMISSION_REJECTED
+}
+
+// ============================================
+// AUTH & USER
+// ============================================
+
 model User {
   id             String    @id @default(cuid())
+  name           String?
   email          String    @unique
-  username       String    @unique
-  passwordHash   String?
-  googleId       String?   @unique
+  username       String?   @unique
+  emailVerified  DateTime?
+  image          String?
   phoneNumber    String?   @unique
-  bio            String?   @db.Text
-  avatarUrl      String?
-  instagram      String?
-  facebook       String?
-  twitter        String?
-  interests      String[]  @default([])
-  languages      String[]  @default([])
-  gallery        String[]  @default([])
-  locationLat    Float?
-  locationLng    Float?
-  drinkPrefs     String[]  @default([])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  phoneVerified  Boolean   @default(false)
+  hashedPassword String?
+  googleId       String?   @unique
+  role           UserRole  @default(CONSUMER)
 
-  accounts         Account[]
-  sessions         Session[]
-  eventsCreated    Event[]          @relation("EventCreator")
+  // Social profile (consumer)
+  bio         String?
+  instagram   String?
+  facebook    String?
+  twitter     String?
+  interests   String[]  @default([])
+  languages   String[]  @default([])
+  gallery     String[]  @default([])
+  locationLat Float?
+  locationLng Float?
+  drinkPrefs  String[]  @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Auth
+  accounts           Account[]
+  sessions           Session[]
+  phoneVerifications PhoneVerification[]
+
+  // Business associations
+  businessAccounts BusinessAccount[]
+  barStaffRecords  BarStaff[]
+  barClaims        BarClaim[]
+
+  // Bars
+  createdBars Bar[] @relation("BarCreatedBy")
+  claimedBars Bar[] @relation("BarClaimedBy")
+
+  // Promotions
+  promotionUsage     PromotionUsage[]
+  createdPromotions  BarPromotion[] @relation("PromoCreator")
+  approvedPromotions BarPromotion[] @relation("PromoApprover")
+
+  // VIP / Passes
+  userVIPPasses UserVIPPass[]
+
+  // Events (consumer)
+  eventsCreated    Event[]             @relation("EventCreator")
   eventJoins       EventParticipant[]
-  chatMessages     ChatMessage[]
-  passPurchases    PassPurchase[]
-  notifications    Notification[]
+  eventChatMessages EventChatMessage[]
+
+  // Notifications
+  sentNotifications     Notification[] @relation("NotificationSender")
+  receivedNotifications Notification[] @relation("NotificationReceiver")
+
+  // Admin actions
+  auditLogs          AuditLog[]
+  barImports         BarImport[]
+  outreachLogs       OutreachLog[]
+  reviewedClaims     BarClaim[]        @relation("BarClaimReviewer")
 
   @@map("users")
 }
@@ -63,97 +291,8 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Event {
-  id             String    @id @default(cuid())
-  title          String
-  description    String?   @db.Text
-  venueId        String
-  venueName      String
-  venueType      String?
-  startTime      DateTime
-  endTime        DateTime?
-  maxAttendees   Int?
-  isPrivate      Boolean   @default(false)
-  imageUrl       String?
-  creatorId      String
-  createdAt      DateTime  @default(now())
-
-  creator       User               @relation("EventCreator", fields: [creatorId], references: [id])
-  participants  EventParticipant[]
-  chatRoom      ChatRoom?
-
-  @@index([startTime])
-  @@index([venueId])
-}
-
-model EventParticipant {
-  userId    String
-  eventId   String
-  joinedAt  DateTime  @default(now())
-
-  user  User  @relation(fields: [userId], references: [id])
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  @@id([userId, eventId])
-  @@index([eventId])
-}
-
-model ChatRoom {
-  id         String   @id @default(cuid())
-  eventId    String   @unique
-  createdAt  DateTime @default(now())
-
-  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  messages  ChatMessage[]
-}
-
-model ChatMessage {
-  id         String   @id @default(cuid())
-  content    String   @db.Text
-  roomId     String
-  authorId   String
-  createdAt  DateTime @default(now())
-
-  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  author User     @relation(fields: [authorId], references: [id])
-
-  @@index([roomId, createdAt])
-}
-
-model PassPurchase {
-  id             String    @id @default(cuid())
-  passId         String
-  passTitle      String
-  venueId        String
-  venueName      String
-  price          Float
-  purchasedAt    DateTime  @default(now())
-  validUntil     DateTime
-  redeemedAt     DateTime?
-  qrCodeSecret   String
-  userId         String
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-}
-
-model Notification {
-  id         String   @id @default(cuid())
-  type       String
-  title      String
-  body       String
-  data       Json?
-  isRead     Boolean  @default(false)
-  userId     String
-  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, isRead])
 }
 
 model VerificationToken {
@@ -162,34 +301,567 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
-model Promotion {
+model PhoneVerification {
+  id          String   @id @default(cuid())
+  phoneNumber String
+  code        String
+  expires     DateTime
+  verified    Boolean  @default(false)
+  userId      String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([phoneNumber, code])
+  @@map("phone_verifications")
+}
+
+// ============================================
+// BAR & BUSINESS
+// ============================================
+
+model Bar {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  address     String
+  cityName    String?
+  district    String?
+  type        BarType
+  latitude    Float?
+  longitude   Float?
+
+  // Contact
+  phone     String?
+  email     String?
+  website   String?
+  instagram String?
+  facebook  String?
+  twitter   String?
+
+  // Business info
+  operatingHours Json?
+  priceRange     PriceRange?
+  capacity       Int?
+  amenities      String[]
+
+  // Media
+  coverImage String?
+  imageUrls  String[]
+  logoUrl    String?
+
+  // Status & verification
+  status        BarStatus @default(UNCLAIMED)
+  isVerified    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  claimedAt     DateTime?
+  claimedById   String?
+  importedAt    DateTime?
+  importBatchId String?
+
+  // Quality & performance
+  qualityScore    Int?
+  performanceTier BarPerformanceTier?
+
+  // VIP
+  vipEnabled  Boolean @default(false)
+  vipPrice    Float?
+  vipCapacity Int?
+
+  // Engagement metrics
+  profileViews    Int @default(0)
+  directionClicks Int @default(0)
+  callClicks      Int @default(0)
+  websiteClicks   Int @default(0)
+  shareCount      Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Relations
+  createdByUser User? @relation("BarCreatedBy", fields: [createdById], references: [id])
+  createdById   String?
+  claimedByUser User? @relation("BarClaimedBy", fields: [claimedById], references: [id])
+
+  // Business relations
+  staff           BarStaff[]
+  businessAccounts BusinessAccount[]
+  claims          BarClaim[]
+  invitations     BarInvitation[]
+  outreachLogs    OutreachLog[]
+  adCampaigns     AdCampaign[]
+
+  // Promotions
+  promotions   BarPromotion[]
+  usageHistory PromotionUsage[]
+
+  // VIP
+  vipPassesEnhanced VIPPassEnhanced[]
+  userVIPPasses     UserVIPPass[]
+  vipPassScans      VIPPassScan[]
+
+  // Events (consumer)
+  events Event[]
+
+  // Analytics
+  analyticsEvents AnalyticsEvent[]
+  auditLogs       AuditLog[]
+
+  @@map("bars")
+}
+
+model BusinessAccount {
+  id        String       @id @default(cuid())
+  userId    String
+  barId     String
+  role      BarStaffRole @default(STAFF)
+  isPending Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bar  Bar  @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, barId])
+  @@map("business_accounts")
+}
+
+model BarStaff {
+  id          String       @id @default(cuid())
+  barId       String
+  userId      String?
+  email       String
+  name        String
+  role        BarStaffRole @default(STAFF)
+  permissions String[]
+  isActive    Boolean      @default(true)
+  lastLogin   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  bar   Bar   @relation(fields: [barId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  scans VIPPassScan[]
+
+  @@unique([barId, email])
+  @@map("bar_staff")
+}
+
+model BarClaim {
   id           String   @id @default(cuid())
-  title        String
-  description  String?  @db.Text
   barId        String
-  imageUrl     String?
-  startDate    DateTime
-  endDate      DateTime
-  discountType String?
-  isActive     Boolean  @default(true)
+  userId       String
+  documentUrls String[]
+  notes        String?
+  status       BarStatus @default(CLAIMED)
+  reviewedById String?
+  reviewedAt   DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  bar Bar @relation(fields: [barId], references: [id])
+  bar         Bar   @relation(fields: [barId], references: [id], onDelete: Cascade)
+  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy  User? @relation("BarClaimReviewer", fields: [reviewedById], references: [id])
 
-  @@map("business_promotions")
+  @@map("bar_claims")
 }
 
-model Bar {
-  id        String  @id
-  name      String
-  address   String
-  latitude  Float
-  longitude Float
+model BarInvitation {
+  id         String       @id @default(cuid())
+  barId      String
+  email      String
+  name       String
+  role       BarStaffRole @default(OWNER)
+  token      String       @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 
-  promotions Promotion[]
+  bar Bar @relation(fields: [barId], references: [id])
 
-  @@map("business_bars")
+  @@map("bar_invitations")
+}
+
+// ============================================
+// PROMOTIONS
+// ============================================
+
+model BarPromotion {
+  id              String           @id @default(cuid())
+  barId           String
+  title           String
+  description     String
+  type            PromotionType
+  imageUrl        String?
+  accentColor     String?
+  callToAction    String?
+  discount        Float?
+  conditions      String[]
+  startDate       DateTime
+  endDate         DateTime
+  validDays       String[]
+  validHours      Json?
+  redemptionRule  RedemptionRule   @default(SINGLE_USE)
+  maxRedemptions  Int?
+  isActive        Boolean          @default(true)
+  isApproved      Boolean          @default(false)
+  priority        Int              @default(1)
+  complianceStatus ComplianceStatus @default(COMPLIANT)
+
+  // Counters
+  views       Int @default(0)
+  clicks      Int @default(0)
+  redemptions Int @default(0)
+  cardViews   Int @default(0)
+
+  // Who created / approved
+  createdById  String?
+  approvedById String?
+  approvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bar               Bar               @relation(fields: [barId], references: [id], onDelete: Cascade)
+  createdBy         User?             @relation("PromoCreator", fields: [createdById], references: [id])
+  approvedBy        User?             @relation("PromoApprover", fields: [approvedById], references: [id])
+  usageHistory      PromotionUsage[]
+  complianceChecks  ComplianceCheck[]
+
+  @@map("bar_promotions")
+}
+
+model PromotionUsage {
+  id          String   @id @default(cuid())
+  promotionId String
+  userId      String
+  barId       String
+  usageCount  Int      @default(1)
+  firstUsedAt DateTime @default(now())
+  lastUsedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  promotion BarPromotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  bar       Bar          @relation(fields: [barId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, userId])
+  @@index([promotionId])
+  @@index([userId])
+  @@map("promotion_usage")
+}
+
+// ============================================
+// EVENTS (Consumer App)
+// ============================================
+
+model Event {
+  id               String           @id @default(cuid())
+  title            String
+  description      String?          @db.Text
+  venueId          String
+  venueName        String
+  venueType        String?
+  startTime        DateTime
+  endTime          DateTime?
+  maxAttendees     Int?
+  isPrivate        Boolean          @default(false)
+  imageUrl         String?
+  creatorId        String
+  complianceStatus ComplianceStatus @default(COMPLIANT)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  creator      User               @relation("EventCreator", fields: [creatorId], references: [id])
+  venue        Bar                @relation(fields: [venueId], references: [id])
+  participants EventParticipant[]
+  chatRoom     EventChatRoom?
+  complianceChecks ComplianceCheck[]
+
+  @@index([startTime])
+  @@index([venueId])
+  @@map("events")
+}
+
+model EventParticipant {
+  userId   String
+  eventId  String
+  joinedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([userId, eventId])
+  @@index([eventId])
+  @@map("event_participants")
+}
+
+model EventChatRoom {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  createdAt DateTime @default(now())
+
+  event    Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  messages EventChatMessage[]
+
+  @@map("event_chat_rooms")
+}
+
+model EventChatMessage {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  roomId    String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  room   EventChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author User          @relation(fields: [authorId], references: [id])
+
+  @@index([roomId, createdAt])
+  @@map("event_chat_messages")
+}
+
+// ============================================
+// VIP PASSES
+// ============================================
+
+model VIPPassEnhanced {
+  id          String      @id @default(cuid())
+  barId       String
+  name        String
+  description String?
+  type        VIPPassType @default(SKIP_LINE)
+
+  priceCents         Int
+  originalPriceCents Int?
+
+  benefits         String[]
+  skipLinePriority Boolean @default(true)
+  coverFeeIncluded Boolean @default(false)
+  coverFeeAmount   Int     @default(0)
+
+  validityStart DateTime
+  validityEnd   DateTime
+  validDays     String[]
+  validHours    Json?
+
+  totalQuantity Int
+  soldCount     Int     @default(0)
+  maxPerUser    Int     @default(1)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bar        Bar           @relation(fields: [barId], references: [id], onDelete: Cascade)
+  userPasses UserVIPPass[]
+
+  @@map("vip_passes_enhanced")
+}
+
+model UserVIPPass {
+  id                 String        @id @default(cuid())
+  userId             String
+  vipPassId          String
+  barId              String?
+  qrCode             String        @unique
+  purchasePriceCents Int
+  status             VIPPassStatus @default(ACTIVE)
+  scannedAt          DateTime?
+  scannedBy          String?
+  expiresAt          DateTime
+  purchasedAt        DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vipPass VIPPassEnhanced @relation(fields: [vipPassId], references: [id], onDelete: Cascade)
+  bar     Bar?            @relation(fields: [barId], references: [id])
+  scans   VIPPassScan[]
+
+  @@unique([userId, vipPassId])
+  @@map("user_vip_passes")
+}
+
+model VIPPassScan {
+  id           String   @id @default(cuid())
+  vipPassId    String
+  barId        String
+  scannedById  String
+  qrCode       String
+  customerName String?
+  scannedAt    DateTime @default(now())
+
+  vipPass   UserVIPPass @relation(fields: [vipPassId], references: [id])
+  bar       Bar         @relation(fields: [barId], references: [id])
+  scannedBy BarStaff    @relation(fields: [scannedById], references: [id])
+
+  @@map("vip_pass_scans")
+}
+
+// ============================================
+// AD CAMPAIGNS
+// ============================================
+
+model AdCampaign {
+  id            String           @id @default(cuid())
+  barId         String
+  title         String
+  description   String?
+  type          AdCampaignType
+  status        AdCampaignStatus @default(DRAFT)
+  budgetCents   Int
+  spentCents    Int              @default(0)
+  impressions   Int              @default(0)
+  clicks        Int              @default(0)
+  conversions   Int              @default(0)
+  startDate     DateTime
+  endDate       DateTime
+  imageUrl      String?
+  targetUrl     String?
+  promotedItemId String?   // promo, event, or pass ID
+
+  // Finnish compliance
+  complianceStatus ComplianceStatus @default(PENDING_REVIEW)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bar               Bar                @relation(fields: [barId], references: [id], onDelete: Cascade)
+  complianceChecks  ComplianceCheck[]
+
+  @@map("ad_campaigns")
+}
+
+// ============================================
+// ANALYTICS
+// ============================================
+
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  barId     String?
+  userId    String?
+  type      AnalyticsEventType
+  data      Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime           @default(now())
+
+  bar Bar? @relation(fields: [barId], references: [id], onDelete: SetNull)
+
+  @@index([barId, type, createdAt])
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("analytics_events")
+}
+
+// ============================================
+// COMPLIANCE
+// ============================================
+
+model ComplianceCheck {
+  id           String           @id @default(cuid())
+  promotionId  String?
+  eventId      String?
+  adCampaignId String?
+  status       ComplianceStatus @default(COMPLIANT)
+  violations   Json?            // [{ rule, keyword, severity, message }]
+  checkedAt    DateTime         @default(now())
+  reviewedById String?
+  reviewedAt   DateTime?
+
+  promotion  BarPromotion? @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  event      Event?        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  adCampaign AdCampaign?   @relation(fields: [adCampaignId], references: [id], onDelete: Cascade)
+
+  @@map("compliance_checks")
+}
+
+// ============================================
+// OUTREACH
+// ============================================
+
+model OutreachLog {
+  id         String         @id @default(cuid())
+  barId      String
+  userId     String
+  method     OutreachMethod
+  status     OutreachStatus @default(NOT_CONTACTED)
+  notes      String?
+  followUpAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  bar  Bar  @relation(fields: [barId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([barId, createdAt])
+  @@map("outreach_logs")
+}
+
+// ============================================
+// AUDIT & IMPORT
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  barId     String?
+  action    String
+  resource  String
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+  bar  Bar?  @relation(fields: [barId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model BarImport {
+  id           String       @id @default(cuid())
+  fileName     String
+  fileSize     Int
+  totalRows    Int
+  importedRows Int
+  failedRows   Int
+  status       ImportStatus @default(PENDING)
+  errors       Json?
+  importedById String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  importedBy User? @relation(fields: [importedById], references: [id])
+
+  @@map("bar_imports")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  type       NotificationType
+  fromUserId String?
+  title      String?
+  body       String?
+  data       Json?
+  message    String?
+  barId      String?
+  read       Boolean          @default(false)
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+
+  user     User  @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
+  fromUser User? @relation("NotificationSender", fields: [fromUserId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read])
+  @@map("notifications")
 }

@@ -8,9 +8,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const event = await prisma.event.findUnique({
     where: { id },
     include: {
-      creator: { select: { id: true, username: true, avatarUrl: true } },
+      creator: { select: { id: true, username: true, image: true } },
       participants: {
-        include: { user: { select: { id: true, username: true, avatarUrl: true } } },
+        include: { user: { select: { id: true, username: true, image: true } } },
       },
       chatRoom: { select: { id: true } },
     },

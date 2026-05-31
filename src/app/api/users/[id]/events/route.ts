@@ -11,8 +11,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       ],
     },
     include: {
-      creator: { select: { id: true, username: true, avatarUrl: true } },
-      participants: { include: { user: { select: { id: true, username: true, avatarUrl: true } } } },
+      creator: { select: { id: true, username: true, image: true } },
+      participants: { include: { user: { select: { id: true, username: true, image: true } } } },
     },
     orderBy: { startTime: "desc" },
     take: 30,

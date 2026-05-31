@@ -96,7 +96,7 @@ export function EventDetail({ id }: { id: string }) {
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#7c3aed44")}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-card-border, #262626)")}
               >
-                <Avatar src={p.user.avatarUrl || p.user.image} name={p.user.username || p.user.name} size={40} />
+                <Avatar src={p.user.image} name={p.user.username || p.user.name} size={40} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>

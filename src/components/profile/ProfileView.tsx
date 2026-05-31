@@ -45,7 +45,7 @@ export function ProfileView({ id }: { id: string }) {
 
       {/* Avatar + Name */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "16px" }}>
-        <Avatar src={profile.avatarUrl} name={profile.username} size={96} />
+        <Avatar src={profile.image} name={profile.username} size={96} />
         <h1 style={{ fontWeight: 800, fontSize: "24px", color: "var(--color-text-primary, #fff)", marginTop: "12px" }}>{profile.username}</h1>
         {profile.bio && <p style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", marginTop: "4px", textAlign: "center", maxWidth: "400px" }}>{profile.bio}</p>}
         <p style={{ color: "var(--color-text-muted, #737373)", fontSize: "11px", marginTop: "6px" }}>

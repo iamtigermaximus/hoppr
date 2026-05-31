@@ -24,10 +24,10 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         const user = await prisma.user.findUnique({ where: { email: credentials.email } });
-        if (!user || !user.passwordHash) return null;
-        const valid = await bcrypt.compare(credentials.password, user.passwordHash);
+        if (!user || !user.hashedPassword) return null;
+        const valid = await bcrypt.compare(credentials.password, user.hashedPassword);
         if (!valid) return null;
-        return { id: user.id, email: user.email, name: user.username, image: user.avatarUrl };
+        return { id: user.id, email: user.email, name: user.username, image: user.image };
       },
     }),
   ],
@@ -52,10 +52,10 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "update" && token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: { username: true, avatarUrl: true },
+          select: { username: true, image: true },
         });
         if (dbUser) {
-          (token as any).picture = dbUser.avatarUrl;
+          (token as any).picture = dbUser.image;
           (token as any).name = dbUser.username;
         }
         // Also apply any session data passed to update()

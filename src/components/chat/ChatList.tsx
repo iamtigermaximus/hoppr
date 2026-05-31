@@ -43,7 +43,7 @@ export function ChatList() {
             {event.participants?.length > 0 && (
               <AvatarGroup
                 users={event.participants.map((p: any) => ({
-                  id: p.user.id, name: p.user.username, image: p.user.avatarUrl,
+                  id: p.user.id, name: p.user.username, image: p.user.image,
                 }))}
                 max={4} size={26}
               />

@@ -12,7 +12,7 @@ export async function GET() {
     prisma.event.findMany({
       where: { creatorId: userId },
       include: {
-        participants: { include: { user: { select: { id: true, username: true, avatarUrl: true } } } },
+        participants: { include: { user: { select: { id: true, username: true, image: true } } } },
       },
       orderBy: { startTime: "desc" },
       take: 20,
@@ -20,14 +20,18 @@ export async function GET() {
     prisma.event.findMany({
       where: { participants: { some: { userId } }, creatorId: { not: userId } },
       include: {
-        creator: { select: { id: true, username: true, avatarUrl: true } },
-        participants: { include: { user: { select: { id: true, username: true, avatarUrl: true } } } },
+        creator: { select: { id: true, username: true, image: true } },
+        participants: { include: { user: { select: { id: true, username: true, image: true } } } },
       },
       orderBy: { startTime: "desc" },
       take: 20,
     }),
-    prisma.passPurchase.findMany({
+    prisma.userVIPPass.findMany({
       where: { userId },
+      include: {
+        vipPass: { select: { name: true, type: true } },
+        bar: { select: { name: true } },
+      },
       orderBy: { purchasedAt: "desc" },
       take: 20,
     }),

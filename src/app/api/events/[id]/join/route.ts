@@ -27,9 +27,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   await prisma.eventParticipant.create({ data: { userId, eventId: id } });
 
   // Auto-create chat room
-  const existingRoom = await prisma.chatRoom.findUnique({ where: { eventId: id } });
+  const existingRoom = await prisma.eventChatRoom.findUnique({ where: { eventId: id } });
   if (!existingRoom) {
-    await prisma.chatRoom.create({ data: { eventId: id } });
+    await prisma.eventChatRoom.create({ data: { eventId: id } });
   }
 
   // Create notification for event creator
@@ -38,7 +38,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const joiner = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
     await prisma.notification.create({
       data: {
-        type: "JOIN",
+        type: "SYSTEM",
         title: "Someone joined your event",
         body: `${joiner?.username || "Someone"} joined "${event.title}"`,
         data: { eventId: event.id, userId },

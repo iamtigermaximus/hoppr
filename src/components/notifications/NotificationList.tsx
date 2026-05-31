@@ -7,13 +7,17 @@ import { Bell, ChatCircle, Calendar, Ticket } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
 
 const typeIcons: Record<string, any> = {
-  JOIN: Calendar, MESSAGE: ChatCircle, EVENT_STARTING: Bell,
-  PROMO_ENDING: Bell, PASS_EXPIRING: Ticket,
+  SYSTEM: Bell, MESSAGE: ChatCircle, EVENT_STARTING: Bell, EVENT_REMINDER: Bell,
+  EVENT_UPDATED: Bell, EVENT_CANCELLED: Bell, EVENT_INVITE: Calendar,
+  PROMO_NEW: Bell, PROMO_EXPIRING: Bell, PASS_PURCHASED: Ticket, PASS_EXPIRING: Ticket,
+  PASS_SCANNED: Ticket, BAR_VERIFIED: Bell,
 };
 
 const typeColors: Record<string, string> = {
-  JOIN: "#3b82f6", MESSAGE: "#10b981", EVENT_STARTING: "#7c3aed",
-  PROMO_ENDING: "#10b981", PASS_EXPIRING: "#f59e0b",
+  SYSTEM: "#6b7280", MESSAGE: "#10b981", EVENT_STARTING: "#7c3aed", EVENT_REMINDER: "#7c3aed",
+  EVENT_UPDATED: "#3b82f6", EVENT_CANCELLED: "#ef4444", EVENT_INVITE: "#3b82f6",
+  PROMO_NEW: "#10b981", PROMO_EXPIRING: "#f59e0b", PASS_PURCHASED: "#f59e0b", PASS_EXPIRING: "#f59e0b",
+  PASS_SCANNED: "#10b981", BAR_VERIFIED: "#10b981",
 };
 
 export function NotificationList() {
@@ -22,7 +26,7 @@ export function NotificationList() {
   const router = useRouter();
 
   const handleTap = (n: any) => {
-    if (!n.isRead) markRead({ id: n.id });
+    if (!n.read) markRead({ id: n.id });
     const data = n.data || {};
     if (data.eventId) router.push(`/events/${data.eventId}`);
     else if (data.chatRoomId) router.push(`/events/${data.eventId}/chat`);
@@ -30,7 +34,7 @@ export function NotificationList() {
 
   if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
 
-  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
 
   return (
     <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
@@ -58,7 +62,7 @@ export function NotificationList() {
             <Card
               key={n.id}
               onClick={() => handleTap(n)}
-              style={{ opacity: n.isRead ? 0.5 : 1, borderColor: n.isRead ? "#262626" : `${color}44` }}
+              style={{ opacity: n.read ? 0.5 : 1, borderColor: n.read ? "#262626" : `${color}44` }}
             >
               <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
                 <div style={{ minWidth: "36px", height: "36px", background: `${color}22`, borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -67,7 +71,7 @@ export function NotificationList() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <div style={{ color: "#fff", fontWeight: 600, fontSize: "12px" }}>{n.title}</div>
-                    {!n.isRead && <div style={{ width: "8px", height: "8px", background: "#7c3aed", borderRadius: "50%" }} />}
+                    {!n.read && <div style={{ width: "8px", height: "8px", background: "#7c3aed", borderRadius: "50%" }} />}
                   </div>
                   <div style={{ color: "#a3a3a3", fontSize: "11px", marginTop: "2px" }}>{n.body}</div>
                   <div style={{ color: "#737373", fontSize: "10px", marginTop: "4px" }}>{formatEventTime(new Date(n.createdAt))}</div>

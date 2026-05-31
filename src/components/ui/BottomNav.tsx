@@ -111,7 +111,7 @@ export function BottomNav() {
   const { data: session } = useSession();
   const { data: profile } = useMyProfile();
   const { data: notifications = [] } = useNotifications();
-  const unreadCount = Array.isArray(notifications) ? notifications.filter((n: any) => !n.isRead).length : 0;
+  const unreadCount = Array.isArray(notifications) ? notifications.filter((n: any) => !n.read).length : 0;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -166,7 +166,7 @@ export function BottomNav() {
         </Link>
         <div ref={menuRef} style={{ position: "relative" }}>
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            <Avatar src={profile?.avatarUrl} name={profile?.username || session?.user?.name || undefined} size={34} />
+            <Avatar src={profile?.image} name={profile?.username || session?.user?.name || undefined} size={34} />
           </button>
           {menuOpen && (
             <Dropdown>

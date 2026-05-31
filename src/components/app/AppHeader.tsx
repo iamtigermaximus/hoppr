@@ -89,7 +89,7 @@ export function AppHeader() {
   const { data: profile } = useMyProfile();
   const { data: notifications = [] } = useNotifications();
   const unreadCount = Array.isArray(notifications)
-    ? notifications.filter((n: any) => !n.isRead).length
+    ? notifications.filter((n: any) => !n.read).length
     : 0;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -155,7 +155,7 @@ export function AppHeader() {
             }}
           >
             <Avatar
-              src={profile?.avatarUrl}
+              src={profile?.image}
               name={profile?.username || user?.name || undefined}
               size={32}
             />

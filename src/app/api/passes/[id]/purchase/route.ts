@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { mockPasses, mockVenues } from "@/lib/marketing-api";
 import crypto from "crypto";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,22 +10,36 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = (session.user as any).id;
 
-  const pass = mockPasses.find(p => p.id === id);
-  if (!pass) return NextResponse.json({ error: "Pass not found" }, { status: 404 });
+  // Look up the VIP pass from the database
+  const vipPass = await prisma.vIPPassEnhanced.findUnique({
+    where: { id },
+    select: { id: true, name: true, barId: true, priceCents: true, validityEnd: true, maxPerUser: true },
+  });
 
-  const venue = mockVenues.find(v => v.id === pass.venueId);
-  const qrCodeSecret = crypto.randomBytes(32).toString("hex");
+  if (!vipPass) return NextResponse.json({ error: "Pass not found" }, { status: 404 });
 
-  const purchase = await prisma.passPurchase.create({
+  // Check max per user limit
+  const existingCount = await prisma.userVIPPass.count({
+    where: { userId, vipPassId: vipPass.id, status: "ACTIVE" },
+  });
+  if (existingCount >= vipPass.maxPerUser) {
+    return NextResponse.json({ error: "You've reached the maximum purchases for this pass" }, { status: 400 });
+  }
+
+  const qrCode = crypto.randomBytes(32).toString("hex");
+
+  const purchase = await prisma.userVIPPass.create({
     data: {
-      passId: pass.id,
-      passTitle: pass.title,
-      venueId: pass.venueId,
-      venueName: pass.venueName,
-      price: pass.price,
-      validUntil: new Date(pass.validUntil),
-      qrCodeSecret,
+      vipPassId: vipPass.id,
+      barId: vipPass.barId,
+      purchasePriceCents: vipPass.priceCents,
+      expiresAt: new Date(vipPass.validityEnd),
+      qrCode,
       userId,
+    },
+    include: {
+      vipPass: { select: { name: true, type: true } },
+      bar: { select: { name: true } },
     },
   });
 
