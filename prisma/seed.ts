@@ -172,6 +172,48 @@ async function main() {
   const barIds = Object.fromEntries(bars.map(b => [b.name, b.id]));
   console.log(`✅ Created ${bars.length} bars`);
 
+  // Create crowd reports for ~50% of bars
+  const twoHours = 2 * 60 * 60 * 1000;
+  const crowdReports = await Promise.all([
+    prisma.crowdReport.create({
+      data: {
+        barId: barIds["Bar Loose"],
+        level: "PACKED",
+        reportedBy: users[0].id,
+        reportedAt: new Date(Date.now() - 5 * 60000),
+        expiresAt: new Date(Date.now() + twoHours - 5 * 60000),
+      },
+    }),
+    prisma.crowdReport.create({
+      data: {
+        barId: barIds["Club X"],
+        level: "BUSY",
+        reportedBy: users[2].id,
+        reportedAt: new Date(Date.now() - 15 * 60000),
+        expiresAt: new Date(Date.now() + twoHours - 15 * 60000),
+      },
+    }),
+    prisma.crowdReport.create({
+      data: {
+        barId: barIds["BrewDog Helsinki"],
+        level: "GETTING_BUSY",
+        reportedBy: users[1].id,
+        reportedAt: new Date(Date.now() - 30 * 60000),
+        expiresAt: new Date(Date.now() + twoHours - 30 * 60000),
+      },
+    }),
+    prisma.crowdReport.create({
+      data: {
+        barId: barIds["Karaoke Star"],
+        level: "QUIET",
+        reportedBy: users[0].id,
+        reportedAt: new Date(Date.now() - 2 * 60000),
+        expiresAt: new Date(Date.now() + twoHours - 2 * 60000),
+      },
+    }),
+  ]);
+  console.log(`✅ Created ${crowdReports.length} crowd reports`);
+
   // Create events
   const now = new Date();
   const tomorrow = new Date(now.getTime() + 86400000);

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import {
@@ -127,12 +128,16 @@ export function VenueDetail() {
               {distance && <span style={{ color: "var(--color-text-muted, #737373)", fontSize: "11px" }}>· {distance} away</span>}
             </div>
           </div>
-          {venue.capacity && (
+          {venue.crowdLevel ? (
+            <div style={{ flexShrink: 0 }}>
+              <CrowdIndicator level={venue.crowdLevel} reportedAt={venue.crowdReportedAt} variant="detail" capacity={venue.capacity} />
+            </div>
+          ) : venue.capacity ? (
             <div style={{ textAlign: "right", flexShrink: 0 }}>
               <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "10px" }}>Capacity</div>
               <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "18px" }}>{venue.capacity}</div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 

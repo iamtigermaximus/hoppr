@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/Badge";
 import { AvatarGroup } from "@/components/ui/AvatarGroup";
 import { Button } from "@/components/ui/Button";
+import { FollowButton } from "@/components/ui/FollowButton";
+import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import type { FeedItem } from "@/types/feed";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 
@@ -113,6 +115,18 @@ export function FeedCard({ item }: { item: FeedItem }) {
 
         <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
           <MapPin size={10} />{formatDistance(item.distance)}
+        </div>
+
+        {/* Crowd indicator */}
+        {(item as any).crowdLevel && (
+          <div style={{ marginBottom: "4px" }}>
+            <CrowdIndicator level={(item as any).crowdLevel} reportedAt={(item as any).crowdReportedAt} variant="badge" />
+          </div>
+        )}
+
+        {/* Compact follow button */}
+        <div style={{ marginBottom: "4px" }}>
+          <FollowButton barId={item.venueId} compact />
         </div>
 
         {/* Recommendation reasons — shown when personalized */}

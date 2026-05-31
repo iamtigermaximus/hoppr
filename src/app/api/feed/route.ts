@@ -191,12 +191,48 @@ export async function GET(req: Request) {
     };
   });
 
-  // 6. Merge and filter by radius
-  const withinRadius = [...eventItems, ...promoItems, ...passItems].filter(
-    (item) => item.distance <= radius,
-  );
+  // 6. Fetch crowd data for all venues in the feed
+  const allVenueIds = [
+    ...new Set(
+      [...eventItems, ...promoItems, ...passItems].map((i) => i.venueId),
+    ),
+  ];
+  const crowdMap = new Map<string, { level: string; reportedAt: string }>();
+  if (allVenueIds.length > 0) {
+    const crowdReports = await prisma.crowdReport.findMany({
+      where: {
+        barId: { in: allVenueIds },
+        expiresAt: { gte: new Date() },
+      },
+      select: { barId: true, level: true, reportedAt: true },
+      orderBy: { reportedAt: "desc" },
+    });
+    for (const cr of crowdReports) {
+      if (!crowdMap.has(cr.barId)) {
+        crowdMap.set(cr.barId, {
+          level: cr.level,
+          reportedAt: cr.reportedAt.toISOString(),
+        });
+      }
+    }
+  }
 
-  // 7. Rank with personalization (or chronological fallback)
+  // Attach crowd data to each item
+  const attachCrowd = <T extends { venueId: string }>(item: T) => {
+    const crowd = crowdMap.get(item.venueId);
+    return crowd
+      ? { ...item, crowdLevel: crowd.level, crowdReportedAt: crowd.reportedAt }
+      : item;
+  };
+
+  // 7. Merge and filter by radius
+  const withinRadius = [
+    ...eventItems.map(attachCrowd),
+    ...promoItems.map(attachCrowd),
+    ...passItems.map(attachCrowd),
+  ].filter((item) => item.distance <= radius);
+
+  // 8. Rank with personalization (or chronological fallback)
   const ranked =
     userProfile && userHistory
       ? rankFeed(

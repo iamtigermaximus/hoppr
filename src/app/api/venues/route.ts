@@ -45,6 +45,12 @@ export async function GET(req: Request) {
       qualityScore: true,
       profileViews: true,
       directionClicks: true,
+      crowdReports: {
+        where: { expiresAt: { gte: new Date() } },
+        orderBy: { reportedAt: "desc" },
+        take: 1,
+        select: { level: true, reportedAt: true },
+      },
     },
     orderBy: { name: "asc" },
   });
@@ -71,6 +77,8 @@ export async function GET(req: Request) {
     profileViews: b.profileViews,
     directionClicks: b.directionClicks,
     imageUrl: b.coverImage || (b.imageUrls?.length > 0 ? b.imageUrls[0] : null),
+    crowdLevel: b.crowdReports[0]?.level ?? null,
+    crowdReportedAt: b.crowdReports[0]?.reportedAt?.toISOString() ?? null,
     distance: b.latitude != null && b.longitude != null
       ? haversineDistance(lat, lng, b.latitude, b.longitude)
       : 99,

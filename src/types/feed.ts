@@ -22,6 +22,8 @@ export type FeedItem =
       distance: number;
       image?: string;
       attendees?: { id: string; name: string | null; image: string | null }[];
+      crowdLevel?: string;
+      crowdReportedAt?: string;
     })
   | (RecommendationMeta & {
       type: "promotion";
@@ -35,6 +37,8 @@ export type FeedItem =
       distance: number;
       image?: string;
       accentColor?: string;
+      crowdLevel?: string;
+      crowdReportedAt?: string;
     })
   | (RecommendationMeta & {
       type: "pass";
@@ -47,6 +51,8 @@ export type FeedItem =
       validUntil: string;
       distance: number;
       imageUrl?: string;
+      crowdLevel?: string;
+      crowdReportedAt?: string;
     });
 
 export type TimeFilter = "now" | "today" | "tomorrow" | "afternoon" | "evening" | "night";

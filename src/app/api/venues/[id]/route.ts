@@ -30,6 +30,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       isVerified: true,
       qualityScore: true,
       cityName: true,
+      crowdReports: {
+        where: { expiresAt: { gte: new Date() } },
+        orderBy: { reportedAt: "desc" },
+        take: 1,
+        select: { level: true, reportedAt: true },
+      },
     },
   });
 
@@ -99,6 +105,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     isVerified: bar.isVerified,
     qualityScore: bar.qualityScore,
     cityName: bar.cityName,
+    crowdLevel: bar.crowdReports[0]?.level ?? null,
+    crowdReportedAt: bar.crowdReports[0]?.reportedAt?.toISOString() ?? null,
     promotions: promotions.map((p) => ({
       id: p.id,
       venueId: bar.id,
