@@ -117,6 +117,8 @@ The type chips (Event / Promo / Pass / Combo) are **soft hints**, not required s
 - Photos are uploaded to Cloudinary (existing integration) with auto-quality/format
 - A thumbnail preview shows immediately; upload happens in background while user reviews
 - The nudge text ("Photos get 3x more engagement") reinforces without blocking
+- **Fallback:** If no photo is uploaded, the system suggests 3-4 real stock photos based on the post type and mood (e.g., a cocktail photo for happy hour, a crowd shot for DJ night, an interior shot for venue vibes). The bar owner picks one or taps "skip." No emojis, no gradients — always a real photo, even if it's a suggested stock image.
+- If the bar owner picks a stock photo, a subtle prompt appears: "Upload your own photo anytime — real bar photos get 3x more views than stock."
 
 ### Compliance Indicator (Step 5)
 
@@ -231,28 +233,74 @@ Already in the codebase from commit `754c289`. The creation flow generates platf
 
 The social preview panel (Step 5) shows each version before publishing. Bar owners can toggle which platforms to post to.
 
-## 7. Analytics
+## 7. Analytics & Insights
 
-### Per-Post Performance Dashboard
+### Principle: Insights Find You, Not the Other Way Around
 
-Each post in the bar's content calendar shows:
-- Views / unique views
-- Clicks through to detail page
-- For events: attendance rate (confirmed / viewed)
-- For promos: redemption rate (used / viewed)
-- For passes: purchase count + total revenue
-- Social reach: clicks from Instagram vs Facebook vs organic
+Most analytics tools require bar owners to log in, navigate to a dashboard, and interpret charts. Bar owners don't have time for that. Instead, Hoppr delivers insights proactively — through push notifications, inline cards on the home screen, and conversational summaries. The analytics page exists as a reference, but it's not the primary experience.
 
-### Bar-Level Insights (Phase 2 data-gated)
+### Delivery Channels
+
+| Channel | Example | When |
+|---------|---------|------|
+| **Push notification** | "Your Salsa Saturday post got 340 views — your best this month" | 24h after post, or when a post hits a milestone |
+| **Home screen card** | "This week: 1,200 views, 45 clicks, 3 new customers" | Weekly summary, every Monday morning |
+| **Inline on calendar** | Each past day shows a mini performance dot (green = high engagement, gray = low) | Always visible |
+| **Post-publish feedback** | "This type of post usually gets 200+ views in Helsinki. We'll let you know how it does." | Immediately after publishing |
+| **Analytics page** | Full dashboard with filters, date ranges, and export | On-demand |
+
+### Per-Post Feedback (Available on All Plans)
+
+Immediately after publishing, the bar owner sees:
+- "Your post is now live on Hoppr and Instagram"
+- "We'll send you a summary tomorrow morning"
+
+24 hours later, a push notification:
+- "Saturday Salsa Night: 340 views, 28 clicks. Your top post this week."
+
+### Weekly Insights (Pro €19/mo and Super Bar €39/mo)
+
+Every Monday morning, a simple card on the home screen:
+
+> **Your week in review**
+> 1,200 people saw your posts
+> 85 clicked through to your bar page
+> Best day: Friday (3x more than Monday)
+> Top post: Salsa Saturday (340 views)
+>
+> **Tip:** Posts with crowd photos got 2.5x more clicks. Try one this week?
+
+### Strategy Suggestions (Super Bar €39/mo, Phase 2 data-gated)
+
+The system detects patterns and makes conversational, non-technical suggestions:
+
+- **Gap detection:** "Friday is your best day, but it's empty this week. Want to set something up?"
+- **Trend comparison:** "Latin nights in Helsinki are getting 40% more attention this month. You haven't tried one yet."
+- **Pricing nudges:** "Your VIP passes are priced lower than similar bars in your area. You could increase to €15 and still sell out."
+- **Timing optimization:** "Posts published at 6pm get 2x more views than posts at midnight. Try scheduling your next one earlier."
+- **Habit reinforcement:** "You've posted every weekend for 3 weeks. That consistency is building your following."
+
+### Analytics Page (Reference, Not Primary)
+
+The full analytics dashboard remains available for bar owners who want to dig deeper. It shows:
+- Views over time (line chart)
+- Post performance ranking (best to worst)
+- Audience: where viewers come from (Hoppr / Instagram / Facebook / web)
+- Redemption tracking: how many promo codes or passes were actually used
+- Export to CSV for the bar's own records
+
+### Data Flywheel
+
+Every post and every view feeds back into the system:
 
 ```
-"Your Friday posts get 3x more views than Mondays."
-"Posts with crowd photos perform 2.5x better."
-"Bars in Kallio are seeing high demand for Latin music nights."
-"You haven't posted in 5 days — want me to set up something for this weekend?"
+Create post → Publish → Collect engagement data →
+Surface insights → Bar posts better content →
+More consumer engagement → More data →
+Better insights → Bar posts even more →
 ```
 
-These insights are only available on Pro (€19/mo) and Super Bar (€39/mo) plans. Free tier and pay-per-post get basic view counts only.
+This flywheel is what makes bars stick: the more they post, the smarter the system gets, the better their results, the more they post.
 
 ## 8. Pricing & Plans
 
