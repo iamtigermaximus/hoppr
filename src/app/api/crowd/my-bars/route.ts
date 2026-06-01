@@ -40,8 +40,8 @@ export async function GET() {
           id: true,
           title: true,
           startTime: true,
-          barId: true,
-          bar: { select: { name: true, type: true, latitude: true, longitude: true } },
+          venueId: true,
+          venue: { select: { name: true, type: true, latitude: true, longitude: true } },
         },
       },
     },
@@ -50,11 +50,11 @@ export async function GET() {
   });
 
   for (const ep of upcomingEvents) {
-    if (ep.event.bar?.latitude && ep.event.bar?.longitude) {
+    if (ep.event.venue?.latitude && ep.event.venue?.longitude) {
       results.push({
-        barId: ep.event.barId,
-        barName: ep.event.bar.name,
-        barType: ep.event.bar.type,
+        barId: ep.event.venueId,
+        barName: ep.event.venue.name,
+        barType: ep.event.venue.type,
         relevance: "event",
         label: `Your event: ${ep.event.title}`,
         eventId: ep.event.id,
