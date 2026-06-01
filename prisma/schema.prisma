@@ -212,6 +212,27 @@ enum NotificationType {
   SUBMISSION_REJECTED
   BAR_FOLLOWED
   BAR_NEW_CONTENT
+  // Business: insights
+  INSIGHT
+}
+
+enum InsightType {
+  GAP_DETECTION
+  MILESTONE
+  WEEKLY_SUMMARY
+  INACTIVITY
+  PATTERN
+}
+
+enum SenderType {
+  ASSISTANT
+  USER
+}
+
+enum InsightChannel {
+  PUSH
+  HOME_CARD
+  CHAT
 }
 
 // ============================================
@@ -437,6 +458,10 @@ model Bar {
 
   // Crowd reports
   crowdReports CrowdReport[]
+
+  // Insights
+  insights        BarInsight[]
+  insightMessages InsightMessage[]
 
   @@map("bars")
 }
@@ -946,4 +971,54 @@ model Notification {
 
   @@index([userId, read])
   @@map("notifications")
+}
+
+// ============================================
+// INSIGHTS
+// ============================================
+
+model BarInsight {
+  id          String      @id @default(cuid())
+  barId       String
+  type        InsightType
+  title       String
+  body        String
+  actionLabel String?
+  actionRoute String?
+  dismissed   Boolean     @default(false)
+  actedUpon   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  bar      Bar              @relation(fields: [barId], references: [id], onDelete: Cascade)
+  messages InsightMessage[]
+
+  @@index([barId, createdAt])
+  @@map("bar_insights")
+}
+
+model InsightMessage {
+  id          String     @id @default(cuid())
+  barId       String
+  insightId   String?
+  senderType  SenderType
+  content     String
+  actionTaken String?
+  createdAt   DateTime   @default(now())
+
+  bar     Bar         @relation(fields: [barId], references: [id], onDelete: Cascade)
+  insight BarInsight? @relation(fields: [insightId], references: [id], onDelete: SetNull)
+
+  @@index([barId, createdAt])
+  @@map("insight_messages")
+}
+
+model InsightPreference {
+  id      String         @id @default(cuid())
+  barId   String
+  channel InsightChannel
+  type    InsightType?
+  enabled Boolean        @default(true)
+
+  @@unique([barId, channel, type])
+  @@map("insight_preferences")
 }
