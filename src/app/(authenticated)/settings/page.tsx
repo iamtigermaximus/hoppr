@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useThemeToggle } from "@/components/contexts/ThemeContext";
-import { SignOut, User, Bell, Shield, Question, Sun, Moon } from "@phosphor-icons/react";
+import { SignOut, User, Bell, Shield, Question, Sun, Moon, QrCode } from "@phosphor-icons/react";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -51,6 +51,16 @@ export default function SettingsPage() {
           <div style={{ flex: 1 }}>
             <div style={{ color: "var(--color-text-primary)", fontWeight: 600, fontSize: "13px" }}>Privacy & Safety</div>
             <div style={{ color: "var(--color-text-muted)", fontSize: "11px" }}>Blocked users, report history</div>
+          </div>
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 0", cursor: "pointer" }} onClick={() => router.push("/qr-generator")}>
+          <QrCode size={20} color="var(--color-text-muted)" />
+          <div style={{ flex: 1 }}>
+            <div style={{ color: "var(--color-text-primary)", fontWeight: 600, fontSize: "13px" }}>QR Code Generator</div>
+            <div style={{ color: "var(--color-text-muted)", fontSize: "11px" }}>Generate QR codes for URLs or text</div>
           </div>
         </div>
       </Card>

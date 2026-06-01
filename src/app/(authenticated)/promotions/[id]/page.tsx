@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { MapPin, Clock, Calendar, ArrowLeft, NavigationArrow, Fire } from "@phosphor-icons/react";
+import ShareButton from "@/components/ui/ShareButton";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useQuery } from "@tanstack/react-query";
 
@@ -58,9 +59,12 @@ export default function PromotionDetailPage() {
 
   return (
     <div style={{ padding: "16px", maxWidth: "680px", margin: "0 auto" }}>
-      <button onClick={() => router.back()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#a3a3a3", fontSize: "13px", fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: "14px" }}>
-        <ArrowLeft size={16} /> Back
-      </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+        <button onClick={() => router.back()} style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#a3a3a3", fontSize: "13px", fontWeight: 500, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <ArrowLeft size={16} /> Back
+        </button>
+        <ShareButton title={promo.title} text={promo.description} />
+      </div>
 
       <Hero $imageUrl={promo.imageUrl} style={{ background: promo.imageUrl ? undefined : `linear-gradient(135deg, ${promo.accentColor || "#1a0533"}, ${promo.accentColor ? promo.accentColor + "88" : "#0a0a0a"})` }}>
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px", background: "linear-gradient(transparent, rgba(0,0,0,0.9))", zIndex: 1 }}>

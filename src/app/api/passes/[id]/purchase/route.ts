@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RateLimits } from "@/lib/rate-limiter";
 import crypto from "crypto";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -9,6 +10,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = (session.user as any).id;
+
+  const rateCheck = checkRateLimit(`purchase:${userId}`, RateLimits.PURCHASE);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many purchases. Slow down." },
+      { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } },
+    );
+  }
 
   // Look up the VIP pass from the database
   const vipPass = await prisma.vIPPassEnhanced.findUnique({

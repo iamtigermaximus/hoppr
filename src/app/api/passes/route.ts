@@ -9,6 +9,7 @@ export async function GET(req: Request) {
 
   const passes = await prisma.vIPPassEnhanced.findMany({
     where: {
+      isActive: true,
       validityEnd: { gte: new Date() },
     },
     include: {

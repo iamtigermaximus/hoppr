@@ -68,6 +68,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const passes = await prisma.vIPPassEnhanced.findMany({
     where: {
       barId: id,
+      isActive: true,
       validityEnd: { gte: now },
     },
     select: {

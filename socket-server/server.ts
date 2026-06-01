@@ -29,6 +29,30 @@ io.use(async (socket, next) => {
   }
 });
 
+// ── Ephemeral location sharing for crowd heat map ──────────
+
+const locationStore = new Map<
+  string,
+  {
+    userId: string;
+    lat: number;
+    lng: number;
+    venueId: string | null;
+    timestamp: number;
+  }
+>();
+
+const LOCATION_TTL = 15 * 60 * 1000;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, entry] of locationStore) {
+    if (now - entry.timestamp > LOCATION_TTL) {
+      locationStore.delete(userId);
+    }
+  }
+}, 2 * 60 * 1000);
+
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.data.userId}`);
 
@@ -106,7 +130,48 @@ io.on("connection", (socket) => {
     socket.leave(`chat:${roomId}`);
   });
 
+  // ── Location sharing events ──────────────────────────────
+
+  socket.on(
+    "crowd:location-update",
+    ({
+      lat,
+      lng,
+      venueId,
+    }: {
+      lat: number;
+      lng: number;
+      venueId: string | null;
+    }) => {
+      locationStore.set(socket.data.userId, {
+        userId: socket.data.userId,
+        lat: Math.round(lat * 1000) / 1000,
+        lng: Math.round(lng * 1000) / 1000,
+        venueId,
+        timestamp: Date.now(),
+      });
+
+      io.emit("crowd:presence-update", {
+        totalPresent: locationStore.size,
+        timestamp: Date.now(),
+      });
+    },
+  );
+
+  socket.on("crowd:location-stop", () => {
+    locationStore.delete(socket.data.userId);
+    io.emit("crowd:presence-update", {
+      totalPresent: locationStore.size,
+      timestamp: Date.now(),
+    });
+  });
+
   socket.on("disconnect", () => {
+    locationStore.delete(socket.data.userId);
+    io.emit("crowd:presence-update", {
+      totalPresent: locationStore.size,
+      timestamp: Date.now(),
+    });
     console.log(`User disconnected: ${socket.data.userId}`);
   });
 });

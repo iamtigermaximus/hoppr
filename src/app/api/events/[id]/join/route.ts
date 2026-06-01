@@ -2,12 +2,21 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RateLimits } from "@/lib/rate-limiter";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const userId = (session.user as any).id;
+
+  const rateCheck = checkRateLimit(`join-event:${userId}`, RateLimits.ACTION);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many actions. Slow down." },
+      { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } },
+    );
+  }
 
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });

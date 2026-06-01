@@ -4,6 +4,7 @@ import { SocketProvider } from "@/components/contexts/SocketContext";
 import { AppHeader } from "@/components/app/AppHeader";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import styled from "styled-components";
 
 const Main = styled.main`
@@ -27,7 +28,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <SocketProvider>
         <ToastProvider>
           <AppHeader />
-          <Main>{children}</Main>
+          <Main>
+            <ErrorBoundary label="This page">
+              {children}
+            </ErrorBoundary>
+          </Main>
           <BottomNav />
         </ToastProvider>
       </SocketProvider>
