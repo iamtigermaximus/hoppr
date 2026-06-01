@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
-import { House, MagnifyingGlass, MapPin, Plus, ChatCircle, User, Bell, Gear, SignOut as SignOutIcon } from "@phosphor-icons/react";
+import { House, MagnifyingGlass, Plus, ChatCircle, User, Bell, Gear, SignOut as SignOutIcon } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useMyProfile } from "@/hooks/useProfile";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -101,7 +101,6 @@ const MenuItem = styled.button`
 const tabs = [
   { href: "/home", label: "Home", icon: House },
   { href: "/discover", label: "Discover", icon: MagnifyingGlass },
-  { href: "/map", label: "Map", icon: MapPin },
   { href: "/events/create", label: "Create", icon: Plus, isFab: true },
   { href: "/chat", label: "Chat", icon: ChatCircle },
   { href: "/profile/me", label: "Profile", icon: User },
