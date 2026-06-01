@@ -29,37 +29,177 @@ The `hoppr-business` app already has significant infrastructure. This spec does 
 
 ### Priority 1: Proactive Insights Chatbot
 
-**The core new feature.** Instead of bar owners navigating to `/bar/[id]/analytics` or `/bar/[id]/intelligence` to find insights, the system proactively reaches out to them.
+**The core new feature.** Instead of bar owners navigating to `/bar/[id]/analytics` or `/bar/[id]/intelligence` to find insights, the system proactively reaches out through three channels: home screen cards, push notifications, and an expandable chat panel.
 
-**How it works:**
+#### Data Sources (no new tracking needed)
 
-1. A conversational assistant that lives on the bar dashboard home screen as an expandable chat panel (think: Intercom widget but for bar insights)
-2. It sends push notifications for time-sensitive nudges
-3. It uses simple, non-technical language — no charts, no jargon
+The insights engine reads exclusively from existing data:
 
-**Message types:**
+| Source | What it provides |
+|--------|-----------------|
+| `AnalyticsEvent` (17 event types) | Raw interaction stream: views, clicks, joins, purchases, scans, follows per bar |
+| `BarPromotion.views/clicks/redemptions/cardViews` | Per-promotion performance counters |
+| `Event` + `EventParticipant` | Scheduled events and attendance |
+| `VIPPassEnhanced.soldCount/totalQuantity` | Pass sales and inventory |
+| `Bar` + `BarFollow` | Bar metadata and follower counts |
+| `Notification` model | Existing push delivery infrastructure |
+| `BarStaff` | Who to notify (OWNER, MANAGER roles) |
 
-| Trigger | Message | Channel |
-|---------|---------|---------|
-| Empty upcoming weekend | "You haven't posted anything for Friday yet. Your Friday posts usually get 3x more views — want me to set something up?" | Push + home card |
-| Post hit a milestone | "Your Salsa Saturday post got 340 views — that's your best this month!" | Push notification |
-| Weekly summary | "This week: 1,200 views, 85 clicks. Best day: Friday. Top post: Salsa Saturday." | Home card (Monday AM) |
-| Pattern detected | "Posts with crowd photos get 2.5x more clicks. Your last 3 posts used venue photos — try a crowd shot next time?" | Home card |
-| Inactivity | "You haven't posted in 8 days. Bars that post weekly get 4x more followers." | Push notification |
-| Competitor trend | "Latin music nights in Helsinki are getting 40% more attention. Want to try one?" | Home card |
+#### Trigger Engine (Rule-Based, Phase 1)
 
-**Data source:** The existing `AnalyticsEvent` model (17 event types already defined: `PROMO_VIEW`, `PROMO_CLICK`, `EVENT_VIEW`, `EVENT_JOIN`, `PASS_PURCHASE`, `PASS_SCAN`, etc.) already collects interaction data. The `BarPromotion` model already has `views`, `clicks`, `redemptions`, `cardViews` counters. The insights engine reads from these existing sources — no new data model needed for Phase 1.
+A cron job (Vercel Cron, every ~3 hours) evaluates 5 rules per active bar. Additional on-demand checks fire immediately after a post is published.
 
-**Phase 1 (ship now):** Rule-based triggers on existing data
-- Empty calendar slot detection (query upcoming events/promos, flag gaps)
-- Milestone notifications (post exceeds bar's historical average)
-- Weekly summary aggregation (count views/clicks per bar per week)
-- Inactivity detection (no posts in 7+ days)
+**Rule 1: Gap Detection**
+```
+Query: Events WHERE barId = X AND startTime BETWEEN now AND now+72h
+If: count = 0 AND upcoming day is Fri/Sat → trigger
+Message: "Friday is open. Your Friday posts get 3x more views. Fill it?"
+Channel: Push notification + home card
+```
 
-**Phase 2 (3+ months, data-gated):** ML-powered suggestions
+**Rule 2: Post Milestone**
+```
+Trigger: on publish + 24h after publish
+Query: AnalyticsEvent WHERE barId = X AND type IN (EVENT_VIEW, PROMO_VIEW)
+       AND createdAt > 24h ago
+If: count > bar's historical average (rolling 30-day mean) → trigger
+Message: "Salsa Saturday hit 340 views — your best post this month!"
+Channel: Push notification
+```
+
+**Rule 3: Weekly Summary**
+```
+Trigger: Monday 9am local time
+Query: Aggregate all AnalyticsEvents for bar, last 7 days, grouped by type
+Compute: total views, clicks, top post, best day, comparison to prior week
+Message: "1,200 views, 85 clicks. Best day: Friday. Top post: Salsa Saturday.
+         Tip: Posts with crowd photos got 2.5x more clicks."
+Channel: Home screen card
+```
+
+**Rule 4: Inactivity Detection**
+```
+Trigger: daily check
+Query: Most recent Event/Promotion/Pass WHERE barId = X
+If: newest.createdAt > 7 days ago → trigger
+Message: "You haven't posted in 8 days. Bars that post weekly get 4x more followers."
+Channel: Push notification
+```
+
+**Rule 5: Pattern Detection**
+```
+Trigger: weekly (included in Monday summary)
+Compare: posts with photo=true vs false (view/click ratio)
+Compare: posts by day-of-week (engagement per day)
+Compare: posts by type (event vs promo vs pass performance)
+Surface the single biggest actionable gap
+Message: "Crowd photos get 2.5x more clicks. Your last 3 used venue shots."
+Channel: Home card (embedded in weekly summary)
+```
+
+#### Delivery Architecture
+
+Three channels, one engine:
+
+| Channel | When | Example | Tech |
+|---------|------|---------|------|
+| **Home screen card** | Always visible on bar dashboard | Collapsed insight card below stats row, tap to expand into chat | `GET /api/bar/[id]/insights/latest` → rendered as `InsightCard` component |
+| **Push notification** | Time-sensitive nudges | Lock screen notification for milestones, gaps, inactivity | Uses existing `Notification` model, new type: `INSIGHT` |
+| **Chat panel** | Interactive follow-up | Expanded from home card, bar owner can reply, ask questions | `InsightMessage` model stores conversation history |
+
+Each bar can mute specific channels or insight types via `InsightPreference` (e.g., "no push notifications on weekends").
+
+#### New Data Models
+
+```prisma
+model BarInsight {
+  id          String    @id @default(cuid())
+  barId       String
+  type        InsightType
+  title       String
+  body        String
+  actionLabel String?   // e.g. "Set up Friday"
+  actionRoute String?   // e.g. "/bar/[id]/create?day=friday"
+  dismissed   Boolean   @default(false)
+  actedUpon   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}
+
+enum InsightType {
+  GAP_DETECTION
+  MILESTONE
+  WEEKLY_SUMMARY
+  INACTIVITY
+  PATTERN
+}
+
+model InsightMessage {
+  id          String       @id @default(cuid())
+  barId       String
+  insightId   String?      // links to parent insight if part of a thread
+  senderType  SenderType
+  content     String
+  actionTaken String?      // e.g. "created_event", "dismissed", "upgraded"
+  createdAt   DateTime     @default(now())
+}
+
+enum SenderType {
+  ASSISTANT
+  USER
+}
+
+model InsightPreference {
+  id      String        @id @default(cuid())
+  barId   String
+  channel InsightChannel  // PUSH, HOME_CARD, CHAT
+  type    InsightType?
+  enabled Boolean        @default(true)
+
+  @@unique([barId, channel, type])
+}
+
+enum InsightChannel {
+  PUSH
+  HOME_CARD
+  CHAT
+}
+```
+
+#### Example Flow: Empty Friday Detection
+
+1. **Cron runs (Wed 6pm):** Queries all bars for events in next 72 hours
+2. **Club X:** 0 events for Friday → triggers `GAP_DETECTION` rule
+3. **Create `BarInsight`:** "Friday is open. Your Friday posts get 3x more views."
+4. **Create `Notification`:** type=`INSIGHT`, sent to all OWNER/MANAGER staff of Club X
+5. **Push delivered to phones.** Bar owner taps → opens dashboard → insight card is expanded
+6. **Taps "Set up Friday"** → navigates to create flow with Friday date pre-selected
+7. **Insight marked `actedUpon: true`.** System learns this bar responds to gap alerts
+
+#### Chat Panel Interaction
+
+When the bar owner taps the insight card or the chat icon, it expands into a conversation:
+
+```
+ASSISTANT: "Hey! Friday is open. Your last 3 Fridays averaged 340 views.
+            Want me to set something up?"
+
+USER:      "Yeah, what should I do?"
+
+ASSISTANT: "Your salsa night last month brought 80 people. Latin music events
+            in Helsinki are trending up 40%. Want to copy last month's post?
+
+            [Yes, copy last one]  [Something new]"
+```
+
+The chat panel is a client component on the bar dashboard, expandable from the home card. Messages are stored in `InsightMessage` for conversation continuity.
+
+#### Phase 2 (3+ months, data-gated)
+
+When 20+ bars have 3+ months of analytics data:
 - Cross-bar trend detection (anonymized pattern comparison)
-- Personalization (learns each bar's posting style and optimal times)
-- Predictive ("this type of event typically gets X views in your area")
+- Personalization (learns each bar's posting style and optimal timing)
+- Predictive scoring ("this type of event typically gets X views in your area")
+- Auto-generated post drafts based on bar history and trends
 
 ### Priority 2: Photo Stock Fallback
 
