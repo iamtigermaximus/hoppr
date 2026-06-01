@@ -34,6 +34,13 @@ enum BarStaffRole {
   VIEWER
 }
 
+enum AdminRole {
+  SUPER_ADMIN
+  CONTENT_MODERATOR
+  ANALYTICS_VIEWER
+  SUPPORT
+}
+
 enum BarType {
   PUB
   CLUB
@@ -531,6 +538,20 @@ model BarStaff {
 
   @@unique([barId, email])
   @@map("bar_staff")
+}
+
+model AdminUser {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  hashedPassword String
+  role           AdminRole @default(CONTENT_MODERATOR)
+  isActive       Boolean   @default(true)
+  lastLogin      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("admin_users")
 }
 
 model BarClaim {
