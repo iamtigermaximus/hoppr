@@ -1,308 +1,97 @@
-# Bar Creation Platform — Design Spec
+# Bar Creation Platform — Improvement Spec
 
 **Date:** 2026-06-01
 **Status:** Draft
-**Scope:** hoppr-business (bar management app), with consumer-side display impacts
+**Scope:** Targeted improvements to `hoppr-business`, building on existing features
 
-## 1. Overview
+## 1. What Already Exists
 
-Hoppr is a two-app system: `hoppr` (consumer discovery) and `hoppr-business` (bar management). Both share a single Prisma database. This spec covers a redesign of the `hoppr-business` creation experience — the tool bars use to post events, promotions, and VIP passes.
+The `hoppr-business` app already has significant infrastructure. This spec does NOT rebuild these — it enhances them.
 
-### Core Value Proposition
+| Existing Feature | Location | Status |
+|---|---|---|
+| AI-powered creation hub | `/bar/[id]/create` with `CreateHubClient`, `AIIntentBox`, `ComplianceBar`, `ContentTypeTabs`, `UnifiedForm`, `ConsumerPreviewPanel` | Working |
+| Bar dashboard | `/bar/[id]/dashboard` — stats (profile views, pass sales, revenue, clicks) | Working |
+| Promotions wizard | `/bar/[id]/promotions` with `PromotionsWizard` | Working |
+| Events manager | `/bar/[id]/events` with `EventsManager` | Working |
+| Pass manager | `/bar/[id]/passes` with `PassManager` | Working |
+| Content calendar | `/bar/[id]/calendar` | Working |
+| Analytics page | `/bar/[id]/analytics` | Working |
+| Bar intelligence hub | `/bar/[id]/intelligence` | Working |
+| Approval queue | `/bar/[id]/approvals` | Working |
+| Staff management | `/bar/[id]/users` — `BarStaff` model with OWNER/MANAGER/PROMOTIONS_MANAGER/STAFF/VIEWER roles | Working |
+| Social cross-posting | Commit `754c289` — Instagram/Facebook/Twitter | Working |
+| QR pass scanner | `/bar/[id]/scanner` | Working |
+| Compliance checking | `ComplianceBar` + `ComplianceCheck` model + `SuggestionPanel` | Working |
+| Duplicate detection | `/api/events/check-duplicates`, `/api/promotions/check-duplicates` — Jaccard similarity via `findDuplicates()` | Working |
 
-> **Hoppr is the cheapest, fastest, and best-looking way for Finnish bars to market themselves.** One sentence becomes a professional event page, social media post, and measurable marketing channel — in under 60 seconds.
+## 2. What We're Adding (The Delta)
 
-### Goals
+### Priority 1: Proactive Insights Chatbot
 
-1. **Sub-60-second creation** — bar staff create content during a shift break, on their phone
-2. **AI-powered, not form-powered** — type a sentence, AI does the rest
-3. **Real photos required** — bars already have phone photos; gradients look generic
-4. **Invisible compliance** — Finnish alcohol marketing rules checked automatically, only surfaces when there's an issue
-5. **Role-based approval** — staff create, owners approve before anything goes live
-6. **Multi-channel distribution** — Hoppr app + social cross-posting in one publish action
-7. **Closed-loop analytics** — every post reports back views, engagement, and effectiveness
-8. **Cheap enough to be a no-brainer** — free tier exists, paid plans are cheaper than any marketing alternative
+**The core new feature.** Instead of bar owners navigating to `/bar/[id]/analytics` or `/bar/[id]/intelligence` to find insights, the system proactively reaches out to them.
 
-## 2. User Roles & Permissions
+**How it works:**
 
-The `BarStaff` model (already in schema) maps to creation permissions:
+1. A conversational assistant that lives on the bar dashboard home screen as an expandable chat panel (think: Intercom widget but for bar insights)
+2. It sends push notifications for time-sensitive nudges
+3. It uses simple, non-technical language — no charts, no jargon
 
-| Role | Create | Auto-Publish | Approve Others |
-|------|--------|-------------|----------------|
-| OWNER | Yes | Yes | Yes |
-| MANAGER | Yes | Yes | Yes |
-| PROMOTIONS_MANAGER | Passes only | No (passes = money) | No |
-| STAFF | Yes | No | No |
-| VIEWER | No | No | No |
+**Message types:**
 
-**Approval rule:** Content created by STAFF or PROMOTIONS_MANAGER goes into a "Pending Approval" queue. OWNER and MANAGER get a push notification. They can approve, edit-and-approve, or reject with a note.
+| Trigger | Message | Channel |
+|---------|---------|---------|
+| Empty upcoming weekend | "You haven't posted anything for Friday yet. Your Friday posts usually get 3x more views — want me to set something up?" | Push + home card |
+| Post hit a milestone | "Your Salsa Saturday post got 340 views — that's your best this month!" | Push notification |
+| Weekly summary | "This week: 1,200 views, 85 clicks. Best day: Friday. Top post: Salsa Saturday." | Home card (Monday AM) |
+| Pattern detected | "Posts with crowd photos get 2.5x more clicks. Your last 3 posts used venue photos — try a crowd shot next time?" | Home card |
+| Inactivity | "You haven't posted in 8 days. Bars that post weekly get 4x more followers." | Push notification |
+| Competitor trend | "Latin music nights in Helsinki are getting 40% more attention. Want to try one?" | Home card |
 
-## 3. Creation Flow (Mobile-First)
+**Data source:** The existing `AnalyticsEvent` model (17 event types already defined: `PROMO_VIEW`, `PROMO_CLICK`, `EVENT_VIEW`, `EVENT_JOIN`, `PASS_PURCHASE`, `PASS_SCAN`, etc.) already collects interaction data. The `BarPromotion` model already has `views`, `clicks`, `redemptions`, `cardViews` counters. The insights engine reads from these existing sources — no new data model needed for Phase 1.
 
-### Step-by-Step
+**Phase 1 (ship now):** Rule-based triggers on existing data
+- Empty calendar slot detection (query upcoming events/promos, flag gaps)
+- Milestone notifications (post exceeds bar's historical average)
+- Weekly summary aggregation (count views/clicks per bar per week)
+- Inactivity detection (no posts in 7+ days)
 
-```
-┌─────────────────────────────────────────────┐
-│  1. CONTENT CALENDAR (home screen)           │
-│  ┌─────────────────────────────────────┐     │
-│  │     June 2026        Week 23        │     │
-│  │  Mon Tue Wed Thu Fri Sat Sun       │     │
-│  │   1   2   3   4  [5]  [6]+  7      │     │
-│  │                🎧                  │     │
-│  │  ─────────────────────────────────  │     │
-│  │  Saturday is open. Fill it?         │     │
-│  │  [Tap to create]                    │     │
-│  └─────────────────────────────────────┘     │
-│                                              │
-│  2. TYPE ONE SENTENCE (slide-up card)        │
-│  ┌─────────────────────────────────────┐     │
-│  │  What's happening?                   │     │
-│  │  ┌─────────────────────────────────┐ │     │
-│  │  │ Saturday salsa night, free      │ │     │
-│  │  │ entry before 9pm 💃             │ │     │
-│  │  └─────────────────────────────────┘ │     │
-│  │  [Event] [Promo] [Pass] [Combo]     │     │
-│  │                          [Generate]  │     │
-│  └─────────────────────────────────────┘     │
-│                                              │
-│  3. AI FILLS (3 seconds)                     │
-│  • Classifies intent → Event + Promotion     │
-│  • Extracts: title, date, time, offer        │
-│  • Sets venue from bar context               │
-│  • Runs compliance check (silent)            │
-│                                              │
-│  4. ADD PHOTO                                │
-│  ┌─────────────────────────────────────┐     │
-│  │  Show us the vibe 📸                 │     │
-│  │  ┌──────────┐ ┌──────────┐         │     │
-│  │  │  Camera   │ │ Gallery  │         │     │
-│  │  └──────────┘ └──────────┘         │     │
-│  │  ┌──────────────────────────────┐   │     │
-│  │  │ Fri crowd at the bar    [x]  │   │     │
-│  │  └──────────────────────────────┘   │     │
-│  │  Photos get 3x more engagement      │     │
-│  └─────────────────────────────────────┘     │
-│                                              │
-│  5. REVIEW CARD                              │
-│  ┌─────────────────────────────────────┐     │
-│  │  🟢 Compliant                        │     │
-│  │  ┌─────────────────────────────┐     │     │
-│  │  │         💃                   │     │     │
-│  │  │    Salsa Saturday             │     │     │
-│  │  │    Sat, June 7 · 21:00       │     │     │
-│  │  │    Free entry before 9pm     │     │     │
-│  │  └─────────────────────────────┘     │     │
-│  │  ┌─ Social Preview ─────────────┐    │     │
-│  │  │ Instagram story version      │    │     │
-│  │  │ Facebook post version        │    │     │
-│  │  └──────────────────────────────┘    │     │
-│  │  [Edit]              [Publish ✓]     │     │
-│  └─────────────────────────────────────┘     │
-│                                              │
-│  6. CONFIRMATION + ANALYTICS PREVIEW          │
-│  ┌─────────────────────────────────────┐     │
-│  │  ✓ Live on Hoppr + Social!           │     │
-│  │  Track performance → [View Stats]    │     │
-│  └─────────────────────────────────────┘     │
-└─────────────────────────────────────────────┘
-```
+**Phase 2 (3+ months, data-gated):** ML-powered suggestions
+- Cross-bar trend detection (anonymized pattern comparison)
+- Personalization (learns each bar's posting style and optimal times)
+- Predictive ("this type of event typically gets X views in your area")
 
-### Type Chips (Step 2)
+### Priority 2: Photo Stock Fallback
 
-The type chips (Event / Promo / Pass / Combo) are **soft hints**, not required selections. The AI classifies intent from the prompt regardless of which chip is tapped. Tapping a chip biases the AI but doesn't constrain it. The AI can return multiple linked entities (e.g., an Event + a Promotion) from a single sentence.
+**Problem:** The current creation flow accepts gradients/emojis as image fallbacks. This looks generic and hurts the app's visual quality.
 
-### Photo Step (Step 4)
+**Solution:** When a bar skips uploading a photo, show 3-4 real stock photos based on the AI-inferred post type:
+- Happy hour → cocktail/bar interior photos
+- DJ night → crowd/dance floor photos
+- Live music → stage/musician photos
+- Sports viewing → sports bar/tv screen photos
 
-- Three sources: camera (instant snap), gallery (choose existing), recent (reuse a photo from the last 30 days)
-- Photos are uploaded to Cloudinary (existing integration) with auto-quality/format
-- A thumbnail preview shows immediately; upload happens in background while user reviews
-- The nudge text ("Photos get 3x more engagement") reinforces without blocking
-- **Fallback:** If no photo is uploaded, the system suggests 3-4 real stock photos based on the post type and mood (e.g., a cocktail photo for happy hour, a crowd shot for DJ night, an interior shot for venue vibes). The bar owner picks one or taps "skip." No emojis, no gradients — always a real photo, even if it's a suggested stock image.
-- If the bar owner picks a stock photo, a subtle prompt appears: "Upload your own photo anytime — real bar photos get 3x more views than stock."
+The bar owner taps one or chooses "skip." The photo preview shows immediately. A subtle nudge: "Real bar photos get 3x more views than stock. Upload your own anytime."
 
-### Compliance Indicator (Step 5)
+**Implementation:** Use a free stock photo API (Unsplash, Pexels) keyed by the AI-classified post type. Cache results per type to avoid redundant API calls.
 
-| State | Meaning | Action |
-|-------|---------|--------|
-| 🟢 Green | Fully compliant with Finnish alcohol marketing law | None |
-| 🟡 Yellow | Potential issue (e.g., "free" without purchase context) | Warning shown; tap to auto-fix with suggested text; does NOT block publishing |
-| 🔴 Red | Clear violation (e.g., underage targeting) | Blocks publishing; requires edit |
+### Priority 3: Single-Sentence Auto-Classification
 
-The compliance checker (already in the codebase via `ComplianceBar`) runs asynchronously after AI generation. Results are cached so re-checks on edit are instant.
+**Problem:** The current `CreateHubClient` has `ContentTypeTabs` — the bar owner must choose Event, Promotion, or Pass BEFORE typing anything. This adds cognitive load and forces categorization upfront.
 
-## 4. Approval Flow
+**Solution:** Remove the required tab selection. The bar owner types one sentence. The AI:
+1. Classifies the intent (event, promotion, pass, or combo)
+2. Extracts structured fields (title, date, time, offer details)
+3. Pre-fills the form with the correct type already selected
+4. If the sentence describes both an event AND a promotion ("Salsa night + free entry before 9pm"), both are created as linked entities
 
-```
-STAFF creates → Submit for Approval
-                    ↓
-         OWNER/MANAGER gets push notification
-                    ↓
-         ┌──────────────────────────┐
-         │  "Mikko submitted:        │
-         │   Salsa Saturday"         │
-         │                           │
-         │  [Approve] [Edit] [Reject]│
-         └──────────────────────────┘
-                    ↓
-         APPROVE → Instant publish to Hoppr + Social
-         EDIT    → Opens card for changes, then publish
-         REJECT  → Goes back to creator with note
-```
+The existing type tabs remain as optional filters/bias selectors, but they're not required.
 
-- The approval queue lives on the bar dashboard and as push notifications
-- Approved posts are stamped with `approvedById` and `approvedAt`
-- Rejected posts stay in the bar's content library as drafts (not deleted)
+### Priority 4: Pricing & Plans
 
-## 5. Data Model Additions
+**Problem:** No monetization exists. All features are free.
 
-### New Fields on Existing Models
-
-**BarPromotion** (already in schema):
-- Add `approvedById: String?` — FK to User who approved
-- Add `approvedAt: DateTime?`
-- Add `submittedById: String?` — FK to User who created (BarStaff)
-- Add `status: ContentStatus @default(DRAFT)`
-
-**Event** (already in schema):
-- Add `approvedById: String?`
-- Add `approvedAt: DateTime?`
-- Add `submittedById: String?` — (creatorId already exists, but that's the event creator, not necessarily the bar staff who posted it)
-- Add `status: ContentStatus @default(DRAFT)` — note: this is for bar-created events; consumer-created events auto-publish
-
-**VIPPassEnhanced** (already in schema):
-- Add `approvedById: String?`
-- Add `approvedAt: DateTime?`
-- Add `submittedById: String?`
-- Add `status: ContentStatus @default(DRAFT)`
-
-### New Enum
-
-```prisma
-enum ContentStatus {
-  DRAFT        // being created, not yet submitted
-  PENDING      // submitted, awaiting approval
-  APPROVED     // approved and live
-  REJECTED     // rejected, returned to creator
-  ARCHIVED     // past end date, no longer displayed
-}
-```
-
-### New Model: PostAnalytics
-
-```prisma
-model PostAnalytics {
-  id            String    @id @default(cuid())
-  postType      PostType  // EVENT, PROMOTION, PASS
-  postId        String    // FK to the event/promotion/pass
-  barId         String    // FK to bars
-  views         Int       @default(0)
-  uniqueViews   Int       @default(0)
-  clicks        Int       @default(0)
-  redemptions   Int       @default(0)  // for passes: actual scans
-  socialClicks  Int       @default(0)  // clicks from social posts
-  attendance    Int?      // for events: actual attendees (from check-ins)
-  revenue       Int?      // for passes: total revenue in cents
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-enum PostType {
-  EVENT
-  PROMOTION
-  PASS
-}
-```
-
-## 6. Distribution
-
-### Hoppr Consumer App
-
-Content appears in the consumer app only when:
-- `status == APPROVED`
-- `complianceStatus == COMPLIANT`
-- `isActive == true` (for promos/passes)
-- Within valid date range (start/end dates)
-
-### Social Cross-Posting (existing feature)
-
-Already in the codebase from commit `754c289`. The creation flow generates platform-specific versions:
-
-- **Instagram Story:** Square format, photo + overlaid text (title, date, venue), swipe-up link
-- **Facebook Post:** Photo + title + description + date + link to Hoppr event page
-- **Twitter/X:** Short text + link + photo
-
-The social preview panel (Step 5) shows each version before publishing. Bar owners can toggle which platforms to post to.
-
-## 7. Analytics & Insights
-
-### Principle: Insights Find You, Not the Other Way Around
-
-Most analytics tools require bar owners to log in, navigate to a dashboard, and interpret charts. Bar owners don't have time for that. Instead, Hoppr delivers insights proactively — through push notifications, inline cards on the home screen, and conversational summaries. The analytics page exists as a reference, but it's not the primary experience.
-
-### Delivery Channels
-
-| Channel | Example | When |
-|---------|---------|------|
-| **Push notification** | "Your Salsa Saturday post got 340 views — your best this month" | 24h after post, or when a post hits a milestone |
-| **Home screen card** | "This week: 1,200 views, 45 clicks, 3 new customers" | Weekly summary, every Monday morning |
-| **Inline on calendar** | Each past day shows a mini performance dot (green = high engagement, gray = low) | Always visible |
-| **Post-publish feedback** | "This type of post usually gets 200+ views in Helsinki. We'll let you know how it does." | Immediately after publishing |
-| **Analytics page** | Full dashboard with filters, date ranges, and export | On-demand |
-
-### Per-Post Feedback (Available on All Plans)
-
-Immediately after publishing, the bar owner sees:
-- "Your post is now live on Hoppr and Instagram"
-- "We'll send you a summary tomorrow morning"
-
-24 hours later, a push notification:
-- "Saturday Salsa Night: 340 views, 28 clicks. Your top post this week."
-
-### Weekly Insights (Pro €19/mo and Super Bar €39/mo)
-
-Every Monday morning, a simple card on the home screen:
-
-> **Your week in review**
-> 1,200 people saw your posts
-> 85 clicked through to your bar page
-> Best day: Friday (3x more than Monday)
-> Top post: Salsa Saturday (340 views)
->
-> **Tip:** Posts with crowd photos got 2.5x more clicks. Try one this week?
-
-### Strategy Suggestions (Super Bar €39/mo, Phase 2 data-gated)
-
-The system detects patterns and makes conversational, non-technical suggestions:
-
-- **Gap detection:** "Friday is your best day, but it's empty this week. Want to set something up?"
-- **Trend comparison:** "Latin nights in Helsinki are getting 40% more attention this month. You haven't tried one yet."
-- **Pricing nudges:** "Your VIP passes are priced lower than similar bars in your area. You could increase to €15 and still sell out."
-- **Timing optimization:** "Posts published at 6pm get 2x more views than posts at midnight. Try scheduling your next one earlier."
-- **Habit reinforcement:** "You've posted every weekend for 3 weeks. That consistency is building your following."
-
-### Analytics Page (Reference, Not Primary)
-
-The full analytics dashboard remains available for bar owners who want to dig deeper. It shows:
-- Views over time (line chart)
-- Post performance ranking (best to worst)
-- Audience: where viewers come from (Hoppr / Instagram / Facebook / web)
-- Redemption tracking: how many promo codes or passes were actually used
-- Export to CSV for the bar's own records
-
-### Data Flywheel
-
-Every post and every view feeds back into the system:
-
-```
-Create post → Publish → Collect engagement data →
-Surface insights → Bar posts better content →
-More consumer engagement → More data →
-Better insights → Bar posts even more →
-```
-
-This flywheel is what makes bars stick: the more they post, the smarter the system gets, the better their results, the more they post.
-
-## 8. Pricing & Plans
+**Solution:** 4-tier pricing integrated into the bar dashboard:
 
 | Feature | Free | Pay-per-post | Pro (€19/mo) | Super Bar (€39/mo) |
 |---------|------|-------------|--------------|---------------------|
@@ -311,79 +100,83 @@ This flywheel is what makes bars stick: the more they post, the smarter the syst
 | Compliance check | ✓ | ✓ | ✓ | ✓ |
 | Hoppr distribution | ✓ | ✓ | ✓ | ✓ |
 | Social cross-posting | — | ✓ | ✓ | ✓ |
-| Basic analytics | — | — | ✓ | ✓ |
+| Advanced analytics | — | — | ✓ | ✓ |
 | Priority feed placement | — | — | ✓ | ✓ |
-| AI insights (Phase 2) | — | — | — | ✓ |
-| Printable posters | — | — | — | ✓ |
+| Proactive insights chatbot | — | — | — | ✓ |
+| Stock photo library | — | — | ✓ | ✓ |
 | Staff seats | 1 | 1 | 3 | Unlimited |
 | Pass sales commission | 12% | 10% | 8% | 5% |
-| Price per extra post | — | €3/post | — | — |
 
-Commission on pass sales is secondary revenue — it applies only when bars sell VIP passes through Hoppr. The primary monetization is the creation plans.
+**New data model:**
 
-## 9. Phase 2: Proactive AI Assistant
+```prisma
+model BarSubscription {
+  id        String   @id @default(cuid())
+  barId     String   @unique
+  plan      PlanTier @default(FREE)
+  postsUsed Int      @default(0)
+  periodStart DateTime
+  periodEnd   DateTime
+  stripeSubscriptionId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
 
-Ship criteria: when the platform has collected at least 3 months of post analytics data across 20+ active bars.
+enum PlanTier {
+  FREE
+  PAY_PER_POST
+  PRO
+  SUPER_BAR
+}
+```
 
-Features gated behind Super Bar (€39/mo):
+Commission on pass sales is deferred — it only activates when pass purchasing goes live with real payments.
 
-1. **Reminders:** "You usually post a Friday event on Wednesday. Want to set it up now?"
-2. **Ecosystem insights:** "Latin music nights in Helsinki are up 40% this month. Want to try one?"
-3. **Auto-optimization:** "Your 8pm posts get 2x more engagement than midnight posts. Schedule this for 8pm?"
-4. **Habit-based suggestions:** "This Saturday is open on your calendar. Last month's salsa night brought 80 people. Want a repeat?"
-5. **Cross-bar intelligence:** Anonymized benchmarks — "Your engagement rate is in the top 20% of Helsinki bars."
+## 3. What We're NOT Changing
 
-The Phase 1 data collection (views, clicks, redemptions, attendance) is what makes this possible. Every post created in Phase 1 trains the system.
+These existing features work well and are left as-is:
 
-## 10. Current State vs Target
+- **ComplianceBar** — Already does invisible checking with suggestions. Keep.
+- **Approval queue** — `/bar/[id]/approvals` already handles staff → owner workflow. Keep.
+- **Social cross-posting** — Already implemented. Just needs wiring into the creation preview.
+- **Calendar** — `/bar/[id]/calendar` exists. Enhance with performance dots (green/gray per day).
+- **Analytics page** — `/bar/[id]/analytics` exists. The chatbot complements it; it doesn't replace it.
+- **Staff management** — `BarStaff` model and roles are solid. Keep.
 
-| Aspect | Current (hoppr-business) | Target |
-|--------|--------------------------|--------|
-| Creation UX | CreateHubClient with AIIntentBox + tabs | Calendar-first, single sentence, AI auto-classifies |
-| Content types | Event OR Promo OR Pass (one at a time) | AI can create Event + Promo from one sentence |
-| Photo | Optional, upload during form | Required, camera/gallery/recent, background upload |
-| Compliance | ComplianceBar with SuggestionPanel | Invisible unless yellow/red |
-| Approval | None (all content created by seed scripts) | Role-based: staff → owner → publish |
-| Distribution | Hoppr only | Hoppr + social cross-posting (per-post or plan) |
-| Analytics | None (BarPromotion has counters but no dashboard) | Per-post + bar-level dashboard |
-| Pricing | None | 4-tier: Free / Pay-per-post / Pro / Super Bar |
-| Mobile UX | Not optimized | Mobile-first, designed for shift-break use |
+## 4. Implementation Plan
 
-## 11. Implementation Sequencing
+### Milestone 1: Photo Stock Fallback (3-5 days)
+- Integrate Unsplash or Pexels API for stock photo search
+- Add stock photo picker to creation flow (3-4 suggestions based on AI-inferred type)
+- Wire into existing Cloudinary upload pipeline (cache stock photos)
+- Add nudge text for real photos
 
-### Milestone 1: Core Creation (2-3 weeks)
-- Calendar-first home screen in hoppr-business
-- Single-sentence AI creation (enhance existing AIIntentBox)
-- Photo required with camera/gallery/recent
-- Compliance as invisible indicator
-- ContentStatus enum + DRAFT → APPROVED flow
+### Milestone 2: Single-Sentence Auto-Classify (3-5 days)
+- Enhance AIIntentBox prompt to classify intent (event/promo/pass/combo)
+- Remove required ContentTypeTabs selection
+- Auto-fill type field based on AI classification
+- Support combo creation (event + promotion from one sentence)
 
-### Milestone 2: Approval + Roles (1 week)
-- BarStaff role enforcement
-- Pending approval queue
-- Push notifications for approval requests
-- Owner/manager can approve/edit/reject
+### Milestone 3: Pricing Infrastructure (1 week)
+- Add `BarSubscription` model to Prisma schema
+- Create plan enforcement middleware/utility
+- Integrate Stripe for subscription management
+- Add plan-aware UI (feature gates, upgrade prompts)
+- Usage tracking (posts per month per bar)
 
-### Milestone 3: Distribution + Social (1 week)
-- Wire up existing social cross-posting to creation flow
-- Social preview panel in review card
-- Platform toggle (Hoppr / Instagram / Facebook / Twitter)
-- Content visibility gating (APPROVED + COMPLIANT only)
+### Milestone 4: Proactive Insights Chatbot (2-3 weeks)
+- Build rule-based trigger engine (empty calendar, milestones, inactivity, weekly summary)
+- Add chat panel component to bar dashboard home screen
+- Wire push notifications for time-sensitive triggers
+- Integrate with existing `AnalyticsEvent` data and `BarPromotion` counters
+- Add weekly summary aggregation job (cron — could use Vercel Cron Jobs)
+- Phase 2 ML features deferred until sufficient data exists
 
-### Milestone 4: Pricing (1 week)
-- Plan tiers in database
-- Usage tracking (posts/month per bar)
-- Pay-per-post billing
-- Subscription management (Stripe or Finnish provider)
-- Plan enforcement in creation flow
+## 5. Success Metrics
 
-### Milestone 5: Analytics Dashboard (1-2 weeks)
-- PostAnalytics model + tracking
-- Per-post stats card in calendar
-- Bar-level dashboard (views, engagement, best days)
-- Social referral tracking
-
-### Milestone 6: Phase 2 AI Assistant (3+ months, data-gated)
-- Requires 3 months of analytics data from 20+ bars
-- Proactive reminders and suggestions
-- Cross-bar anonymized insights
+- **Bar activation rate:** % of claimed bars that create at least 1 post in first week
+- **Weekly active bars:** bars posting at least once per week
+- **Insight engagement:** % of push notifications that result in app open
+- **Post completion rate:** % of started posts that get published
+- **Subscription conversion:** % of free bars that upgrade to paid
+- **Retention:** % of bars still posting after 30/60/90 days
