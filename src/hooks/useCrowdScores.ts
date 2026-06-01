@@ -22,6 +22,8 @@ export interface CrowdSignals {
   };
 }
 
+export type BarRelevance = "event" | "pass" | "followed";
+
 export interface VenueCrowdScore {
   id: string;
   name: string;
@@ -35,6 +37,9 @@ export interface VenueCrowdScore {
   signals: CrowdSignals;
   crowdLevel: string | null;
   crowdReportedAt: string | null;
+  // User relevance (set client-side from /api/crowd/my-bars)
+  relevance?: BarRelevance;
+  relevanceLabel?: string;
 }
 
 export function useCrowdScores(lat: number | null, lng: number | null) {
