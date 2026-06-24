@@ -12,6 +12,9 @@ export const TIME_FILTERS = [
   { value: "afternoon", label: "Afternoon" },
   { value: "evening", label: "Evening" },
   { value: "night", label: "Night" },
+  { value: "week", label: "This Week" },
+  { value: "month", label: "This Month" },
+  { value: "all", label: "All Upcoming" },
 ] as const;
 
 export const CATEGORIES = [

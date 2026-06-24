@@ -32,6 +32,9 @@ export function getTimeFilterWindow(filter: string): { now: Date; start: Date; e
     case "afternoon": return { now, start: new Date(today.getTime() + 12 * 3600000), end: new Date(today.getTime() + 17 * 3600000) };
     case "evening": return { now, start: new Date(today.getTime() + 17 * 3600000), end: new Date(today.getTime() + 22 * 3600000) };
     case "night": return { now, start: new Date(today.getTime() + 22 * 3600000), end: new Date(today.getTime() + 28 * 3600000) };
+    case "week": return { now, start: today, end: new Date(today.getTime() + 86400000 * 7) };
+    case "month": return { now, start: today, end: new Date(today.getTime() + 86400000 * 30) };
+    case "all": return { now, start: today, end: new Date(today.getTime() + 86400000 * 365) };
     default: return { now, start: today, end: new Date(today.getTime() + 86400000 * 7) };
   }
 }

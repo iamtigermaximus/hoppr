@@ -9,7 +9,7 @@ interface FeedParams {
   time?: TimeFilter;
 }
 
-export function useFeed({ lat, lng, radius = 10, time = "today" }: FeedParams) {
+export function useFeed({ lat, lng, radius = 10, time = "week" }: FeedParams) {
   return useQuery<FeedItem[]>({
     queryKey: ["feed", lat, lng, radius, time],
     queryFn: async () => {

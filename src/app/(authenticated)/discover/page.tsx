@@ -57,7 +57,7 @@ const INITIAL_SHOW = 3;
 
 export default function DiscoverPage() {
   const { lat, lng } = useGeolocation();
-  const [time, setTime] = useState<TimeFilter>("today");
+  const [time, setTime] = useState<TimeFilter>("week");
   const [sort, setSort] = useState<SortMode>("upcoming");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { data: items = [], isLoading } = useFeed({ lat, lng, time });
@@ -86,7 +86,8 @@ export default function DiscoverPage() {
   const totalPromos = sorted.filter(i => i.type === "promotion").length;
   const totalPasses = sorted.filter(i => i.type === "pass").length;
 
-  const hasSections = time === "today";
+  // Show sectioned view (Now / Today / Tomorrow / Later) for all wider filters
+  const hasSections = time !== "now" && time !== "afternoon" && time !== "evening" && time !== "night";
 
   const toggleExpand = (key: string) => {
     setExpanded(prev => {

@@ -79,4 +79,4 @@ export type FeedItem =
       campaignType?: string;
     });
 
-export type TimeFilter = "now" | "today" | "tomorrow" | "afternoon" | "evening" | "night";
+export type TimeFilter = "now" | "today" | "tomorrow" | "afternoon" | "evening" | "night" | "week" | "month" | "all";
