@@ -5,7 +5,7 @@ Finland's drinking establishments, unified. A mobile-first web app for discoveri
 ## Tech Stack
 
 - **Framework:** Next.js 16 (App Router), React 19, TypeScript
-- **Database:** PostgreSQL (Neon) + Prisma 6 ORM
+- **Database:** PostgreSQL (Neon) + Prisma 6 ORM — **shares the same database** with [hoppr-business](../hoppr-business). Schema changes in either repo affect both apps.
 - **Auth:** NextAuth.js v4 (email/password + Google OAuth, JWT strategy)
 - **Styling:** Styled Components v6 (Dark & Bold theme)
 - **Real-time:** Socket.io (separate server in `socket-server/`)

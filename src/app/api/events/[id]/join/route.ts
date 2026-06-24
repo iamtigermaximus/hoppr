@@ -5,69 +5,85 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit, RateLimits } from "@/lib/rate-limiter";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const userId = (session.user as any).id;
+  try {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = (session.user as any).id;
 
-  const rateCheck = checkRateLimit(`join-event:${userId}`, RateLimits.ACTION);
-  if (!rateCheck.allowed) {
+    const rateCheck = checkRateLimit(`join-event:${userId}`, RateLimits.ACTION);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many actions. Slow down." },
+        { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } },
+      );
+    }
+
+    const event = await prisma.event.findUnique({ where: { id } });
+    if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const existing = await prisma.eventParticipant.findUnique({
+      where: { userId_eventId: { userId, eventId: id } },
+    });
+    if (existing) return NextResponse.json({ error: "Already joined" }, { status: 409 });
+
+    if (event.maxAttendees) {
+      const count = await prisma.eventParticipant.count({ where: { eventId: id } });
+      if (count >= event.maxAttendees) {
+        return NextResponse.json({ error: "Event is full" }, { status: 409 });
+      }
+    }
+
+    await prisma.eventParticipant.create({ data: { userId, eventId: id } });
+
+    // Auto-create chat room
+    const existingRoom = await prisma.eventChatRoom.findUnique({ where: { eventId: id } });
+    if (!existingRoom) {
+      await prisma.eventChatRoom.create({ data: { eventId: id } });
+    }
+
+    // Create notification for event creator
+    if (event.creatorId !== userId) {
+      const creator = await prisma.user.findUnique({ where: { id: event.creatorId }, select: { username: true } });
+      const joiner = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+      await prisma.notification.create({
+        data: {
+          type: "SYSTEM",
+          title: "Someone joined your event",
+          body: `${joiner?.username || "Someone"} joined "${event.title}"`,
+          data: { eventId: event.id, userId },
+          userId: event.creatorId,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("events/[id]/join POST error:", error);
     return NextResponse.json(
-      { error: "Too many actions. Slow down." },
-      { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } },
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
-
-  const event = await prisma.event.findUnique({ where: { id } });
-  if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const existing = await prisma.eventParticipant.findUnique({
-    where: { userId_eventId: { userId, eventId: id } },
-  });
-  if (existing) return NextResponse.json({ error: "Already joined" }, { status: 409 });
-
-  if (event.maxAttendees) {
-    const count = await prisma.eventParticipant.count({ where: { eventId: id } });
-    if (count >= event.maxAttendees) {
-      return NextResponse.json({ error: "Event is full" }, { status: 409 });
-    }
-  }
-
-  await prisma.eventParticipant.create({ data: { userId, eventId: id } });
-
-  // Auto-create chat room
-  const existingRoom = await prisma.eventChatRoom.findUnique({ where: { eventId: id } });
-  if (!existingRoom) {
-    await prisma.eventChatRoom.create({ data: { eventId: id } });
-  }
-
-  // Create notification for event creator
-  if (event.creatorId !== userId) {
-    const creator = await prisma.user.findUnique({ where: { id: event.creatorId }, select: { username: true } });
-    const joiner = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
-    await prisma.notification.create({
-      data: {
-        type: "SYSTEM",
-        title: "Someone joined your event",
-        body: `${joiner?.username || "Someone"} joined "${event.title}"`,
-        data: { eventId: event.id, userId },
-        userId: event.creatorId,
-      },
-    });
-  }
-
-  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const userId = (session.user as any).id;
+  try {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = (session.user as any).id;
 
-  await prisma.eventParticipant.deleteMany({
-    where: { userId, eventId: id },
-  });
+    await prisma.eventParticipant.deleteMany({
+      where: { userId, eventId: id },
+    });
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("events/[id]/join DELETE error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

@@ -39,10 +39,15 @@ export function ChatRoom() {
             <div style={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>{event?.title || "Chat"}</div>
             <div style={{ color: "#737373", fontSize: "11px" }}>
               {event?.participants?.length || 0} participants · Tap for details
-              {isConnected && (
+              {isConnected ? (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#10b981", fontSize: "10px", fontWeight: 600, marginLeft: "8px" }}>
                   <span style={{ width: "6px", height: "6px", background: "#10b981", borderRadius: "50%" }} />
                   LIVE
+                </span>
+              ) : (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#f59e0b", fontSize: "10px", fontWeight: 600, marginLeft: "8px" }}>
+                  <span style={{ width: "6px", height: "6px", background: "#f59e0b", borderRadius: "50%" }} />
+                  Reconnecting…
                 </span>
               )}
             </div>
@@ -57,7 +62,7 @@ export function ChatRoom() {
           <div ref={bottomRef} />
         </div>
 
-        <ChatInput onSend={sendMessage} />
+        <ChatInput onSend={sendMessage} disabled={!isConnected} />
       </div>
 
       {/* Info Modal */}

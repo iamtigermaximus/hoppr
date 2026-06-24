@@ -16,6 +16,12 @@ import {
   Star, Wine, InstagramLogo, FacebookLogo, NavigationArrow,
 } from "@phosphor-icons/react";
 
+const menuCategoryLabels: Record<string, string> = {
+  DRINK: "Drinks", FOOD: "Food", SNACK: "Snacks", DESSERT: "Desserts",
+  COCKTAIL: "Cocktails", BEER: "Beer", WINE: "Wine", SPIRITS: "Spirits",
+  SHOT: "Shots", COFFEE: "Coffee", OTHER: "Other",
+};
+
 const typeLabels: Record<string, string> = {
   PUB: "Pub", CLUB: "Club", COCKTAIL_LOUNGE: "Cocktail Lounge",
   SPORTS_BAR: "Sports Bar", KARAOKE_BAR: "Karaoke Bar",
@@ -86,6 +92,12 @@ export function VenueDetail() {
   const { lat, lng } = useGeolocation();
   const { data: events = [] } = useEvents();
   const venueEvents = events.filter((e: any) => e.venueId === id);
+
+  const menuByCategory = (venue.menu || []).reduce((acc: Record<string, any[]>, item: any) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
 
   if (isLoading) return <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
   if (!venue || venue.error) return <div style={{ padding: 16, color: "#ef4444" }}>Venue not found</div>;
@@ -296,8 +308,37 @@ export function VenueDetail() {
         </div>
       )}
 
+      {/* Menu */}
+      {Object.keys(menuByCategory).length > 0 && (
+        <div style={{ marginBottom: "24px" }}>
+          <SectionHeader title="Menu" />
+          {Object.entries(menuByCategory).map(([category, items]: [string, any[]]) => (
+            <div key={category} style={{ marginBottom: "16px" }}>
+              <h4 style={{ color: "#7c3aed", fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
+                {menuCategoryLabels[category] || category}
+              </h4>
+              {items.map((item: any) => (
+                <Card key={item.id} style={{ marginBottom: "4px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 500, fontSize: "13px" }}>{item.name}</div>
+                      {item.description && (
+                        <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px", marginTop: "2px" }}>{item.description}</div>
+                      )}
+                    </div>
+                    <span style={{ color: "#f59e0b", fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap", marginLeft: "12px" }}>
+                      €{item.price.toFixed(2)}
+                    </span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* No data fallback */}
-      {!venue.promotions?.length && !venueEvents.length && !venue.passes?.length && (
+      {!venue.promotions?.length && !venueEvents.length && !venue.passes?.length && !venue.menu?.length && (
         <div style={{ textAlign: "center", padding: "24px", color: "var(--color-text-muted, #737373)", fontSize: "13px" }}>
           <Wine size={32} color="var(--color-text-muted, #737373)" style={{ marginBottom: "8px" }} />
           <p>No active promos, events, or passes right now.</p>

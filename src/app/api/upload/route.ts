@@ -51,16 +51,24 @@ export async function POST(req: Request) {
   }
 
   // Fallback: save locally
-  const { writeFile, mkdir } = await import("fs/promises");
-  const path = await import("path");
-  const crypto = await import("crypto");
+  try {
+    const { writeFile, mkdir } = await import("fs/promises");
+    const path = await import("path");
+    const crypto = await import("crypto");
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const filename = `${crypto.randomBytes(16).toString("hex")}.${ext}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
+    const ext = file.name.split(".").pop() || "jpg";
+    const filename = `${crypto.randomBytes(16).toString("hex")}.${ext}`;
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
 
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, filename), buffer);
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, filename), buffer);
 
-  return NextResponse.json({ url: `/uploads/${filename}` });
+    return NextResponse.json({ url: `/uploads/${filename}` });
+  } catch (error) {
+    console.error("upload POST (local fallback) error:", error);
+    return NextResponse.json(
+      { error: "Upload failed" },
+      { status: 500 }
+    );
+  }
 }

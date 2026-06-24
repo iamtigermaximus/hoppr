@@ -471,7 +471,48 @@ model Bar {
   insights        BarInsight[]
   insightMessages InsightMessage[]
 
+  // Menu
+  menuItems MenuItem[]
+
   @@map("bars")
+}
+
+// ============================================
+// MENU
+// ============================================
+
+enum MenuCategory {
+  DRINK
+  FOOD
+  SNACK
+  DESSERT
+  COCKTAIL
+  BEER
+  WINE
+  SPIRITS
+  SHOT
+  COFFEE
+  OTHER
+}
+
+model MenuItem {
+  id          String       @id @default(cuid())
+  barId       String
+  name        String
+  description String?
+  priceCents  Int          // e.g., 950 = €9.50
+  category    MenuCategory @default(OTHER)
+  imageUrl    String?
+  isAvailable Boolean      @default(true)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@index([barId, category])
+  @@index([barId, sortOrder])
+  @@map("menu_items")
 }
 
 model BarFollow {

@@ -10,14 +10,22 @@ function getJwtSecret(): string {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const token = jwt.sign(
-    { sub: (session.user as any).id, email: session.user.email },
-    getJwtSecret(),
-    { expiresIn: "24h" }
-  );
+    const token = jwt.sign(
+      { sub: (session.user as any).id, email: session.user.email },
+      getJwtSecret(),
+      { expiresIn: "24h" }
+    );
 
-  return NextResponse.json({ token });
+    return NextResponse.json({ token });
+  } catch (error) {
+    console.error("auth/token GET error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
