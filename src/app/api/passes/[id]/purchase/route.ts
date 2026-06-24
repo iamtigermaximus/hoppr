@@ -10,7 +10,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     const rateCheck = checkRateLimit(`purchase:${userId}`, RateLimits.PURCHASE);
     if (!rateCheck.allowed) {

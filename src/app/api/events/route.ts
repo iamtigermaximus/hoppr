@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields: title, venueId, venueName, startTime" }, { status: 400 });
     }
 
-    const creatorId = (session.user as any).id;
+    const creatorId = session.user.id;
 
     const rateCheck = checkRateLimit(`create-event:${creatorId}`, RateLimits.CREATE);
     if (!rateCheck.allowed) {

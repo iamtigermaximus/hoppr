@@ -34,9 +34,9 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.sub;
-        session.user.image = (token as any).picture as string | null | undefined;
-        session.user.name = (token as any).name as string | null | undefined;
+        session.user.id = token.sub!;
+        session.user.image = token.picture as string | null | undefined;
+        session.user.name = token.name as string | null | undefined;
       }
       return session;
     },

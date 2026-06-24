@@ -167,7 +167,7 @@ export function VenueDetail() {
       <SectionCard>
         <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", marginBottom: "10px" }}>Contact & Location</h3>
         <InfoGrid>
-          <InfoRow><MapPin size={16} color="var(--color-text-muted, #737373)" />{venue.address}, {venue.district}, Helsinki</InfoRow>
+          <InfoRow><MapPin size={16} color="var(--color-text-muted, #737373)" />{venue.address}, {venue.district}, {venue.cityName || "Helsinki"}</InfoRow>
           {venue.phone && <InfoRow><Phone size={16} color="var(--color-text-muted, #737373)" /><a href={`tel:${venue.phone}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.phone}</a></InfoRow>}
           {venue.website && <InfoRow><Globe size={16} color="var(--color-text-muted, #737373)" /><a href={venue.website} target="_blank" rel="noopener" style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.website.replace("https://", "")}</a></InfoRow>}
           {venue.email && <InfoRow><Envelope size={16} color="var(--color-text-muted, #737373)" /><a href={`mailto:${venue.email}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.email}</a></InfoRow>}

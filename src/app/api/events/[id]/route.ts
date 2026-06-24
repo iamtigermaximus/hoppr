@@ -34,7 +34,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     const event = await prisma.event.findUnique({ where: { id } });
     if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -60,7 +60,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     const event = await prisma.event.findUnique({ where: { id } });
     if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });

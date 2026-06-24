@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ purchas
     const { purchaseId } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     const purchase = await prisma.userVIPPass.findUnique({ where: { id: purchaseId } });
     if (!purchase || purchase.userId !== userId) {

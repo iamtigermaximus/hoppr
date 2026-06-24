@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -32,7 +32,7 @@ export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     const data = await req.json();
     const allowed = ["username", "bio", "image", "drinkPrefs", "interests", "languages", "instagram", "facebook", "twitter", "phoneNumber", "gallery"];

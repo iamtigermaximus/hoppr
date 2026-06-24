@@ -15,7 +15,7 @@ export async function GET() {
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = jwt.sign(
-      { sub: (session.user as any).id, email: session.user.email },
+      { sub: session.user.id, email: session.user.email },
       getJwtSecret(),
       { expiresIn: "24h" }
     );

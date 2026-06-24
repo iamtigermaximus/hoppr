@@ -9,7 +9,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     const rateCheck = checkRateLimit(`join-event:${userId}`, RateLimits.ACTION);
     if (!rateCheck.allowed) {
@@ -72,7 +72,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = (session.user as any).id;
+    const userId = session.user.id;
 
     await prisma.eventParticipant.deleteMany({
       where: { userId, eventId: id },

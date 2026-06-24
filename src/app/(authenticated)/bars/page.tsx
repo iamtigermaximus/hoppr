@@ -107,7 +107,14 @@ export default function BarsPage() {
   const { data: venues = [] } = useVenues();
   const [search, setSearch] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedDistricts, setSelectedDistricts] = useState<string[]>([]);
   const [page, setPage] = useState(1);
+
+  const districts = useMemo(() => {
+    const set = new Set<string>();
+    (venues as any[]).forEach((v: any) => { if (v.district) set.add(v.district); });
+    return Array.from(set).sort();
+  }, [venues]);
 
   const { data: campaigns = [] } = useQuery<any[]>({
     queryKey: ["campaigns", "featured-bars"],
@@ -142,8 +149,16 @@ export default function BarsPage() {
     setPage(1);
   };
 
+  const toggleDistrict = (district: string) => {
+    setSelectedDistricts(prev =>
+      prev.includes(district) ? prev.filter(d => d !== district) : [...prev, district]
+    );
+    setPage(1);
+  };
+
   const clearFilters = () => {
     setSelectedTypes([]);
+    setSelectedDistricts([]);
     setSearch("");
     setPage(1);
   };
@@ -156,6 +171,7 @@ export default function BarsPage() {
       }))
       .filter((v: any) => {
         if (selectedTypes.length > 0 && !selectedTypes.includes(v.type)) return false;
+        if (selectedDistricts.length > 0 && !selectedDistricts.includes(v.district)) return false;
         if (search && !v.name.toLowerCase().includes(search.toLowerCase())
           && !v.district?.toLowerCase().includes(search.toLowerCase())
           && !v.type?.toLowerCase().replace(/_/g, " ").includes(search.toLowerCase())) return false;
@@ -204,12 +220,22 @@ export default function BarsPage() {
             {t.label}
           </Chip>
         ))}
-        {(selectedTypes.length > 0 || search) && (
+        {(selectedTypes.length > 0 || selectedDistricts.length > 0 || search) && (
           <Chip $active={false} onClick={clearFilters} style={{ color: "#ef4444" }}>
             Clear all
           </Chip>
         )}
       </Filters>
+
+      {districts.length > 0 && (
+        <Filters>
+          {districts.map(d => (
+            <Chip key={d} $active={selectedDistricts.includes(d)} onClick={() => toggleDistrict(d)} type="button">
+              {d}
+            </Chip>
+          ))}
+        </Filters>
+      )}
 
       <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "12px", marginBottom: "12px" }}>
         {filtered.length} {filtered.length === 1 ? "venue" : "venues"} found
