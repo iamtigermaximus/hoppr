@@ -134,7 +134,14 @@ export function VenueDetail() {
       <div style={{ marginBottom: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <h1 style={{ fontWeight: 800, fontSize: "24px", color: "var(--color-text-primary, #fff)", marginBottom: "6px" }}>{venue.name}</h1>
+            <h1 style={{ fontWeight: 800, fontSize: "24px", color: "var(--color-text-primary, #fff)", marginBottom: "6px" }}>
+              {venue.name}
+              {venue.isVerified && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", marginLeft: "8px", background: "rgba(124,58,237,0.12)", color: "#a78bfa", fontSize: "9px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px", verticalAlign: "middle" }}>
+                  <Star size={10} weight="fill" /> VERIFIED
+                </span>
+              )}
+            </h1>
             <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
               <Badge $type="event">{typeLabels[venue.type] || venue.type}</Badge>
               {venue.priceRange && (
@@ -168,11 +175,15 @@ export function VenueDetail() {
         <h3 style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "14px", marginBottom: "10px" }}>Contact & Location</h3>
         <InfoGrid>
           <InfoRow><MapPin size={16} color="var(--color-text-muted, #737373)" />{venue.address}, {venue.district}, {venue.cityName || "Helsinki"}</InfoRow>
-          {venue.phone && <InfoRow><Phone size={16} color="var(--color-text-muted, #737373)" /><a href={`tel:${venue.phone}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.phone}</a></InfoRow>}
           {venue.website && <InfoRow><Globe size={16} color="var(--color-text-muted, #737373)" /><a href={venue.website} target="_blank" rel="noopener" style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.website.replace("https://", "")}</a></InfoRow>}
-          {venue.email && <InfoRow><Envelope size={16} color="var(--color-text-muted, #737373)" /><a href={`mailto:${venue.email}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.email}</a></InfoRow>}
-          {venue.instagram && <InfoRow><InstagramLogo size={16} color="var(--color-text-muted, #737373)" /><span>{venue.instagram}</span></InfoRow>}
-          {venue.facebook && <InfoRow><FacebookLogo size={16} color="var(--color-text-muted, #737373)" /><span>{venue.facebook}</span></InfoRow>}
+          {venue.isVerified && (
+            <>
+              {venue.phone && <InfoRow><Phone size={16} color="var(--color-text-muted, #737373)" /><a href={`tel:${venue.phone}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.phone}</a></InfoRow>}
+              {venue.email && <InfoRow><Envelope size={16} color="var(--color-text-muted, #737373)" /><a href={`mailto:${venue.email}`} style={{ color: "#7c3aed", textDecoration: "none" }}>{venue.email}</a></InfoRow>}
+              {venue.instagram && <InfoRow><InstagramLogo size={16} color="var(--color-text-muted, #737373)" /><span>{venue.instagram}</span></InfoRow>}
+              {venue.facebook && <InfoRow><FacebookLogo size={16} color="var(--color-text-muted, #737373)" /><span>{venue.facebook}</span></InfoRow>}
+            </>
+          )}
         </InfoGrid>
         <Button variant="secondary" fullWidth style={{ marginTop: "14px" }} onClick={() => {
           window.open(`https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lng}`, "_blank");
@@ -233,10 +244,28 @@ export function VenueDetail() {
         </SectionCard>
       )}
 
+      {/* Claim CTA for unclaimed bars */}
+      {!venue.isVerified && (
+        <SectionCard style={{ border: "1px solid rgba(124,58,237,0.3)", background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(124,58,237,0.02))" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: "48px", height: "48px", background: "rgba(124,58,237,0.12)", borderRadius: "24px", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "10px" }}>
+              <Star size={24} color="#a78bfa" weight="fill" />
+            </div>
+            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "15px", margin: "0 0 6px" }}>Own this venue?</h3>
+            <p style={{ color: "#a3a3a3", fontSize: "12px", lineHeight: 1.6, margin: "0 0 14px" }}>
+              Claim this listing to add promotions, menus, passes, and contact details. Verified venues get full profile features.
+            </p>
+            <Button fullWidth onClick={() => router.push(`/venues/${id}/claim`)}>
+              Claim this venue
+            </Button>
+          </div>
+        </SectionCard>
+      )}
+
       <Divider />
 
       {/* Promotions */}
-      {venue.promotions?.length > 0 && (
+      {venue.isVerified && venue.promotions?.length > 0 && (
         <div style={{ marginBottom: "24px" }}>
           <SectionHeader title="Active Promotions" />
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -281,7 +310,7 @@ export function VenueDetail() {
       )}
 
       {/* Passes */}
-      {venue.passes?.length > 0 && (
+      {venue.isVerified && venue.passes?.length > 0 && (
         <div style={{ marginBottom: "24px" }}>
           <SectionHeader title="Available Passes" />
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -309,7 +338,7 @@ export function VenueDetail() {
       )}
 
       {/* Menu */}
-      {Object.keys(menuByCategory).length > 0 && (
+      {venue.isVerified && Object.keys(menuByCategory).length > 0 && (
         <div style={{ marginBottom: "24px" }}>
           <SectionHeader title="Menu" />
           {Object.entries(menuByCategory).map(([category, items]: [string, any[]]) => (
@@ -341,8 +370,17 @@ export function VenueDetail() {
       {!venue.promotions?.length && !venueEvents.length && !venue.passes?.length && !venue.menu?.length && (
         <div style={{ textAlign: "center", padding: "24px", color: "var(--color-text-muted, #737373)", fontSize: "13px" }}>
           <Wine size={32} color="var(--color-text-muted, #737373)" style={{ marginBottom: "8px" }} />
-          <p>No active promos, events, or passes right now.</p>
-          <p style={{ marginTop: "4px", fontSize: "11px" }}>Check back soon or browse the feed for what's happening.</p>
+          {venue.isVerified ? (
+            <>
+              <p>No active promos, events, or passes right now.</p>
+              <p style={{ marginTop: "4px", fontSize: "11px" }}>Check back soon or browse the feed for what's happening.</p>
+            </>
+          ) : (
+            <>
+              <p>This venue hasn't been claimed yet.</p>
+              <p style={{ marginTop: "4px", fontSize: "11px" }}>Once verified, the owner can add promotions, menus, and more.</p>
+            </>
+          )}
         </div>
       )}
     </div>
