@@ -93,14 +93,14 @@ export function VenueDetail() {
   const { data: events = [] } = useEvents();
   const venueEvents = events.filter((e: any) => e.venueId === id);
 
+  if (isLoading) return <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
+  if (!venue || venue.error) return <div style={{ padding: 16, color: "#ef4444" }}>Venue not found</div>;
+
   const menuByCategory = ((venue.menu as any[]) || []).reduce((acc: Record<string, any[]>, item: any) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
   }, {});
-
-  if (isLoading) return <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
-  if (!venue || venue.error) return <div style={{ padding: 16, color: "#ef4444" }}>Venue not found</div>;
 
   const distance = lat && lng
     ? formatDistance(Math.sqrt((venue.lat - lat) ** 2 + (venue.lng - lng) ** 2) * 111.32)
