@@ -1,5 +1,7 @@
 "use client";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import styled from "styled-components";
 import { useVenue } from "@/hooks/useVenues";
 import { useEvents } from "@/hooks/useEvents";
@@ -13,7 +15,7 @@ import { formatDistance, formatEventTime } from "@/lib/utils";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import {
   MapPin, Phone, Globe, Envelope, Clock, Users, CurrencyDollar,
-  Star, Wine, InstagramLogo, FacebookLogo, NavigationArrow,
+  Star, Wine, InstagramLogo, FacebookLogo, NavigationArrow, X,
 } from "@phosphor-icons/react";
 
 const menuCategoryLabels: Record<string, string> = {
@@ -84,14 +86,84 @@ const SectionCard = styled.div`
   margin-bottom: 16px;
 `;
 
+const ClaimModalOverlay = styled.div`
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000; padding: 16px;
+`;
+
+const ClaimModalCard = styled.div`
+  background: var(--color-card, #1a1a1a);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 16px;
+  padding: 24px; width: 100%; max-width: 400px;
+  position: relative;
+`;
+
+const ClaimModalTitle = styled.h3`
+  font-weight: 700; font-size: 16px;
+  color: var(--color-text-primary, #fff); margin: 0 0 8px 0;
+`;
+
+const ClaimModalSub = styled.p`
+  font-size: 12px; color: var(--color-text-secondary, #a3a3a3);
+  margin: 0 0 16px 0; line-height: 1.5;
+`;
+
+const ClaimInput = styled.input`
+  width: 100%; padding: 10px 12px;
+  border-radius: 8px; border: 1px solid var(--color-card-border, #262626);
+  background: rgba(255,255,255,0.05); color: var(--color-text-primary, #fff);
+  font-size: 13px; margin-bottom: 10px;
+  &::placeholder { color: #737373; }
+  &:focus { outline: none; border-color: #7c3aed; }
+`;
+
+const ClaimTextarea = styled.textarea`
+  width: 100%; padding: 10px 12px;
+  border-radius: 8px; border: 1px solid var(--color-card-border, #262626);
+  background: rgba(255,255,255,0.05); color: var(--color-text-primary, #fff);
+  font-size: 13px; margin-bottom: 12px; resize: vertical; min-height: 70px;
+  font-family: inherit;
+  &::placeholder { color: #737373; }
+  &:focus { outline: none; border-color: #7c3aed; }
+`;
+
+const ClaimSuccess = styled.div`
+  text-align: center; padding: 16px 0;
+  color: #34d399; font-size: 14px; font-weight: 600;
+`;
+
+const ClaimError = styled.div`
+  color: #ef4444; font-size: 12px; margin-bottom: 8px;
+`;
+
+const CloseButton = styled.button`
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; color: var(--color-text-muted, #737373);
+  cursor: pointer; padding: 4px;
+  &:hover { color: var(--color-text-primary, #fff); }
+`;
+
 export function VenueDetail() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const id = params.id as string;
   const { data: venue, isLoading } = useVenue(id);
   const { lat, lng } = useGeolocation();
   const { data: events = [] } = useEvents();
   const venueEvents = events.filter((e: any) => e.venueId === id);
+
+  // Claim form state
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claimRole, setClaimRole] = useState("");
+  const [claimPhone, setClaimPhone] = useState("");
+  const [claimNotes, setClaimNotes] = useState("");
+  const [claimSubmitting, setClaimSubmitting] = useState(false);
+  const [claimError, setClaimError] = useState("");
+  const [claimSuccess, setClaimSuccess] = useState("");
 
   if (isLoading) return <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
   if (!venue || venue.error) return <div style={{ padding: 16, color: "#ef4444" }}>Venue not found</div>;
@@ -108,6 +180,25 @@ export function VenueDetail() {
 
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+  const handleClaimSubmit = async () => {
+    setClaimError("");
+    setClaimSubmitting(true);
+    try {
+      const res = await fetch(`/api/venues/${id}/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: claimRole, phone: claimPhone, notes: claimNotes }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Something went wrong");
+      setClaimSuccess(data.message || "Claim request submitted. A hoppr admin will reach out soon.");
+    } catch (err: any) {
+      setClaimError(err.message);
+    } finally {
+      setClaimSubmitting(false);
+    }
+  };
 
   return (
     <div style={{ padding: "16px", maxWidth: "680px", margin: "0 auto" }}>
@@ -246,20 +337,84 @@ export function VenueDetail() {
 
       {/* Claim CTA for unclaimed bars */}
       {!venue.isVerified && (
-        <SectionCard style={{ border: "1px solid rgba(124,58,237,0.3)", background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(124,58,237,0.02))" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ width: "48px", height: "48px", background: "rgba(124,58,237,0.12)", borderRadius: "24px", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "10px" }}>
-              <Star size={24} color="#a78bfa" weight="fill" />
+        <>
+          <SectionCard style={{ border: "1px solid rgba(124,58,237,0.3)", background: "linear-gradient(135deg, rgba(124,58,237,0.06), rgba(124,58,237,0.02))" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ width: "48px", height: "48px", background: "rgba(124,58,237,0.12)", borderRadius: "24px", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: "10px" }}>
+                <Star size={24} color="#a78bfa" weight="fill" />
+              </div>
+              <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "15px", margin: "0 0 6px" }}>Own this venue?</h3>
+              <p style={{ color: "#a3a3a3", fontSize: "12px", lineHeight: 1.6, margin: "0 0 14px" }}>
+                Request to claim this listing and a hoppr admin will reach out to help you get set up with promotions, menus, passes, and more.
+              </p>
+              <Button fullWidth onClick={() => { setClaimOpen(true); setClaimError(""); setClaimSuccess(""); }}>
+                Claim this venue
+              </Button>
             </div>
-            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "15px", margin: "0 0 6px" }}>Own this venue?</h3>
-            <p style={{ color: "#a3a3a3", fontSize: "12px", lineHeight: 1.6, margin: "0 0 14px" }}>
-              Claim this listing to add promotions, menus, passes, and contact details. Verified venues get full profile features.
-            </p>
-            <Button fullWidth onClick={() => router.push(`/venues/${id}/claim`)}>
-              Claim this venue
-            </Button>
-          </div>
-        </SectionCard>
+          </SectionCard>
+
+          {/* Claim form modal */}
+          {claimOpen && (
+            <ClaimModalOverlay onClick={() => !claimSubmitting && setClaimOpen(false)}>
+              <ClaimModalCard onClick={(e) => e.stopPropagation()}>
+                <CloseButton onClick={() => !claimSubmitting && setClaimOpen(false)}>
+                  <X size={18} />
+                </CloseButton>
+
+                {claimSuccess ? (
+                  <ClaimSuccess>
+                    <div style={{ fontSize: "32px", marginBottom: "8px" }}>✓</div>
+                    {claimSuccess}
+                  </ClaimSuccess>
+                ) : !session ? (
+                  <>
+                    <ClaimModalTitle>Claim this venue</ClaimModalTitle>
+                    <ClaimModalSub>
+                      You need to be logged in to submit a claim request. Sign in or create an account to continue.
+                    </ClaimModalSub>
+                    <Button fullWidth onClick={() => router.push("/login")}>
+                      Sign in
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <ClaimModalTitle>Request to claim {venue.name}</ClaimModalTitle>
+                    <ClaimModalSub>
+                      Leave your details and a hoppr admin will reach out to verify your ownership and help you get set up.
+                    </ClaimModalSub>
+
+                    {claimError && <ClaimError>{claimError}</ClaimError>}
+
+                    <ClaimInput
+                      placeholder="Your role at this venue (e.g. Owner, Manager)"
+                      value={claimRole}
+                      onChange={(e) => setClaimRole(e.target.value)}
+                    />
+                    <ClaimInput
+                      type="tel"
+                      placeholder="Phone number"
+                      value={claimPhone}
+                      onChange={(e) => setClaimPhone(e.target.value)}
+                    />
+                    <ClaimTextarea
+                      placeholder="Anything else the admin should know? (optional)"
+                      value={claimNotes}
+                      onChange={(e) => setClaimNotes(e.target.value)}
+                    />
+
+                    <Button
+                      fullWidth
+                      disabled={claimSubmitting}
+                      onClick={handleClaimSubmit}
+                    >
+                      {claimSubmitting ? "Submitting..." : "Submit request"}
+                    </Button>
+                  </>
+                )}
+              </ClaimModalCard>
+            </ClaimModalOverlay>
+          )}
+        </>
       )}
 
       <Divider />
