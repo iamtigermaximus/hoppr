@@ -93,7 +93,7 @@ export function VenueDetail() {
   const { data: events = [] } = useEvents();
   const venueEvents = events.filter((e: any) => e.venueId === id);
 
-  const menuByCategory = (venue.menu || []).reduce((acc: Record<string, any[]>, item: any) => {
+  const menuByCategory = ((venue.menu as any[]) || []).reduce((acc: Record<string, any[]>, item: any) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;

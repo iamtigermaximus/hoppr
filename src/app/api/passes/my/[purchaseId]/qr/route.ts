@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
-const QR_SECRET = process.env.JWT_SECRET;
+const QR_SECRET = process.env.JWT_SECRET!;
 if (!QR_SECRET) {
   throw new Error(
     "JWT_SECRET environment variable is not set. QR code generation cannot function without it.",

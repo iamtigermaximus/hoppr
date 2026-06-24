@@ -474,6 +474,9 @@ model Bar {
   // Menu
   menuItems MenuItem[]
 
+  // Analytics
+  dailyStats BarDailyStats[]
+
   @@map("bars")
 }
 
@@ -513,6 +516,37 @@ model MenuItem {
   @@index([barId, category])
   @@index([barId, sortOrder])
   @@map("menu_items")
+}
+
+model BarDailyStats {
+  id            String   @id @default(cuid())
+  barId         String
+  date          DateTime @map("stats_date")
+  pageViews     Int      @default(0)
+  barViews      Int      @default(0)
+  promoViews    Int      @default(0)
+  promoClicks   Int      @default(0)
+  promoRedemptions Int   @default(0)
+  eventViews    Int      @default(0)
+  eventJoins    Int      @default(0)
+  passViews     Int      @default(0)
+  passPurchases Int      @default(0)
+  passScans     Int      @default(0)
+  barDirections Int      @default(0)
+  barCalls      Int      @default(0)
+  barWebsites   Int      @default(0)
+  barShares     Int      @default(0)
+  searches      Int      @default(0)
+  uniqueVisitors Int     @default(0)
+  aggregatedAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@unique([barId, date])
+  @@index([barId, date])
+  @@index([date])
+  @@map("bar_daily_stats")
 }
 
 model BarFollow {
