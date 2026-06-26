@@ -79,7 +79,7 @@ export default function SettingsPage() {
         <SignOut size={16} /> Sign Out
       </Button>
 
-      <p style={{ color: "var(--color-text-muted)", fontSize: "10px", textAlign: "center", marginTop: "16px" }}>Hoppr v1.0.0 · Helsinki, Finland</p>
+      <p style={{ color: "var(--color-text-muted)", fontSize: "10px", textAlign: "center", marginTop: "16px" }}>Hoppr v1.0.0</p>
     </div>
   );
 }

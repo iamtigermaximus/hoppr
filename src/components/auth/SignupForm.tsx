@@ -44,7 +44,7 @@ export function SignupForm() {
       <Input placeholder="Password (min 8 characters)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       {error && <p style={{ color: "#ef4444", fontSize: "12px", textAlign: "center" }}>{error}</p>}
       <Button type="submit" fullWidth disabled={loading}>{loading ? "Creating account..." : "Create Account"}</Button>
-      <Button type="button" variant="secondary" fullWidth onClick={() => signIn("google", { callbackUrl: "/home" })}>
+      <Button type="button" variant="secondary" fullWidth onClick={() => signIn("google", { callbackUrl: "/onboarding" })}>
         Sign up with Google
       </Button>
     </form>
