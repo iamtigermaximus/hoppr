@@ -314,6 +314,8 @@ export function VenueDetail() {
   const venueEvents = events.filter((e: any) => e.venueId === id);
 
   // Claim form state
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   const [claimOpen, setClaimOpen] = useState(false);
   const [claimRole, setClaimRole] = useState("");
   const [claimPhone, setClaimPhone] = useState("");
@@ -432,8 +434,7 @@ export function VenueDetail() {
           }}
         >
           <img
-            id="venue-hero"
-            src={venue.imageUrl}
+            src={selectedImage ?? venue.imageUrl}
             alt={venue.name}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
@@ -456,10 +457,7 @@ export function VenueDetail() {
           {venue.imageUrls.map((url: string, i: number) => (
             <div
               key={i}
-              onClick={() => {
-                const hero = document.getElementById("venue-hero") as HTMLImageElement | null;
-                if (hero) hero.src = url;
-              }}
+              onClick={() => setSelectedImage(url)}
               style={{
                 minWidth: "100px",
                 height: "72px",

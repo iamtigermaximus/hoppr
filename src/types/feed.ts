@@ -62,22 +62,15 @@ export type FeedItem =
       campaignId?: string;
       campaignType?: string;
     })
-  | (RecommendationMeta & {
-      type: "pass";
-      id: string;
-      title: string;
-      venueId: string;
-      venueName: string;
-      price: number;
-      originalPrice?: number;
-      validUntil: string;
-      distance: number;
-      imageUrl?: string;
-      crowdLevel?: string;
-      crowdReportedAt?: string;
-      isSponsored?: boolean;
-      campaignId?: string;
-      campaignType?: string;
-    });
+  // VIP passes hidden until Stripe integration — type retained for backward compat
+  // | (RecommendationMeta & {
+  //     type: "pass";
+  //     id: string; title: string; venueId: string; venueName: string;
+  //     price: number; originalPrice?: number; validUntil: string;
+  //     distance: number; imageUrl?: string;
+  //     crowdLevel?: string; crowdReportedAt?: string;
+  //     isSponsored?: boolean; campaignId?: string; campaignType?: string;
+  //   })
+  ;
 
 export type TimeFilter = "now" | "today" | "tomorrow" | "afternoon" | "evening" | "night" | "week" | "month" | "all";

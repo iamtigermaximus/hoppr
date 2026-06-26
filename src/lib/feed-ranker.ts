@@ -109,7 +109,7 @@ export function extractProfile(user: Record<string, unknown>): UserProfile {
 export function buildHistory(
   eventsCreated: { venueId: string; venueType?: string | null }[],
   eventsJoined: { venueId: string; venueType?: string | null }[],
-  passes: { barId: string | null }[],
+  passes?: { barId: string | null }[], // VIP passes hidden until Stripe
 ): UserHistory {
   const visitedVenueIds = new Set<string>();
   const joinedEventTypes = new Set<string>();
@@ -124,7 +124,7 @@ export function buildHistory(
   }
 
   const purchasedVenueIds = new Set(
-    passes.filter((p) => p.barId != null).map((p) => p.barId!),
+    (passes || []).filter((p) => p.barId != null).map((p) => p.barId!),
   );
 
   return { visitedVenueIds, purchasedVenueIds, joinedEventTypes };
@@ -246,14 +246,8 @@ function computeSocialScore(item: FeedItem): number {
     return 0.4;
   }
 
-  // Passes — price signals: cheaper passes tend to be more popular
-  if (item.type === "pass") {
-    const price = item.price;
-    if (price <= 5) return 0.8;
-    if (price <= 15) return 0.6;
-    if (price <= 30) return 0.4;
-    return 0.2;
-  }
+  // VIP passes hidden until Stripe integration
+  // if (item.type === "pass") { ... }
 
   return 0.5;
 }
@@ -286,10 +280,7 @@ function computeFreshnessScore(item: FeedItem): number {
     startTime = new Date(item.validFrom).getTime();
     endTime = new Date(item.validTo).getTime();
   } else {
-    const validUntil = new Date(item.validUntil).getTime();
-    // Passes: valid for ~90 days, score based on how recently created
-    startTime = validUntil - 90 * 24 * 3600 * 1000;
-    endTime = validUntil;
+    return 0.5; // unreachable: all FeedItem types handled above
   }
 
   const totalSpan = endTime - startTime;
@@ -315,14 +306,14 @@ function diversify(scored: ScoredItem[]): ScoredItem[] {
   const byType = {
     event: scored.filter((s) => s.item.type === "event"),
     promotion: scored.filter((s) => s.item.type === "promotion"),
-    pass: scored.filter((s) => s.item.type === "pass"),
+    // pass: hidden until Stripe integration
   };
 
   const result: ScoredItem[] = [];
   const used = new Set<string>();
 
   // Round-robin: pick highest-scored from each type in turn
-  const types = ["event", "promotion", "pass"] as const;
+  const types = ["event", "promotion"] as const;
   let round = 0;
 
   while (result.length < DIVERSITY_WINDOW && round < 10) {
@@ -362,7 +353,7 @@ function sortChronologically(items: FeedItem[]): FeedItem[] {
       if (item.type === "featured") return Date.now();
       if (item.type === "event") return new Date(item.startTime).getTime();
       if (item.type === "promotion") return new Date(item.validFrom).getTime();
-      return new Date(item.validUntil).getTime();
+      return Date.now(); // unreachable: all FeedItem types handled above
     };
     return getTime(a) - getTime(b);
   });

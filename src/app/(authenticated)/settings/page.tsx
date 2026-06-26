@@ -36,21 +36,21 @@ export default function SettingsPage() {
       </Card>
 
       <Card style={{ marginBottom: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 0", cursor: "pointer" }} onClick={() => router.push("/notifications")}>
           <Bell size={20} color="var(--color-text-muted)" />
           <div style={{ flex: 1 }}>
             <div style={{ color: "var(--color-text-primary)", fontWeight: 600, fontSize: "13px" }}>Notifications</div>
-            <div style={{ color: "var(--color-text-muted)", fontSize: "11px" }}>Manage notification preferences</div>
+            <div style={{ color: "var(--color-text-muted)", fontSize: "11px" }}>View recent notifications</div>
           </div>
         </div>
       </Card>
 
       <Card style={{ marginBottom: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 0", cursor: "pointer" }} onClick={() => router.push("/privacy")}>
           <Shield size={20} color="var(--color-text-muted)" />
           <div style={{ flex: 1 }}>
             <div style={{ color: "var(--color-text-primary)", fontWeight: 600, fontSize: "13px" }}>Privacy & Safety</div>
-            <div style={{ color: "var(--color-text-muted)", fontSize: "11px" }}>Blocked users, report history</div>
+            <div style={{ color: "var(--color-text-muted)", fontSize: "11px" }}>Privacy policy, reporting, data deletion</div>
           </div>
         </div>
       </Card>
@@ -66,7 +66,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card style={{ marginBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 0", cursor: "pointer" }} onClick={() => router.push("/help")}>
           <Question size={20} color="var(--color-text-muted)" />
           <div style={{ flex: 1 }}>
             <div style={{ color: "var(--color-text-primary)", fontWeight: 600, fontSize: "13px" }}>Help & Support</div>

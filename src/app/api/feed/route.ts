@@ -46,7 +46,8 @@ export async function GET(req: Request) {
 
     // 3. Fetch items from the database (same as before, but also fetch
     //    additional metadata the ranker needs)
-    const [events, dbPromotions, dbPasses, userProfile, userHistory] =
+    // NOTE: VIP passes hidden until Stripe integration (roadmap P1)
+    const [events, dbPromotions, userProfile, userHistory] =
       await Promise.all([
         // Events
         prisma.event.findMany({
@@ -80,17 +81,6 @@ export async function GET(req: Request) {
           orderBy: { startDate: "asc" },
           take: 30,
         }),
-        // VIP passes
-        prisma.vIPPassEnhanced.findMany({
-          where: { isActive: true, validityEnd: { gte: new Date() } },
-          include: {
-            bar: {
-              select: { name: true, latitude: true, longitude: true, type: true },
-            },
-          },
-          orderBy: { priceCents: "asc" },
-          take: 20,
-        }),
         // User profile (for personalization)
         userId
           ? prisma.user.findUnique({
@@ -106,7 +96,7 @@ export async function GET(req: Request) {
         // User history (for personalization)
         userId
           ? (async () => {
-              const [eventsCreated, eventsJoined, passes] = await Promise.all([
+              const [eventsCreated, eventsJoined] = await Promise.all([
                 prisma.event.findMany({
                   where: { creatorId: userId },
                   select: { venueId: true, venueType: true },
@@ -120,13 +110,9 @@ export async function GET(req: Request) {
                   select: { venueId: true, venueType: true },
                   take: 30,
                 }),
-                prisma.userVIPPass.findMany({
-                  where: { userId },
-                  select: { barId: true },
-                  take: 20,
-                }),
               ]);
-              return buildHistory(eventsCreated, eventsJoined, passes);
+              // VIP passes hidden until Stripe — third arg omitted
+              return buildHistory(eventsCreated, eventsJoined);
             })()
           : Promise.resolve(null),
       ]);
@@ -191,29 +177,10 @@ export async function GET(req: Request) {
       };
     });
 
-    // 6. Build pass items
-    const passItems: FeedItem[] = dbPasses.map((p) => {
-      const distance =
-        p.bar.latitude != null && p.bar.longitude != null
-          ? haversineDistance(lat, lng, p.bar.latitude, p.bar.longitude)
-          : 99;
-      return {
-        type: "pass" as const,
-        id: p.id,
-        title: p.name,
-        venueId: p.barId,
-        venueName: p.bar.name,
-        price: p.priceCents / 100,
-        validUntil: p.validityEnd.toISOString(),
-        distance,
-        imageUrl: undefined,
-      };
-    });
-
-    // 7. Fetch crowd data for all venues in the feed
+    // 6. Fetch crowd data for all venues in the feed
     const allVenueIds = [
       ...new Set(
-        [...eventItems, ...promoItems, ...passItems].map((i) => i.venueId),
+        [...eventItems, ...promoItems].map((i) => i.venueId),
       ),
     ];
     const crowdMap = new Map<string, { level: string; reportedAt: string }>();
@@ -313,7 +280,6 @@ export async function GET(req: Request) {
     const withinRadius = [
       ...eventItems.map(attachCrowd).map(attachCampaign),
       ...promoItems.map(attachCrowd).map(attachCampaign),
-      ...passItems.map(attachCrowd),
     ].filter((item) => item.distance <= radius);
 
     // 10. Rank with personalization (or chronological fallback)

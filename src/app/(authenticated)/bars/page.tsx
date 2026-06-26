@@ -24,11 +24,6 @@ const VENUE_TYPES = [
   { key: "LIVE_MUSIC", label: "Live Music" },
 ];
 
-const ratings: Record<string, number> = {
-  v1: 4.8, v2: 4.6, v3: 4.9, v4: 4.2, v5: 4.3, v6: 4.5, v7: 4.7, v8: 4.4,
-  v9: 4.1, v10: 4.6, v11: 4.3, v12: 4.8, v13: 4.4, v14: 4.7, v15: 4.5,
-};
-
 const SearchBar = styled.div`
   display: flex; align-items: center; gap: 8px;
   background: var(--color-card, #1a1a1a); border: 1px solid var(--color-card-border, #262626);
@@ -351,9 +346,11 @@ export default function BarsPage() {
             {venue.imageUrl ? (
               <BarImage>
                 <img src={venue.imageUrl} alt={venue.name} />
-                <div style={{ position: "absolute", top: "10px", left: "10px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", color: "var(--color-text-primary, #fff)", fontSize: "10px", fontWeight: 600, padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                  <Star size={10} weight="fill" color="#f59e0b" /> {ratings[venue.id] || 4.0}
-                </div>
+                {venue.qualityScore != null && venue.qualityScore > 0 && (
+                  <div style={{ position: "absolute", top: "10px", left: "10px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", color: "var(--color-text-primary, #fff)", fontSize: "10px", fontWeight: 600, padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    <Star size={10} weight="fill" color="#f59e0b" /> {venue.qualityScore.toFixed(1)}
+                  </div>
+                )}
                 {(() => {
                   const open = isVenueOpen(venue.hours);
                   if (open === null) return null;
@@ -368,9 +365,11 @@ export default function BarsPage() {
             ) : (
               <div style={{ height: "100px", background: "linear-gradient(135deg, #1a0533, #2d1060)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
                 <House size={40} color="#a78bfa" weight="fill" opacity={0.3} />
-                <div style={{ position: "absolute", top: "10px", left: "10px", background: "rgba(0,0,0,0.5)", color: "var(--color-text-primary, #fff)", fontSize: "10px", fontWeight: 600, padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                  <Star size={10} weight="fill" color="#f59e0b" /> {ratings[venue.id] || 4.0}
-                </div>
+                {venue.qualityScore != null && venue.qualityScore > 0 && (
+                  <div style={{ position: "absolute", top: "10px", left: "10px", background: "rgba(0,0,0,0.5)", color: "var(--color-text-primary, #fff)", fontSize: "10px", fontWeight: 600, padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    <Star size={10} weight="fill" color="#f59e0b" /> {venue.qualityScore.toFixed(1)}
+                  </div>
+                )}
                 {(() => {
                   const open = isVenueOpen(venue.hours);
                   if (open === null) return null;
