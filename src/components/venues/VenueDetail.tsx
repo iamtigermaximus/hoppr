@@ -652,53 +652,49 @@ export function VenueDetail() {
               </a>
             </InfoRow>
           )}
-          {venue.isVerified && (
-            <>
-              {venue.phone && (
-                <InfoRow>
-                  <Phone size={16} color="var(--color-text-muted, #737373)" />
-                  <a
-                    href={`tel:${venue.phone}`}
-                    style={{ color: "#7c3aed", textDecoration: "none" }}
-                    onClick={() => track({ type: "BAR_CALL", barId: id })}
-                  >
-                    {venue.phone}
-                  </a>
-                </InfoRow>
-              )}
-              {venue.email && (
-                <InfoRow>
-                  <Envelope
-                    size={16}
-                    color="var(--color-text-muted, #737373)"
-                  />
-                  <a
-                    href={`mailto:${venue.email}`}
-                    style={{ color: "#7c3aed", textDecoration: "none" }}
-                  >
-                    {venue.email}
-                  </a>
-                </InfoRow>
-              )}
-              {venue.instagram && (
-                <InfoRow>
-                  <InstagramLogo
-                    size={16}
-                    color="var(--color-text-muted, #737373)"
-                  />
-                  <span>{venue.instagram}</span>
-                </InfoRow>
-              )}
-              {venue.facebook && (
-                <InfoRow>
-                  <FacebookLogo
-                    size={16}
-                    color="var(--color-text-muted, #737373)"
-                  />
-                  <span>{venue.facebook}</span>
-                </InfoRow>
-              )}
-            </>
+          {venue.phone && (
+            <InfoRow>
+              <Phone size={16} color="var(--color-text-muted, #737373)" />
+              <a
+                href={`tel:${venue.phone}`}
+                style={{ color: "#7c3aed", textDecoration: "none" }}
+                onClick={() => track({ type: "BAR_CALL", barId: id })}
+              >
+                {venue.phone}
+              </a>
+            </InfoRow>
+          )}
+          {venue.email && (
+            <InfoRow>
+              <Envelope
+                size={16}
+                color="var(--color-text-muted, #737373)"
+              />
+              <a
+                href={`mailto:${venue.email}`}
+                style={{ color: "#7c3aed", textDecoration: "none" }}
+              >
+                {venue.email}
+              </a>
+            </InfoRow>
+          )}
+          {venue.instagram && (
+            <InfoRow>
+              <InstagramLogo
+                size={16}
+                color="var(--color-text-muted, #737373)"
+              />
+              <span>{venue.instagram}</span>
+            </InfoRow>
+          )}
+          {venue.facebook && (
+            <InfoRow>
+              <FacebookLogo
+                size={16}
+                color="var(--color-text-muted, #737373)"
+              />
+              <span>{venue.facebook}</span>
+            </InfoRow>
           )}
         </InfoGrid>
         <Button
@@ -995,8 +991,8 @@ export function VenueDetail() {
         </div>
       )}
 
-      {/* Events at this venue */}
-      {venueEvents.length > 0 && (
+      {/* Events at this venue — only when claimed */}
+      {venue.isVerified && venueEvents.length > 0 && (
         <div style={{ marginBottom: "24px" }}>
           <SectionHeader title="Upcoming Events" />
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -1124,7 +1120,7 @@ export function VenueDetail() {
             />
             {venue.isVerified ? (
               <>
-                <p>No active promos or events right now.</p>
+                <p>No active promos, events, or menu items yet.</p>
                 <p style={{ marginTop: "4px", fontSize: "11px" }}>
                   Check back soon or browse the feed for what's happening.
                 </p>
@@ -1133,7 +1129,8 @@ export function VenueDetail() {
               <>
                 <p>This venue hasn&apos;t been claimed yet.</p>
                 <p style={{ marginTop: "4px", fontSize: "11px" }}>
-                  Once verified, the owner can add promotions, menus, and more.
+                  Once claimed, the owner can post events, promotions, and
+                  menus.
                 </p>
               </>
             )}
