@@ -6,11 +6,11 @@ import { useVenues } from "@/hooks/useVenues";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
-import { formatDistance } from "@/lib/utils";
+import { formatDistance, formatPriceRange } from "@/lib/utils";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import SponsoredBadge from "@/components/ads/SponsoredBadge";
 import { useQuery } from "@tanstack/react-query";
-import { House, Star, MagnifyingGlass, X, NavigationArrow, ListBullets, ChartBar, Megaphone } from "@phosphor-icons/react";
+import { House, Star, Users, MagnifyingGlass, X, NavigationArrow, ListBullets, ChartBar, Megaphone } from "@phosphor-icons/react";
 
 const VENUE_TYPES = [
   { key: "PUB", label: "Pubs" },
@@ -69,34 +69,50 @@ const List = styled.div`
   }
 `;
 
-function isVenueOpen(hours?: Record<string, string>): boolean {
-  if (!hours) return false;
+function isVenueOpen(hours?: Record<string, any>): boolean | null {
+  if (!hours) return null; // unknown — no data
   const now = new Date();
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const today = days[now.getDay()];
-  const timeStr = hours[today];
-  if (!timeStr || timeStr === "Closed") return false;
+  const entry = hours[today];
+  if (!entry) return null; // no entry for today — unknown
 
-  const parts = timeStr.split("–").map(s => s.trim());
-  if (parts.length !== 2) return false;
+  // Handle object format: { open: "16:00", close: "02:00" }
+  if (typeof entry === "object" && entry !== null && !Array.isArray(entry)) {
+    if (!entry.open || !entry.close) return null;
+    const openMin = parseTimeStr(entry.open);
+    let closeMin = parseTimeStr(entry.close);
+    if (openMin < 0 || closeMin < 0) return null;
+    if (closeMin < openMin) closeMin += 24 * 60;
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return nowMin >= openMin && nowMin < closeMin;
+  }
 
-  const parseTime = (s: string): number => {
-    const match = s.match(/(\d+)(?::(\d+))?\s*(AM|PM)?/i);
-    if (!match) return -1;
-    let hour = parseInt(match[1]);
-    const min = match[2] ? parseInt(match[2]) : 0;
-    const ampm = match[3]?.toUpperCase();
-    if (ampm === "PM" && hour !== 12) hour += 12;
-    if (ampm === "AM" && hour === 12) hour = 0;
-    return hour * 60 + min;
-  };
+  // Handle string format: "16:00 – 02:00" or "Closed"
+  const timeStr = String(entry);
+  if (timeStr === "Closed" || timeStr === "closed") return false;
 
-  const openMin = parseTime(parts[0]);
-  let closeMin = parseTime(parts[1]);
+  const parts = timeStr.split(/[–\-]/).map(s => s.trim());
+  if (parts.length !== 2) return null;
+
+  const openMin = parseTimeStr(parts[0]);
+  let closeMin = parseTimeStr(parts[1]);
+  if (openMin < 0 || closeMin < 0) return null;
   if (closeMin < openMin) closeMin += 24 * 60;
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowMin2 = now.getHours() * 60 + now.getMinutes();
 
-  return nowMin >= openMin && nowMin < closeMin;
+  return nowMin2 >= openMin && nowMin2 < closeMin;
+}
+
+function parseTimeStr(s: string): number {
+  const match = s.match(/(\d+)(?::(\d+))?\s*(AM|PM)?/i);
+  if (!match) return -1;
+  let hour = parseInt(match[1]);
+  const min = match[2] ? parseInt(match[2]) : 0;
+  const ampm = match[3]?.toUpperCase();
+  if (ampm === "PM" && hour !== 12) hour += 12;
+  if (ampm === "AM" && hour === 12) hour = 0;
+  return hour * 60 + min;
 }
 
 const PAGE_SIZE = 12;
@@ -279,7 +295,22 @@ export default function BarsPage() {
                       <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px" }}>{bar.name}</div>
                       <div style={{ color: "#a3a3a3", fontSize: "12px", marginTop: "2px" }}>
                         {bar.type?.replace(/_/g, " ")} · {bar.district}
+                        {bar.priceRange && <> · <span style={{ color: "#f59e0b" }}>{formatPriceRange(bar.priceRange)}</span></>}
+                        {bar.coverCharge != null && <> · {bar.coverCharge === 0 ? <span style={{ color: "#10b981" }}>Free entry</span> : <span>Entry: €{bar.coverCharge}</span>}</>}
                       </div>
+                      {bar.musicTags?.length > 0 && (
+                        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "4px" }}>
+                          {bar.musicTags.slice(0, 3).map((tag: string) => (
+                            <span key={tag} style={{ background: "rgba(99,102,241,0.12)", color: "#a5b4fc", fontSize: "9px", fontWeight: 600, padding: "1px 6px", borderRadius: "3px" }}>{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                      {bar.followerCount > 0 && (
+                        <div style={{ color: "#737373", fontSize: "10px", marginTop: "3px" }}>
+                          <Users size={10} style={{ verticalAlign: "middle", marginRight: "3px" }} />
+                          {bar.followerCount} {bar.followerCount === 1 ? "follower" : "followers"}
+                        </div>
+                      )}
                     </div>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", color: "#7c3aed", fontSize: "12px", fontWeight: 600 }}>
                       <NavigationArrow size={12} /> {formatDistance(bar.distance)}
@@ -314,6 +345,7 @@ export default function BarsPage() {
                 </div>
                 {(() => {
                   const open = isVenueOpen(venue.hours);
+                  if (open === null) return null;
                   return (
                     <div style={{ position: "absolute", top: "10px", right: "10px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                       <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: open ? "#10b981" : "#ef4444" }} />
@@ -330,6 +362,7 @@ export default function BarsPage() {
                 </div>
                 {(() => {
                   const open = isVenueOpen(venue.hours);
+                  if (open === null) return null;
                   return (
                     <div style={{ position: "absolute", top: "10px", right: "10px", background: "rgba(0,0,0,0.5)", padding: "3px 8px", borderRadius: "6px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                       <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: open ? "#10b981" : "#ef4444" }} />
@@ -346,7 +379,16 @@ export default function BarsPage() {
                   <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "15px" }}>{venue.name}</div>
                   <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "12px", marginTop: "2px" }}>
                     {venue.type?.replace(/_/g, " ")} · {venue.district}
+                    {venue.priceRange && <> · <span style={{ color: "#f59e0b" }}>{formatPriceRange(venue.priceRange)}</span></>}
+                    {venue.coverCharge != null && <> · {venue.coverCharge === 0 ? <span style={{ color: "#10b981" }}>Free entry</span> : <span>Entry: €{venue.coverCharge}</span>}</>}
                   </div>
+                  {venue.musicTags?.length > 0 && (
+                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "4px" }}>
+                      {venue.musicTags.slice(0, 3).map((tag: string) => (
+                        <span key={tag} style={{ background: "rgba(99,102,241,0.12)", color: "#a5b4fc", fontSize: "9px", fontWeight: 600, padding: "1px 6px", borderRadius: "3px" }}>{tag}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", color: "#7c3aed", fontSize: "12px", fontWeight: 600 }}>
                   <NavigationArrow size={12} /> {formatDistance(venue.distance)}

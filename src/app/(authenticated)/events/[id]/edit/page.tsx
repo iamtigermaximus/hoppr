@@ -9,7 +9,7 @@ export default function EditEventPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const { data: event, isLoading } = useEvent(id);
+  const { data: event, isLoading, error: fetchError } = useEvent(id);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -52,6 +52,7 @@ export default function EditEventPage() {
   };
 
   if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
+  if (fetchError) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Failed to load event. It may have been deleted.</div>;
   if (!event) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Event not found</div>;
 
   const labelStyle: React.CSSProperties = { color: "#a3a3a3", fontSize: "12px", fontWeight: 600 };

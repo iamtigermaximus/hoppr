@@ -113,7 +113,7 @@ export function ProfileView({ id }: { id: string }) {
       )}
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "20px" }}>
         <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#7c3aed", fontWeight: 700, fontSize: "22px" }}>{created.length}</div>
           <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Created</div>
@@ -121,10 +121,6 @@ export function ProfileView({ id }: { id: string }) {
         <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#3b82f6", fontWeight: 700, fontSize: "22px" }}>{joined.length}</div>
           <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Joined</div>
-        </div>
-        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
-          <div style={{ color: "#f59e0b", fontWeight: 700, fontSize: "22px" }}>{history?.passes?.length || 0}</div>
-          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Passes</div>
         </div>
       </div>
 

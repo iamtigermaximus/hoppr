@@ -12,14 +12,14 @@ export function useEvents(params?: Record<string, string>) {
   const query = params ? new URLSearchParams(params).toString() : "";
   return useQuery({
     queryKey: ["events", query],
-    queryFn: () => fetch(`/api/events?${query}`).then((r) => r.json()),
+    queryFn: () => fetchOrThrow(`/api/events?${query}`),
   });
 }
 
 export function useEvent(id: string) {
   return useQuery({
     queryKey: ["event", id],
-    queryFn: () => fetch(`/api/events/${id}`).then((r) => r.json()),
+    queryFn: () => fetchOrThrow(`/api/events/${id}`),
     enabled: !!id,
   });
 }

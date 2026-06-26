@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatEventTime } from "@/lib/utils";
-import { Calendar, Ticket, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin, Gear, SignOut as SignOutIcon } from "@phosphor-icons/react";
+import { Calendar, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin, Gear, SignOut as SignOutIcon } from "@phosphor-icons/react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -93,7 +93,6 @@ export function ProfileEdit() {
 
   const eventsCreated = history?.eventsCreated || [];
   const eventsJoined = history?.eventsJoined || [];
-  const passes = history?.passes || [];
 
   return (
     <div style={{ padding: "20px 16px", maxWidth: "680px", margin: "0 auto" }}>
@@ -107,7 +106,7 @@ export function ProfileEdit() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "24px" }}>
         <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#7c3aed", fontWeight: 700, fontSize: "22px" }}>{eventsCreated.length}</div>
           <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Created</div>
@@ -115,10 +114,6 @@ export function ProfileEdit() {
         <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
           <div style={{ color: "#3b82f6", fontWeight: 700, fontSize: "22px" }}>{eventsJoined.length}</div>
           <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Joined</div>
-        </div>
-        <div style={{ background: "var(--color-card, #1a1a1a)", borderRadius: "12px", padding: "14px 10px", textAlign: "center", border: "1px solid var(--color-card-border, #262626)" }}>
-          <div style={{ color: "#f59e0b", fontWeight: 700, fontSize: "22px" }}>{passes.length}</div>
-          <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "10px", marginTop: "2px" }}>Passes</div>
         </div>
       </div>
 
@@ -315,39 +310,7 @@ export function ProfileEdit() {
           );
         })()}
 
-        {passes.length > 0 && (() => {
-          const key = "passes";
-          const isOpen = expanded.has(key);
-          const visible = isOpen ? passes : passes.slice(0, SHOW_INITIAL);
-          const hasMore = passes.length > SHOW_INITIAL;
-          return (
-            <Section>
-              <SectionTitle><Ticket size={16} color="#f59e0b" /> Passes Purchased ({passes.length})</SectionTitle>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {visible.map((p: any) => (
-                  <StatCard key={p.id}>
-                    <div style={{ minWidth: "40px", height: "40px", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Ticket size={18} color="#fff" />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>{p.passTitle}</div>
-                      <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "11px" }}>{p.venueName} · €{p.price} · {p.redeemedAt ? "Used" : "Active"}</div>
-                    </div>
-                    <Badge $type={p.redeemedAt ? "promo" : "pass"}>{p.redeemedAt ? "USED" : "ACTIVE"}</Badge>
-                  </StatCard>
-                ))}
-              </div>
-              {hasMore && (
-                <button onClick={() => setExpanded(prev => { const s = new Set(prev); isOpen ? s.delete(key) : s.add(key); return s; })}
-                  style={{ display: "block", width: "100%", padding: "8px 0", color: "#7c3aed", fontSize: "12px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textAlign: "center" }}>
-                  {isOpen ? "Show less ▲" : `Show all ${passes.length} ▼`}
-                </button>
-              )}
-            </Section>
-          );
-        })()}
-
-        {!eventsCreated.length && !eventsJoined.length && !passes.length && (
+        {!eventsCreated.length && !eventsJoined.length && (
           <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--color-text-muted, #737373)", fontSize: "14px" }}>
             <Calendar size={40} color="var(--color-text-muted, #737373)" style={{ marginBottom: "10px" }} />
             <p>No activity yet. Create or join an event to get started!</p>

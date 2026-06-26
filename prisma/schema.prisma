@@ -396,6 +396,8 @@ model Bar {
   // Business info
   operatingHours Json?
   priceRange     PriceRange?
+  coverCharge    Int? // entry fee in euros, null = free entry
+  musicTags      String[] // e.g. ["techno", "house", "live music"]
   capacity       Int?
   amenities      String[]
 

@@ -22,6 +22,7 @@ import {
   Clock,
   Users,
   CurrencyDollar,
+  Ticket,
   Star,
   Wine,
   InstagramLogo,
@@ -424,6 +425,35 @@ export function VenueDetail() {
                   {priceLabels[venue.priceRange]?.split("·")[0]}
                 </span>
               )}
+              {venue.musicTags?.length > 0 && venue.musicTags.map((tag: string) => (
+                <span
+                  key={tag}
+                  style={{
+                    background: "rgba(99,102,241,0.15)",
+                    color: "#a5b4fc",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+              {venue.followerCount > 0 && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    color: "var(--color-text-muted, #737373)",
+                    fontSize: "11px",
+                  }}
+                >
+                  <Users size={12} />
+                  {venue.followerCount}
+                </span>
+              )}
               {distance && (
                 <span
                   style={{
@@ -646,8 +676,8 @@ export function VenueDetail() {
         </SectionCard>
       )}
 
-      {/* Price + Capacity */}
-      {(venue.priceRange || venue.capacity) && (
+      {/* Price + Capacity + Cover */}
+      {(venue.priceRange || venue.capacity || venue.coverCharge != null) && (
         <SectionCard>
           <h3
             style={{
@@ -675,6 +705,21 @@ export function VenueDetail() {
                   }}
                 >
                   {priceLabels[venue.priceRange] || venue.priceRange}
+                </span>
+              </div>
+            )}
+            {venue.coverCharge != null && (
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <Ticket size={18} color="var(--color-text-muted, #737373)" />
+                <span
+                  style={{
+                    color: "var(--color-text-secondary, #a3a3a3)",
+                    fontSize: "13px",
+                  }}
+                >
+                  {venue.coverCharge === 0 ? "Free entry" : `Entry: €${venue.coverCharge}`}
                 </span>
               </div>
             )}
@@ -741,7 +786,7 @@ export function VenueDetail() {
                 }}
               >
                 Request to claim this listing and a hoppr admin will reach out
-                to help you get set up with promotions, menus, passes, and more.
+                to help you get set up with promotions, menus, and more.
               </p>
               <Button
                 fullWidth
@@ -924,81 +969,6 @@ export function VenueDetail() {
         </div>
       )}
 
-      {/* Passes */}
-      {venue.isVerified && venue.passes?.length > 0 && (
-        <div style={{ marginBottom: "24px" }}>
-          <SectionHeader title="Available Passes" />
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {venue.passes.map((pass: any) => (
-              <Card
-                key={pass.id}
-                onClick={() => (window.location.href = "/passes")}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        alignItems: "center",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      <Badge $type="pass">PASS</Badge>
-                      <span
-                        style={{
-                          color: "var(--color-text-primary, #fff)",
-                          fontWeight: 600,
-                          fontSize: "13px",
-                        }}
-                      >
-                        {pass.title}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        color: "var(--color-text-secondary, #a3a3a3)",
-                        fontSize: "11px",
-                      }}
-                    >
-                      {pass.benefits.join(" · ")}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div
-                      style={{
-                        color: "#f59e0b",
-                        fontWeight: 700,
-                        fontSize: "14px",
-                      }}
-                    >
-                      €{pass.price}
-                    </div>
-                    {pass.originalPrice && pass.originalPrice > pass.price && (
-                      <div
-                        style={{
-                          color: "var(--color-text-muted, #737373)",
-                          fontSize: "11px",
-                          textDecoration: "line-through",
-                        }}
-                      >
-                        €{pass.originalPrice}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Menu */}
       {venue.isVerified && Object.keys(menuByCategory).length > 0 && (
         <div style={{ marginBottom: "24px" }}>
@@ -1072,7 +1042,6 @@ export function VenueDetail() {
       {/* No data fallback */}
       {!venue.promotions?.length &&
         !venueEvents.length &&
-        !venue.passes?.length &&
         !venue.menu?.length && (
           <div
             style={{
@@ -1089,7 +1058,7 @@ export function VenueDetail() {
             />
             {venue.isVerified ? (
               <>
-                <p>No active promos, events, or passes right now.</p>
+                <p>No active promos or events right now.</p>
                 <p style={{ marginTop: "4px", fontSize: "11px" }}>
                   Check back soon or browse the feed for what's happening.
                 </p>

@@ -22,6 +22,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         facebook: true,
         description: true,
         priceRange: true,
+        coverCharge: true,
+        musicTags: true,
         capacity: true,
         amenities: true,
         operatingHours: true,
@@ -37,6 +39,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           take: 1,
           select: { level: true, reportedAt: true },
         },
+        _count: { select: { followers: true } },
       },
     });
 
@@ -112,6 +115,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       facebook: bar.facebook,
       description: bar.description,
       priceRange: bar.priceRange,
+      coverCharge: bar.coverCharge,
+      musicTags: bar.musicTags,
       capacity: bar.capacity,
       amenities: bar.amenities,
       hours: bar.operatingHours,
@@ -121,6 +126,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       isVerified: bar.isVerified,
       qualityScore: bar.qualityScore,
       cityName: bar.cityName,
+      followerCount: bar._count.followers,
       crowdLevel: bar.crowdReports[0]?.level ?? null,
       crowdReportedAt: bar.crowdReports[0]?.reportedAt?.toISOString() ?? null,
       promotions: promotions.map((p) => ({

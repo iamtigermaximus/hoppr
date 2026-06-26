@@ -38,3 +38,15 @@ export function getTimeFilterWindow(filter: string): { now: Date; start: Date; e
     default: return { now, start: today, end: new Date(today.getTime() + 86400000 * 7) };
   }
 }
+
+const PRICE_RANGE_LABELS: Record<string, string> = {
+  BUDGET: "€",
+  MODERATE: "€€",
+  PREMIUM: "€€€",
+  LUXURY: "€€€€",
+};
+
+export function formatPriceRange(priceRange?: string | null): string | null {
+  if (!priceRange) return null;
+  return PRICE_RANGE_LABELS[priceRange] ?? priceRange;
+}

@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import Image from "next/image";
-import { MapPin, Users, Ticket, ArrowRight } from "@phosphor-icons/react";
+import { MapPin, Users, ArrowRight } from "@phosphor-icons/react";
 
 const Page = styled.div`
   min-height: 100dvh; background: var(--color-bg, #0a0a0a);
@@ -65,9 +65,8 @@ const FeatureDesc = styled.div`
 `;
 
 const features = [
-  { icon: MapPin, color: "#3b82f6", title: "Discover nearby bars", desc: "Find pubs, clubs, and lounges near you with live open/closed status and ratings." },
+  { icon: MapPin, color: "#3b82f6", title: "Discover nearby bars", desc: "Find pubs, clubs, and lounges near you with live open/closed status and distance." },
   { icon: Users, color: "#10b981", title: "Join events & crawls", desc: "Create or join pub crawls, after-work drinks, and club nights. Meet new people." },
-  { icon: Ticket, color: "#f59e0b", title: "Skip the line with VIP passes", desc: "Buy passes for priority entry, free drinks, and exclusive deals at top venues." },
 ];
 
 export function LandingPage() {
@@ -86,7 +85,7 @@ export function LandingPage() {
         <Image src="/hoppr-neon-nobg.png" alt="Hoppr" width={120} height={120} priority />
         <Tagline>Discover Finland's nightlife</Tagline>
         <Subtitle>
-          Find bars, join pub crawls, and skip the line with VIP passes — all in one place.
+          Find bars, join pub crawls, and discover the best of Helsinki nightlife — all in one place.
         </Subtitle>
       </Hero>
 

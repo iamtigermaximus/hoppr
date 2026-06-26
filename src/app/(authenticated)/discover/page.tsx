@@ -6,7 +6,7 @@ import { useFeed } from "@/hooks/useFeed";
 import { TimeFilters } from "@/components/feed/TimeFilters";
 import { FeedList } from "@/components/feed/FeedList";
 import type { FeedItem, TimeFilter } from "@/types/feed";
-import { Clock, NavigationArrow, Calendar, MapPin, Ticket } from "@phosphor-icons/react";
+import { Clock, NavigationArrow, Calendar, MapPin } from "@phosphor-icons/react";
 
 const Header = styled.div`padding: 16px 16px 0; margin-bottom: 14px;`;
 const Title = styled.h1`font-weight: 800; font-size: 24px; color: var(--color-text-primary, #fff); letter-spacing: -0.5px; margin: 0 0 2px;`;
@@ -40,7 +40,6 @@ const TypeChip = styled.div<{ $color: string }>`
 const typeGroups = [
   { key: "event" as const, label: "Events", icon: Calendar, color: "#3b82f6", action: "Join" },
   { key: "promotion" as const, label: "Promotions", icon: MapPin, color: "#10b981", action: "View" },
-  { key: "pass" as const, label: "VIP Passes", icon: Ticket, color: "#f59e0b", action: "Buy" },
 ];
 
 type SortMode = "upcoming" | "nearest";
@@ -49,7 +48,6 @@ function groupByType(items: FeedItem[]) {
   return {
     event: items.filter(i => i.type === "event"),
     promotion: items.filter(i => i.type === "promotion"),
-    pass: items.filter(i => i.type === "pass"),
   };
 }
 
@@ -84,7 +82,6 @@ export default function DiscoverPage() {
 
   const totalEvents = sorted.filter(i => i.type === "event").length;
   const totalPromos = sorted.filter(i => i.type === "promotion").length;
-  const totalPasses = sorted.filter(i => i.type === "pass").length;
 
   // Show sectioned view (Now / Today / Tomorrow / Later) for all wider filters
   const hasSections = time !== "now" && time !== "afternoon" && time !== "evening" && time !== "night";
@@ -143,7 +140,6 @@ export default function DiscoverPage() {
           <span>
             {totalEvents > 0 && `${totalEvents} events`}
             {totalPromos > 0 && ` · ${totalPromos} promos`}
-            {totalPasses > 0 && ` · ${totalPasses} passes`}
           </span>
         </Subtitle>
       </Header>

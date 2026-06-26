@@ -1,14 +1,26 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { StyledComponentsRegistry } from "@/lib/registry";
 import { AuthProvider } from "@/components/contexts/AuthContext";
 import { QueryProvider } from "@/components/contexts/QueryProvider";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#0a0a0a",
+};
+
 export const metadata: Metadata = {
   title: "Hoppr — Discover. Crawl. Connect.",
   description: "Finland's drinking establishments, unified.",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Hoppr",
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",

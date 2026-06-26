@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Calendar, MapPin, Ticket, Users, Clock, CurrencyCircleDollar, CheckCircle, Sparkle, Storefront } from "@phosphor-icons/react";
+import { Calendar, MapPin, Users, Clock, CheckCircle, Sparkle, Storefront } from "@phosphor-icons/react";
 import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/Badge";
 import { AvatarGroup } from "@/components/ui/AvatarGroup";
@@ -62,7 +62,6 @@ const typeLabels = {
   featured: { label: "FEATURED", icon: Storefront, color: "#a78bfa" },
   event: { label: "EVENT", icon: Calendar, color: "#3b82f6" },
   promotion: { label: "PROMO", icon: MapPin, color: "#10b981" },
-  pass: { label: "VIP PASS", icon: Ticket, color: "#f59e0b" },
 };
 
 export function FeedCard({ item }: { item: FeedItem }) {
@@ -71,7 +70,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
   const trackedRef = useRef(false);
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id as string | undefined;
-  const t = typeLabels[item.type];
+  const t = (typeLabels as Record<string, { label: string; icon: any; color: string }>)[item.type] ?? { label: item.type.toUpperCase(), icon: MapPin, color: "#737373" };
   const color = t.color;
   const IconComponent = t.icon;
   const imageSrc = "image" in item ? (item as any).image : (item as any).imageUrl;
@@ -89,7 +88,6 @@ export function FeedCard({ item }: { item: FeedItem }) {
     if (item.type === "featured") router.push(`/venues/${item.venueId}`);
     else if (item.type === "event") router.push(`/events/${item.id}`);
     else if (item.type === "promotion") router.push(`/promotions/${item.id}`);
-    else router.push(`/passes/${item.id}`);
   };
 
   // Impression tracking via IntersectionObserver
@@ -149,7 +147,6 @@ export function FeedCard({ item }: { item: FeedItem }) {
           {item.type === "featured" && `${item.venueType?.replace(/_/g, " ") || "Venue"}${(item as any).district ? ` · ${(item as any).district}` : ""}`}
           {item.type === "event" && `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`}
           {item.type === "promotion" && `${item.venueName} · ${formatEventTime(new Date(item.validFrom))}`}
-          {item.type === "pass" && `${item.venueName} · ${formatEventTime(new Date(item.validUntil))}`}
         </div>
 
         <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
@@ -228,17 +225,6 @@ export function FeedCard({ item }: { item: FeedItem }) {
           )}
           {item.type === "promotion" && (
             <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); handleClick(); }}><Clock size={12} /> View</Button>
-          )}
-          {item.type === "pass" && (
-            <>
-              <span style={{ color: "#f59e0b", fontWeight: 700, fontSize: "15px" }}>
-                €{item.price}
-                {"originalPrice" in item && item.originalPrice && item.originalPrice > item.price && (
-                  <span style={{ color: "#737373", fontSize: "11px", textDecoration: "line-through", marginLeft: "6px", fontWeight: 400 }}>€{item.originalPrice}</span>
-                )}
-              </span>
-              <Button size="sm" onClick={(e) => { e.stopPropagation(); router.push(`/passes/${item.id}`); }}><CurrencyCircleDollar size={12} /> Buy</Button>
-            </>
           )}
         </div>
       </CardBody>
