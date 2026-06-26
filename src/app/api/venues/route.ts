@@ -2,6 +2,26 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { haversineDistance } from "@/lib/utils";
 
+function normalizeHours(raw: unknown): Record<string, string> | null {
+  if (!raw || typeof raw !== "object") return null;
+  const src = raw as Record<string, unknown>;
+  const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+  const result: Record<string, string> = {};
+  for (const day of days) {
+    const lower = src[day];
+    if (typeof lower === "string" && lower.length > 0) { result[day] = lower; continue; }
+    const cap = day.charAt(0).toUpperCase() + day.slice(1);
+    const capVal = src[cap];
+    if (capVal && typeof capVal === "object") {
+      const o = (capVal as Record<string,unknown>).open as string | undefined;
+      const c = (capVal as Record<string,unknown>).close as string | undefined;
+      if (o && c) result[day] = `${o} - ${c}`;
+      else result[day] = "Closed";
+    }
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -78,7 +98,7 @@ export async function GET(req: Request) {
       musicTags: b.musicTags,
       capacity: b.capacity,
       amenities: b.amenities,
-      hours: b.operatingHours,
+      hours: normalizeHours(b.operatingHours),
       qualityScore: b.qualityScore,
       profileViews: b.profileViews,
       directionClicks: b.directionClicks,

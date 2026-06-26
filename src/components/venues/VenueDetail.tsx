@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import ShareButton from "@/components/ui/ShareButton";
+import { FollowButton } from "@/components/ui/FollowButton";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { SkeletonDetail } from "@/components/ui/Skeleton";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -556,20 +557,11 @@ export function VenueDetail() {
                   {tag}
                 </span>
               ))}
-              {venue.followerCount > 0 && (
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    color: "var(--color-text-muted, #737373)",
-                    fontSize: "11px",
-                  }}
-                >
-                  <Users size={12} />
-                  {venue.followerCount}
-                </span>
-              )}
+              <FollowButton
+                barId={venue.id}
+                initialFollowerCount={venue.followerCount}
+                initialIsFollowing={venue.isFollowing}
+              />
               {distance && (
                 <span
                   style={{

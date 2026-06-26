@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import { Heart } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { track } from "@/lib/analytics";
 
 // ---- Styled ----
 
@@ -104,6 +105,11 @@ export function FollowButton({
           followerCount: json.following
             ? followerCount + (isFollowing ? 0 : 1)
             : followerCount - (isFollowing ? 1 : 0),
+        });
+        // Track the follow/unfollow event
+        track({
+          type: newFollowing ? "FOLLOW" : "UNFOLLOW",
+          barId,
         });
       } else {
         // Revert on error

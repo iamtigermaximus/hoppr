@@ -1,9 +1,41 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+
+/** Normalize operatingHours from stored format to consumer format.
+ *  Business app stores: { Monday: { open:"16:00", close:"02:00" }, ... }
+ *  Consumer expects:    { monday: "16:00 - 02:00", ... }             */
+function normalizeHours(raw: unknown): Record<string, string> | null {
+  if (!raw || typeof raw !== "object") return null;
+  const src = raw as Record<string, unknown>;
+  const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+  const result: Record<string, string> = {};
+  for (const day of days) {
+    // Already consumer format: "monday": "16:00 - 02:00"
+    const lower = src[day];
+    if (typeof lower === "string" && lower.length > 0) {
+      result[day] = lower;
+      continue;
+    }
+    // Business format: "Monday": { open:"16:00", close:"02:00" }
+    const cap = day.charAt(0).toUpperCase() + day.slice(1);
+    const capVal = src[cap];
+    if (capVal && typeof capVal === "object") {
+      const o = (capVal as Record<string,unknown>).open as string | undefined;
+      const c = (capVal as Record<string,unknown>).close as string | undefined;
+      if (o && c) result[day] = `${o} - ${c}`;
+      else result[day] = "Closed";
+    }
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const session = await getServerSession(authOptions);
+    const userId = session?.user ? (session.user as Record<string, unknown>).id as string : null;
 
     const bar = await prisma.bar.findUnique({
       where: { id },
@@ -102,6 +134,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       orderBy: { priceCents: "asc" },
     });
 
+    // Check if current user follows this bar
+    let isFollowing = false;
+    if (userId) {
+      const follow = await prisma.barFollow.findUnique({
+        where: { userId_barId: { userId, barId: id } },
+        select: { id: true },
+      });
+      isFollowing = !!follow;
+    }
+
     return NextResponse.json({
       id: bar.id,
       name: bar.name,
@@ -121,7 +163,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       musicTags: bar.musicTags,
       capacity: bar.capacity,
       amenities: bar.amenities,
-      hours: bar.operatingHours,
+      hours: normalizeHours(bar.operatingHours),
       imageUrl: bar.coverImage || (bar.imageUrls?.length > 0 ? bar.imageUrls[0] : null),
       imageUrls: bar.imageUrls,
       logoUrl: bar.logoUrl,
@@ -129,6 +171,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       qualityScore: bar.qualityScore,
       cityName: bar.cityName,
       followerCount: bar._count.followers,
+      isFollowing,
       crowdLevel: bar.crowdReports[0]?.level ?? null,
       crowdReportedAt: bar.crowdReports[0]?.reportedAt?.toISOString() ?? null,
       promotions: promotions.map((p) => ({
