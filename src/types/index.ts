@@ -15,6 +15,9 @@ export interface Venue {
   facebook?: string;
   description?: string;
   priceRange?: string;
+  coverCharge?: number | null;
+  musicTags?: string[];
+  followerCount?: number;
   capacity?: number;
   amenities: string[];
   hours?: Record<string, string>;

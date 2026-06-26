@@ -353,15 +353,58 @@ export function VenueDetail() {
             borderRadius: "16px",
             overflow: "hidden",
             height: "200px",
-            marginBottom: "16px",
+            marginBottom: "8px",
             background: "var(--color-card, #1a1a1a)",
           }}
         >
           <img
+            id="venue-hero"
             src={venue.imageUrl}
             alt={venue.name}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
+        </div>
+      )}
+
+      {/* Photo gallery strip — horizontal scroll */}
+      {venue.imageUrls?.length > 1 && (
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            overflowX: "auto",
+            scrollSnapType: "x mandatory",
+            paddingBottom: "8px",
+            marginBottom: "16px",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {venue.imageUrls.map((url: string, i: number) => (
+            <div
+              key={i}
+              onClick={() => {
+                const hero = document.getElementById("venue-hero") as HTMLImageElement | null;
+                if (hero) hero.src = url;
+              }}
+              style={{
+                minWidth: "100px",
+                height: "72px",
+                borderRadius: "10px",
+                overflow: "hidden",
+                scrollSnapAlign: "start",
+                cursor: "pointer",
+                border: "2px solid var(--color-card-border, #262626)",
+                flexShrink: 0,
+              }}
+            >
+              <img
+                src={url}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                loading="lazy"
+              />
+            </div>
+          ))}
         </div>
       )}
 
