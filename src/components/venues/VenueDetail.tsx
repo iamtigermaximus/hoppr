@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import styled from "styled-components";
 import { useVenue } from "@/hooks/useVenues";
 import { useEvents } from "@/hooks/useEvents";
+import { useCountdown } from "@/hooks/useCountdown";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -30,6 +31,7 @@ import {
   FacebookLogo,
   NavigationArrow,
   X,
+  Fire,
 } from "@phosphor-icons/react";
 
 const menuCategoryLabels: Record<string, string> = {
@@ -224,6 +226,81 @@ const CloseButton = styled.button`
     color: var(--color-text-primary, #fff);
   }
 `;
+
+// Per-promo card with countdown, redemptions, and share
+function PromoDetailCard({ promo }: { promo: any }) {
+  const countdown = useCountdown(promo.validTo);
+
+  // Track promo view when card renders on the venue detail
+  useEffect(() => {
+    track({
+      type: "PROMO_VIEW",
+      barId: promo.venueId,
+      promoId: promo.id,
+      promoName: promo.title,
+    });
+  }, [promo.id, promo.title, promo.venueId]);
+
+  return (
+    <Card>
+      <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+        <Badge $type="promo">PROMO</Badge>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+            <div
+              style={{
+                color: "var(--color-text-primary, #fff)",
+                fontWeight: 600,
+                fontSize: "13px",
+              }}
+            >
+              {promo.title}
+            </div>
+            <ShareButton
+              title={promo.title}
+              text={`${promo.description || ""}\n${promo.venueName}`}
+              url={`${typeof window !== "undefined" ? window.location.origin : ""}/venues/${promo.venueId}`}
+              size={14}
+              color="var(--color-text-muted, #737373)"
+            />
+          </div>
+          <div
+            style={{
+              color: "var(--color-text-secondary, #a3a3a3)",
+              fontSize: "11px",
+              marginTop: "2px",
+            }}
+          >
+            {promo.description}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              color: "var(--color-text-muted, #737373)",
+              fontSize: "10px",
+              marginTop: "4px",
+            }}
+          >
+            <span>
+              {formatEventTime(new Date(promo.validFrom))} —{" "}
+              {formatEventTime(new Date(promo.validTo))}
+            </span>
+            {countdown && countdown !== "Ended" && (
+              <span style={{ color: "#f59e0b", fontWeight: 600 }}>⏰ {countdown}</span>
+            )}
+            {promo.redemptions > 0 && (
+              <span style={{ color: "#f59e0b", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                <Fire size={10} weight="fill" /> {promo.redemptions} claimed
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export function VenueDetail() {
   const params = useParams();
@@ -922,47 +999,7 @@ export function VenueDetail() {
           <SectionHeader title="Active Promotions" />
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {venue.promotions.map((promo: any) => (
-              <Card key={promo.id}>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "8px",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Badge $type="promo">PROMO</Badge>
-                  <div>
-                    <div
-                      style={{
-                        color: "var(--color-text-primary, #fff)",
-                        fontWeight: 600,
-                        fontSize: "13px",
-                      }}
-                    >
-                      {promo.title}
-                    </div>
-                    <div
-                      style={{
-                        color: "var(--color-text-secondary, #a3a3a3)",
-                        fontSize: "11px",
-                        marginTop: "2px",
-                      }}
-                    >
-                      {promo.description}
-                    </div>
-                    <div
-                      style={{
-                        color: "var(--color-text-muted, #737373)",
-                        fontSize: "10px",
-                        marginTop: "4px",
-                      }}
-                    >
-                      {formatEventTime(new Date(promo.validFrom))} —{" "}
-                      {formatEventTime(new Date(promo.validTo))}
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <PromoDetailCard key={promo.id} promo={promo} />
             ))}
           </div>
         </div>

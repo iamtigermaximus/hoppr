@@ -19,7 +19,9 @@ interface IncomingEvent {
   type: EventType;
   barId?: string;
   promoId?: string;
+  promoName?: string;
   eventId?: string;
+  eventTitle?: string;
   passId?: string;
 }
 
@@ -59,9 +61,12 @@ export async function POST(request: NextRequest) {
       rawRows.push({
         type: ev.type,
         barId: ev.barId,
-        data: ev.promoId ? { promoId: ev.promoId }
-          : ev.eventId ? { eventId: ev.eventId }
-          : ev.passId ? { passId: ev.passId }
+        data: ev.promoId
+          ? { promoId: ev.promoId, ...(ev.promoName ? { promoName: ev.promoName } : {}) }
+          : ev.eventId
+          ? { eventId: ev.eventId, ...(ev.eventTitle ? { eventTitle: ev.eventTitle } : {}) }
+          : ev.passId
+          ? { passId: ev.passId }
           : undefined,
       });
 

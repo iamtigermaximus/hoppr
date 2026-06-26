@@ -64,6 +64,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         startDate: true,
         endDate: true,
         imageUrl: true,
+        accentColor: true,
+        redemptions: true,
       },
       orderBy: { startDate: "asc" },
     });
@@ -139,6 +141,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         validFrom: p.startDate.toISOString(),
         validTo: p.endDate.toISOString(),
         imageUrl: p.imageUrl,
+        accentColor: p.accentColor,
+        redemptions: p.redemptions,
       })),
       passes: passes.map((p) => ({
         id: p.id,

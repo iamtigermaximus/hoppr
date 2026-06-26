@@ -187,6 +187,7 @@ export async function GET(req: Request) {
         distance,
         image: dbp.imageUrl || undefined,
         accentColor: dbp.accentColor || undefined,
+        redemptions: dbp.redemptions,
       };
     });
 

@@ -91,7 +91,7 @@ function isVenueOpen(hours?: Record<string, any>): boolean | null {
 
   // Handle string format: "16:00 – 02:00" or "Closed"
   const timeStr = String(entry);
-  if (timeStr === "Closed" || timeStr === "closed") return false;
+  if (timeStr === "Closed" || timeStr === "closed" || timeStr === "Suljettu" || timeStr === "Kiinni") return false;
 
   const parts = timeStr.split(/[–\-]/).map(s => s.trim());
   if (parts.length !== 2) return null;
@@ -105,7 +105,8 @@ function isVenueOpen(hours?: Record<string, any>): boolean | null {
   return nowMin2 >= openMin && nowMin2 < closeMin;
 }
 
-function parseTimeStr(s: string): number {
+function parseTimeStr(s: unknown): number {
+  if (typeof s !== "string") return -1;
   const match = s.match(/(\d+)(?::(\d+))?\s*(AM|PM)?/i);
   if (!match) return -1;
   let hour = parseInt(match[1]);

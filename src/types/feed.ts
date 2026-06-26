@@ -55,6 +55,7 @@ export type FeedItem =
       distance: number;
       image?: string;
       accentColor?: string;
+      redemptions: number;
       crowdLevel?: string;
       crowdReportedAt?: string;
       isSponsored?: boolean;

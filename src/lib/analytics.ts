@@ -12,7 +12,9 @@ interface AnalyticsEvent {
   type: EventType;
   barId?: string;
   promoId?: string;
+  promoName?: string;
   eventId?: string;
+  eventTitle?: string;
   passId?: string;
 }
 

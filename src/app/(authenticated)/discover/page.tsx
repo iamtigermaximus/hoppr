@@ -55,7 +55,7 @@ const INITIAL_SHOW = 3;
 
 export default function DiscoverPage() {
   const { lat, lng } = useGeolocation();
-  const [time, setTime] = useState<TimeFilter>("week");
+  const [time, setTime] = useState<TimeFilter>("month");
   const [sort, setSort] = useState<SortMode>("upcoming");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { data: items = [], isLoading } = useFeed({ lat, lng, time });
@@ -70,15 +70,33 @@ export default function DiscoverPage() {
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
   const tomorrowEnd = new Date(todayEnd.getTime() + 86400000);
 
+  // Week boundaries for month sub-sections (weeks start Monday, end Sunday)
+  const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const daysUntilEndOfThisWeek = dayOfWeek === 0 ? 0 : 6 - dayOfWeek;
+  const thisWeekEnd = new Date(todayEnd.getTime() + daysUntilEndOfThisWeek * 86400000);
+  const nextWeekEnd = new Date(thisWeekEnd.getTime() + 7 * 86400000);
+
   const timeFilter = (i: any) => {
     const t = i.type === "event" ? new Date(i.startTime) : new Date(i.validFrom || i.validUntil);
-    return { t, isNow: t <= now, isToday: t > now && t <= todayEnd, isTomorrow: t > todayEnd && t <= tomorrowEnd, isLater: t > tomorrowEnd };
+    return {
+      t,
+      isNow: t <= now,
+      isToday: t > now && t <= todayEnd,
+      isTomorrow: t > todayEnd && t <= tomorrowEnd,
+      isLater: t > tomorrowEnd, // broad bucket — everything after tomorrow
+    };
   };
 
   const happeningNow = sorted.filter(i => timeFilter(i).isNow);
   const today = sorted.filter(i => timeFilter(i).isToday);
   const tomorrow = sorted.filter(i => timeFilter(i).isTomorrow);
   const later = sorted.filter(i => timeFilter(i).isLater);
+
+  // For "month", break the flat "Later" bucket into sub-sections
+  const isMonth = time === "month";
+  const thisWeekItems = isMonth ? later.filter(i => timeFilter(i).t <= thisWeekEnd) : [];
+  const nextWeekItems = isMonth ? later.filter(i => timeFilter(i).t > thisWeekEnd && timeFilter(i).t <= nextWeekEnd) : [];
+  const laterMonthItems = isMonth ? later.filter(i => timeFilter(i).t > nextWeekEnd) : [];
 
   const totalEvents = sorted.filter(i => i.type === "event").length;
   const totalPromos = sorted.filter(i => i.type === "promotion").length;
@@ -180,11 +198,34 @@ export default function DiscoverPage() {
               {renderTypeGroups(tomorrow, "tomorrow")}
             </>
           )}
-          {later.length > 0 && (
+          {isMonth ? (
             <>
-              <TimeHeader>Later</TimeHeader>
-              {renderTypeGroups(later, "later")}
+              {thisWeekItems.length > 0 && (
+                <>
+                  <TimeHeader>This week</TimeHeader>
+                  {renderTypeGroups(thisWeekItems, "thisWeek")}
+                </>
+              )}
+              {nextWeekItems.length > 0 && (
+                <>
+                  <TimeHeader>Next week</TimeHeader>
+                  {renderTypeGroups(nextWeekItems, "nextWeek")}
+                </>
+              )}
+              {laterMonthItems.length > 0 && (
+                <>
+                  <TimeHeader>Later this month</TimeHeader>
+                  {renderTypeGroups(laterMonthItems, "laterMonth")}
+                </>
+              )}
             </>
+          ) : (
+            later.length > 0 && (
+              <>
+                <TimeHeader>Later</TimeHeader>
+                {renderTypeGroups(later, "later")}
+              </>
+            )
           )}
           {sorted.length === 0 && <FeedList items={[]} isLoading={false} />}
         </>
