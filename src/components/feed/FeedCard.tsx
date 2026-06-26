@@ -11,7 +11,7 @@ import { FollowButton } from "@/components/ui/FollowButton";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import SponsoredBadge from "@/components/ads/SponsoredBadge";
 import type { FeedItem } from "@/types/feed";
-import { formatDistance, formatEventTime } from "@/lib/utils";
+import { formatDistance, formatEventTime, formatPromoCountdown } from "@/lib/utils";
 
 const CardWrapper = styled.div<{ $color: string }>`
   background: var(--color-card, #1a1a1a);
@@ -146,7 +146,11 @@ export function FeedCard({ item }: { item: FeedItem }) {
         <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "6px" }}>
           {item.type === "featured" && `${item.venueType?.replace(/_/g, " ") || "Venue"}${(item as any).district ? ` · ${(item as any).district}` : ""}`}
           {item.type === "event" && `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`}
-          {item.type === "promotion" && `${item.venueName} · ${formatEventTime(new Date(item.validFrom))}`}
+          {item.type === "promotion" && (
+            <>{item.venueName} · {formatEventTime(new Date(item.validFrom))}
+              {(() => { const cd = formatPromoCountdown(item.validTo); return cd ? <span style={{ color: "#f59e0b", fontWeight: 600 }}> · {cd}</span> : null; })()}
+            </>
+          )}
         </div>
 
         <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>

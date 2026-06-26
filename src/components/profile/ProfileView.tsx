@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Warning, InstagramLogo, FacebookLogo, TwitterLogo, Calendar, Heart, Globe, Camera, ArrowLeft } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export function ProfileView({ id }: { id: string }) {
   const router = useRouter();
@@ -29,7 +30,22 @@ export function ProfileView({ id }: { id: string }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const LIMIT = 3;
 
-  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
+  if (isLoading) return (
+    <div style={{ padding: 32, maxWidth: 680, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+        <Skeleton width="80px" height="80px" radius="50%" />
+        <div style={{ flex: 1 }}>
+          <Skeleton width="60%" height="20px" />
+          <Skeleton width="40%" height="14px" style={{ marginTop: 8 }} />
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+        <Skeleton width="80px" height="28px" radius="8px" />
+        <Skeleton width="80px" height="28px" radius="8px" />
+      </div>
+      <Skeleton width="100%" height="120px" radius="12px" />
+    </div>
+  );
   if (!profile || profile.error) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>User not found</div>;
 
   const created = events.filter((e: any) => e.creatorId === id);

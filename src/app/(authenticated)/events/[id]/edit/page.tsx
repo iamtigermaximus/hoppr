@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useEvent } from "@/hooks/useEvents";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
@@ -51,7 +52,15 @@ export default function EditEventPage() {
     setSaving(false);
   };
 
-  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
+  if (isLoading) return (
+    <div style={{ padding: 32, maxWidth: 680, margin: "0 auto" }}>
+      <Skeleton width="40%" height="24px" style={{ marginBottom: 24 }} />
+      <Skeleton width="100%" height="16px" style={{ marginBottom: 12 }} />
+      <Skeleton width="100%" height="16px" style={{ marginBottom: 12 }} />
+      <Skeleton width="60%" height="16px" style={{ marginBottom: 32 }} />
+      <Skeleton width="120px" height="40px" radius="8px" />
+    </div>
+  );
   if (fetchError) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Failed to load event. It may have been deleted.</div>;
   if (!event) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Event not found</div>;
 

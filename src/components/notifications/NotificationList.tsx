@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Bell, ChatCircle, Calendar, Ticket } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 const typeIcons: Record<string, any> = {
   SYSTEM: Bell, MESSAGE: ChatCircle, EVENT_STARTING: Bell, EVENT_REMINDER: Bell,
@@ -32,7 +33,19 @@ export function NotificationList() {
     else if (data.chatRoomId) router.push(`/events/${data.eventId}/chat`);
   };
 
-  if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
+  if (isLoading) return (
+    <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Skeleton width="36px" height="36px" radius="50%" />
+          <div style={{ flex: 1 }}>
+            <Skeleton width="70%" height="14px" />
+            <Skeleton width="40%" height="10px" style={{ marginTop: 6 }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   const unreadCount = notifications.filter((n: any) => !n.read).length;
 

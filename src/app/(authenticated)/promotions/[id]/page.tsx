@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import styled from "styled-components";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { SkeletonDetail } from "@/components/ui/Skeleton";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { MapPin, Clock, Calendar, ArrowLeft, NavigationArrow, Fire } from "@phosphor-icons/react";
 import ShareButton from "@/components/ui/ShareButton";
@@ -48,7 +49,7 @@ export default function PromotionDetailPage() {
     enabled: !!id,
   });
 
-  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
+  if (isLoading) return <SkeletonDetail />;
   if (!promo || promo.error) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Promotion not found</div>;
 
   const distance = promo.venueLat != null && promo.venueLng != null && lat && lng

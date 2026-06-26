@@ -50,3 +50,17 @@ export function formatPriceRange(priceRange?: string | null): string | null {
   if (!priceRange) return null;
   return PRICE_RANGE_LABELS[priceRange] ?? priceRange;
 }
+
+/** Returns a countdown string if promo ends within 24 hours, otherwise null. */
+export function formatPromoCountdown(validTo: string): string | null {
+  const now = Date.now();
+  const end = new Date(validTo).getTime();
+  const remaining = end - now;
+  if (remaining <= 0) return null;
+  if (remaining > 24 * 60 * 60 * 1000) return null;
+  const hours = Math.floor(remaining / (60 * 60 * 1000));
+  if (hours >= 1) return `Ends in ${hours}h`;
+  const minutes = Math.floor(remaining / (60 * 1000));
+  if (minutes >= 1) return `Ends in ${minutes}m`;
+  return "Ending now";
+}

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatEventTime } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { Calendar, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin, Gear, SignOut as SignOutIcon } from "@phosphor-icons/react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -88,7 +89,20 @@ export function ProfileEdit() {
     });
   };
 
-  if (isLoading) return <div style={{ padding: 32, textAlign: "center", color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
+  if (isLoading) return (
+    <div style={{ padding: 32, maxWidth: 680, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+        <Skeleton width="80px" height="80px" radius="50%" />
+        <div style={{ flex: 1 }}>
+          <Skeleton width="60%" height="20px" />
+          <Skeleton width="40%" height="14px" style={{ marginTop: 8 }} />
+        </div>
+      </div>
+      <Skeleton width="100%" height="16px" style={{ marginBottom: 12 }} />
+      <Skeleton width="100%" height="16px" style={{ marginBottom: 12 }} />
+      <Skeleton width="60%" height="16px" />
+    </div>
+  );
   if (!profile) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Failed to load profile</div>;
 
   const eventsCreated = history?.eventsCreated || [];

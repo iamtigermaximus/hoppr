@@ -11,6 +11,7 @@ import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import SponsoredBadge from "@/components/ads/SponsoredBadge";
 import { useQuery } from "@tanstack/react-query";
 import { House, Star, Users, MagnifyingGlass, X, NavigationArrow, ListBullets, ChartBar, Megaphone } from "@phosphor-icons/react";
+import { SkeletonBarCard } from "@/components/ui/Skeleton";
 
 const VENUE_TYPES = [
   { key: "PUB", label: "Pubs" },
@@ -120,7 +121,7 @@ const PAGE_SIZE = 12;
 export default function BarsPage() {
   const router = useRouter();
   const { lat, lng } = useGeolocation();
-  const { data: venues = [] } = useVenues();
+  const { data: venues = [], isLoading } = useVenues();
   const [search, setSearch] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedDistricts, setSelectedDistricts] = useState<string[]>([]);
@@ -258,6 +259,15 @@ export default function BarsPage() {
         {selectedTypes.length > 0 && ` · ${selectedTypes.map(t => VENUE_TYPES.find(vt => vt.key === t)?.label).join(", ")}`}
       </div>
 
+      {isLoading && (
+        <List>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonBarCard key={i} />
+          ))}
+        </List>
+      )}
+
+      {!isLoading && (<>
       {/* Featured listings */}
       {featuredBars.length > 0 && (
         <div style={{ marginBottom: "16px" }}>
@@ -412,6 +422,8 @@ export default function BarsPage() {
           </Button>
         </div>
       )}
+    </>
+    )}
     </div>
   );
 }

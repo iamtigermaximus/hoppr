@@ -12,6 +12,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import ShareButton from "@/components/ui/ShareButton";
 import { formatDistance, formatEventTime } from "@/lib/utils";
+import { SkeletonDetail } from "@/components/ui/Skeleton";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { track } from "@/lib/analytics";
 import {
@@ -248,12 +249,7 @@ export function VenueDetail() {
     track({ type: "BAR_VIEW", barId: id });
   }, [id]);
 
-  if (isLoading)
-    return (
-      <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>
-        Loading...
-      </div>
-    );
+  if (isLoading) return <SkeletonDetail />;
   if (!venue || venue.error)
     return <div style={{ padding: 16, color: "#ef4444" }}>Venue not found</div>;
 

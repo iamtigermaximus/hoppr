@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import ShareButton from "@/components/ui/ShareButton";
+import { SkeletonDetail } from "@/components/ui/Skeleton";
 import { formatEventTime } from "@/lib/utils";
 
 export function EventDetail({ id }: { id: string }) {
@@ -18,9 +19,7 @@ export function EventDetail({ id }: { id: string }) {
   const joinMutation = useJoinEvent(id);
   const leaveMutation = useLeaveEvent(id);
 
-  if (isLoading) {
-    return <div style={{ padding: 16, color: "var(--color-text-muted, #737373)" }}>Loading...</div>;
-  }
+  if (isLoading) return <SkeletonDetail />;
   if (!event || event.error) {
     return <div style={{ padding: 16, color: "#ef4444" }}>Event not found</div>;
   }
