@@ -1,19 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#0a0a0a"/>
-      <stop offset="100%" style="stop-color:#0f0f1a"/>
+      <stop offset="50%" style="stop-color:#0f0a08"/>
+      <stop offset="100%" style="stop-color:#080808"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <radialGradient id="glow" cx="50%" cy="45%" r="45%">
+      <stop offset="0%" style="stop-color:#c9a93c;stop-opacity:0.45"/>
+      <stop offset="50%" style="stop-color:#c9a93c;stop-opacity:0.12"/>
+      <stop offset="100%" style="stop-color:#c9a93c;stop-opacity:0"/>
+    </radialGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c9a93c;stop-opacity:0"/>
+      <stop offset="50%" style="stop-color:#c9a93c;stop-opacity:0.7"/>
+      <stop offset="100%" style="stop-color:#c9a93c;stop-opacity:0"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="big"><feGaussianBlur stdDeviation="14"/></filter>
   </defs>
-  <rect width="800" height="400" fill="url(#g)"/>
-  <rect x="40" y="40" width="720" height="320" rx="12" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.3"/>
-  <circle cx="400" cy="160" r="70" fill="#f59e0b" opacity="0.1"/>
-  <text x="400" y="185" text-anchor="middle" font-size="70" filter="url(#glow)">👑</text>
-  <text x="400" y="260" text-anchor="middle" font-size="28" fill="#f59e0b" font-family="system-ui, sans-serif" font-weight="700">VIP Experience</text>
-  <text x="400" y="300" text-anchor="middle" font-size="15" fill="#6b7280" font-family="system-ui, sans-serif">Exclusive access & perks</text>
-  <rect x="360" y="360" width="80" height="3" rx="2" fill="#f59e0b" opacity="0.5"/>
+  <rect width="800" height="400" fill="url(#bg)"/>
+  <circle cx="400" cy="180" r="180" fill="url(#glow)"/>
+  <polygon points="400,50 470,150 400,250 330,150" fill="none" stroke="url(#goldGrad)" stroke-width="3" opacity="0.65" filter="url(#soft)"/>
+  <polygon points="400,90 440,150 400,210 360,150" fill="none" stroke="url(#goldGrad)" stroke-width="2" opacity="0.5"/>
+  <line x1="60" y1="200" x2="330" y2="150" stroke="#c9a93c" stroke-width="2" opacity="0.4" filter="url(#soft)"/>
+  <line x1="470" y1="150" x2="740" y2="200" stroke="#c9a93c" stroke-width="2" opacity="0.4" filter="url(#soft)"/>
+  <circle cx="400" cy="70" r="5" fill="#c9a93c" opacity="0.75" filter="url(#big)"/>
+  <circle cx="320" cy="130" r="4" fill="#c9a93c" opacity="0.6" filter="url(#big)"/>
+  <circle cx="480" cy="130" r="4" fill="#c9a93c" opacity="0.6" filter="url(#big)"/>
+  <circle cx="250" cy="200" r="3.5" fill="#c9a93c" opacity="0.45" filter="url(#big)"/>
+  <circle cx="550" cy="200" r="3.5" fill="#c9a93c" opacity="0.45" filter="url(#big)"/>
+  <circle cx="400" cy="230" r="2.5" fill="#c9a93c" opacity="0.4" filter="url(#soft)"/>
 </svg>

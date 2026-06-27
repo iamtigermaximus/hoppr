@@ -1,19 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a0a2e"/>
-      <stop offset="100%" style="stop-color:#0f0f1a"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a1a"/>
+      <stop offset="40%" style="stop-color:#0f0a1a"/>
+      <stop offset="100%" style="stop-color:#1a0a1a"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <radialGradient id="glow1" cx="35%" cy="35%" r="35%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.5"/>
+      <stop offset="60%" style="stop-color:#06b6d4;stop-opacity:0.08"/>
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="65%" cy="50%" r="35%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="big"><feGaussianBlur stdDeviation="14"/></filter>
   </defs>
-  <rect width="800" height="400" fill="url(#g)"/>
-  <rect x="40" y="40" width="720" height="320" rx="12" fill="none" stroke="#06b6d4" stroke-width="1" opacity="0.3"/>
-  <circle cx="400" cy="160" r="70" fill="#06b6d4" opacity="0.1"/>
-  <text x="400" y="185" text-anchor="middle" font-size="70" filter="url(#glow)">🎧</text>
-  <text x="400" y="260" text-anchor="middle" font-size="28" fill="#06b6d4" font-family="system-ui, sans-serif" font-weight="700">DJ Night</text>
-  <text x="400" y="300" text-anchor="middle" font-size="15" fill="#6b7280" font-family="system-ui, sans-serif">Electronic beats & vibes</text>
-  <rect x="360" y="360" width="80" height="3" rx="2" fill="#06b6d4" opacity="0.5"/>
+  <rect width="800" height="400" fill="url(#bg)"/>
+  <circle cx="280" cy="140" r="140" fill="url(#glow1)"/>
+  <circle cx="520" cy="200" r="140" fill="url(#glow2)"/>
+  <rect x="260" y="170" width="10" height="55" rx="5" fill="#06b6d4" opacity="0.7" filter="url(#big)"/>
+  <rect x="285" y="140" width="10" height="85" rx="5" fill="#06b6d4" opacity="0.8" filter="url(#big)"/>
+  <rect x="310" y="110" width="10" height="115" rx="5" fill="#06b6d4" opacity="0.85" filter="url(#big)"/>
+  <rect x="335" y="135" width="10" height="90" rx="5" fill="#06b6d4" opacity="0.75" filter="url(#big)"/>
+  <rect x="360" y="155" width="10" height="70" rx="5" fill="#06b6d4" opacity="0.65" filter="url(#big)"/>
+  <rect x="385" y="175" width="10" height="50" rx="5" fill="#06b6d4" opacity="0.55" filter="url(#big)"/>
+  <rect x="460" y="180" width="10" height="45" rx="5" fill="#ec4899" opacity="0.65" filter="url(#big)"/>
+  <rect x="485" y="150" width="10" height="75" rx="5" fill="#ec4899" opacity="0.75" filter="url(#big)"/>
+  <rect x="510" y="125" width="10" height="100" rx="5" fill="#ec4899" opacity="0.8" filter="url(#big)"/>
+  <rect x="535" y="145" width="10" height="80" rx="5" fill="#ec4899" opacity="0.7" filter="url(#big)"/>
+  <rect x="560" y="170" width="10" height="55" rx="5" fill="#ec4899" opacity="0.6" filter="url(#big)"/>
+  <rect x="250" y="250" width="300" height="3" rx="1.5" fill="#06b6d4" opacity="0.3" filter="url(#soft)"/>
+  <rect x="340" y="270" width="250" height="2" rx="1" fill="#ec4899" opacity="0.2" filter="url(#soft)"/>
+  <rect x="370" y="285" width="200" height="1.5" rx="0.75" fill="#06b6d4" opacity="0.15" filter="url(#soft)"/>
+  <line x1="280" y1="0" x2="200" y2="240" stroke="#06b6d4" stroke-width="2" opacity="0.3" filter="url(#soft)"/>
+  <line x1="520" y1="0" x2="600" y2="280" stroke="#ec4899" stroke-width="2" opacity="0.3" filter="url(#soft)"/>
+  <circle cx="400" cy="240" r="8" fill="#06b6d4" opacity="0.5" filter="url(#big)"/>
+  <circle cx="480" cy="250" r="6" fill="#ec4899" opacity="0.45" filter="url(#big)"/>
 </svg>

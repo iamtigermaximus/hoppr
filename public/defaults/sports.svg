@@ -1,19 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0a1a0a"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a141a"/>
+      <stop offset="50%" style="stop-color:#0a161a"/>
       <stop offset="100%" style="stop-color:#0f0f1a"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <radialGradient id="glow1" cx="35%" cy="40%" r="40%">
+      <stop offset="0%" style="stop-color:#0284c7;stop-opacity:0.45"/>
+      <stop offset="60%" style="stop-color:#0284c7;stop-opacity:0.1"/>
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="65%" cy="50%" r="35%">
+      <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:0.35"/>
+      <stop offset="100%" style="stop-color:#38bdf8;stop-opacity:0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="5"/></filter>
+    <filter id="motion"><feGaussianBlur stdDeviation="16 0"/></filter>
   </defs>
-  <rect width="800" height="400" fill="url(#g)"/>
-  <rect x="40" y="40" width="720" height="320" rx="12" fill="none" stroke="#3b82f6" stroke-width="1" opacity="0.3"/>
-  <circle cx="400" cy="160" r="70" fill="#3b82f6" opacity="0.1"/>
-  <text x="400" y="185" text-anchor="middle" font-size="70" filter="url(#glow)">⚽</text>
-  <text x="400" y="260" text-anchor="middle" font-size="28" fill="#3b82f6" font-family="system-ui, sans-serif" font-weight="700">Sports Viewing</text>
-  <text x="400" y="300" text-anchor="middle" font-size="15" fill="#6b7280" font-family="system-ui, sans-serif">Live matches & action</text>
-  <rect x="360" y="360" width="80" height="3" rx="2" fill="#3b82f6" opacity="0.5"/>
+  <rect width="800" height="400" fill="url(#bg)"/>
+  <circle cx="280" cy="160" r="160" fill="url(#glow1)"/>
+  <circle cx="520" cy="200" r="140" fill="url(#glow2)"/>
+  <line x1="40" y1="180" x2="260" y2="180" stroke="#38bdf8" stroke-width="4" opacity="0.55" filter="url(#motion)"/>
+  <line x1="100" y1="200" x2="220" y2="200" stroke="#0284c7" stroke-width="3" opacity="0.45" filter="url(#motion)"/>
+  <line x1="60" y1="160" x2="200" y2="160" stroke="#38bdf8" stroke-width="2.5" opacity="0.35" filter="url(#motion)"/>
+  <line x1="560" y1="220" x2="760" y2="220" stroke="#38bdf8" stroke-width="4" opacity="0.55" filter="url(#motion)"/>
+  <line x1="600" y1="240" x2="720" y2="240" stroke="#0284c7" stroke-width="3" opacity="0.45" filter="url(#motion)"/>
+  <line x1="540" y1="200" x2="700" y2="200" stroke="#38bdf8" stroke-width="2.5" opacity="0.35" filter="url(#motion)"/>
+  <circle cx="400" cy="200" r="100" fill="none" stroke="#0284c7" stroke-width="3" opacity="0.45" filter="url(#soft)"/>
+  <circle cx="400" cy="200" r="65" fill="none" stroke="#38bdf8" stroke-width="2.5" opacity="0.5"/>
+  <circle cx="400" cy="200" r="35" fill="none" stroke="#0284c7" stroke-width="2" opacity="0.45"/>
+  <circle cx="400" cy="200" r="8" fill="#38bdf8" opacity="0.7" filter="url(#soft)"/>
+  <line x1="400" y1="100" x2="400" y2="300" stroke="#0284c7" stroke-width="2" opacity="0.3"/>
+  <line x1="300" y1="200" x2="500" y2="200" stroke="#0284c7" stroke-width="2" opacity="0.3"/>
+  <circle cx="220" cy="120" r="4" fill="#38bdf8" opacity="0.55" filter="url(#soft)"/>
+  <circle cx="180" cy="280" r="3" fill="#0284c7" opacity="0.45" filter="url(#soft)"/>
+  <circle cx="620" cy="140" r="4" fill="#38bdf8" opacity="0.5" filter="url(#soft)"/>
+  <circle cx="660" cy="280" r="3" fill="#0284c7" opacity="0.4" filter="url(#soft)"/>
 </svg>

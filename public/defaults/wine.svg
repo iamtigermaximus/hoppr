@@ -1,19 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a0a1a"/>
-      <stop offset="100%" style="stop-color:#0f0f1a"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#140a0f"/>
+      <stop offset="50%" style="stop-color:#160d12"/>
+      <stop offset="100%" style="stop-color:#0a080a"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <radialGradient id="glow" cx="45%" cy="40%" r="45%">
+      <stop offset="0%" style="stop-color:#9b2226;stop-opacity:0.45"/>
+      <stop offset="50%" style="stop-color:#7f1d1d;stop-opacity:0.12"/>
+      <stop offset="100%" style="stop-color:#7f1d1d;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="60%" cy="55%" r="35%">
+      <stop offset="0%" style="stop-color:#c084fc;stop-opacity:0.25"/>
+      <stop offset="100%" style="stop-color:#c084fc;stop-opacity:0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="5"/></filter>
+    <filter id="big"><feGaussianBlur stdDeviation="18"/></filter>
   </defs>
-  <rect width="800" height="400" fill="url(#g)"/>
-  <rect x="40" y="40" width="720" height="320" rx="12" fill="none" stroke="#a855f7" stroke-width="1" opacity="0.3"/>
-  <circle cx="400" cy="160" r="70" fill="#a855f7" opacity="0.1"/>
-  <text x="400" y="185" text-anchor="middle" font-size="70" filter="url(#glow)">🍷</text>
-  <text x="400" y="260" text-anchor="middle" font-size="28" fill="#a855f7" font-family="system-ui, sans-serif" font-weight="700">Wine Evening</text>
-  <text x="400" y="300" text-anchor="middle" font-size="15" fill="#6b7280" font-family="system-ui, sans-serif">Curated wine experiences</text>
-  <rect x="360" y="360" width="80" height="3" rx="2" fill="#a855f7" opacity="0.5"/>
+  <rect width="800" height="400" fill="url(#bg)"/>
+  <circle cx="360" cy="160" r="180" fill="url(#glow)"/>
+  <circle cx="480" cy="220" r="140" fill="url(#glow2)"/>
+  <path d="M 80 300 C 200 270 250 340 400 310 C 550 280 600 350 700 300" fill="none" stroke="#dc2626" stroke-width="3" opacity="0.55" filter="url(#soft)"/>
+  <path d="M 120 250 C 280 220 320 300 400 270 C 500 250 580 300 680 250" fill="none" stroke="#9b2226" stroke-width="2.5" opacity="0.4" filter="url(#soft)"/>
+  <path d="M 180 350 C 300 320 350 370 450 340 C 550 320 600 350 660 330" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.3"/>
+  <circle cx="280" cy="140" r="12" fill="#dc2626" opacity="0.45" filter="url(#big)"/>
+  <circle cx="520" cy="200" r="10" fill="#c084fc" opacity="0.35" filter="url(#big)"/>
+  <circle cx="380" cy="300" r="14" fill="#9b2226" opacity="0.35" filter="url(#big)"/>
+  <circle cx="450" cy="120" r="4" fill="#dc2626" opacity="0.55" filter="url(#soft)"/>
+  <circle cx="200" cy="240" r="3" fill="#c084fc" opacity="0.4" filter="url(#soft)"/>
+  <circle cx="600" cy="280" r="4" fill="#dc2626" opacity="0.45" filter="url(#soft)"/>
 </svg>

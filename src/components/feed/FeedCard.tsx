@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import { Calendar, MapPin, Users, Clock, CheckCircle, Sparkle, Storefront } from "@phosphor-icons/react";
@@ -68,6 +68,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   const trackedRef = useRef(false);
+  const [imgError, setImgError] = useState(false);
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id as string | undefined;
   const t = (typeLabels as Record<string, { label: string; icon: any; color: string }>)[item.type] ?? { label: item.type.toUpperCase(), icon: MapPin, color: "#737373" };
@@ -118,9 +119,9 @@ export function FeedCard({ item }: { item: FeedItem }) {
 
   return (
     <CardWrapper $color={color} onClick={handleClick} ref={cardRef}>
-      {imageSrc ? (
+      {imageSrc && !imgError ? (
         <CardImage>
-          <img src={imageSrc} alt="" />
+          <img src={imageSrc} alt="" onError={() => setImgError(true)} />
           <div style={{ position: "absolute", top: "8px", left: "8px", display: "flex", gap: "6px", zIndex: 2 }}>
             <Badge $type={item.type === "promotion" ? "promo" : item.type}>{t.label}</Badge>
             {isEventJoined && (
