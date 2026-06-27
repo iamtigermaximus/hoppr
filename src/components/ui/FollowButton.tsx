@@ -66,11 +66,12 @@ export function FollowButton({
   const { data } = useQuery({
     queryKey: ["follow", barId],
     queryFn: () => fetch(`/api/bars/${barId}/follow`).then((r) => r.json()),
-    initialData: {
+    placeholderData: {
       isFollowing: initialIsFollowing,
       followerCount: initialFollowerCount,
     },
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const isFollowing = optimistic?.following ?? data?.isFollowing ?? false;
