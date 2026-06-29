@@ -214,6 +214,99 @@ const ClaimError = styled.div`
   margin-bottom: 8px;
 `;
 
+const FileDropZone = styled.label`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  border: 2px dashed rgba(124, 58, 237, 0.3);
+  border-radius: 10px;
+  background: rgba(124, 58, 237, 0.04);
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: border-color 0.2s, background 0.2s;
+  &:hover {
+    border-color: rgba(124, 58, 237, 0.6);
+    background: rgba(124, 58, 237, 0.08);
+  }
+`;
+
+const FileDropIcon = styled.div`
+  color: #7c3aed;
+  font-size: 24px;
+`;
+
+const FileDropText = styled.div`
+  color: var(--color-text-secondary, #a3a3a3);
+  font-size: 12px;
+  text-align: center;
+`;
+
+const FileDropHint = styled.div`
+  color: var(--color-text-muted, #737373);
+  font-size: 10px;
+`;
+
+const FileList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+`;
+
+const FileChip = styled.div<{ $error?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: ${({ $error }) =>
+    $error ? "rgba(239, 68, 68, 0.1)" : "rgba(124, 58, 237, 0.08)"};
+  font-size: 11px;
+  color: ${({ $error }) => ($error ? "#ef4444" : "#a78bfa")};
+`;
+
+const FileChipName = styled.span`
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+`;
+
+const FileChipRemove = styled.button`
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.6;
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const GuidanceBox = styled.div`
+  background: rgba(124, 58, 237, 0.06);
+  border: 1px solid rgba(124, 58, 237, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  color: var(--color-text-secondary, #a3a3a3);
+  line-height: 1.5;
+`;
+
+const GuidanceTitle = styled.div`
+  color: #a78bfa;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 4px;
+`;
+
 const CloseButton = styled.button`
   position: absolute;
   top: 16px;
@@ -317,12 +410,16 @@ export function VenueDetail() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const [claimOpen, setClaimOpen] = useState(false);
+  const [claimName, setClaimName] = useState("");
+  const [claimEmail, setClaimEmail] = useState("");
   const [claimRole, setClaimRole] = useState("");
   const [claimPhone, setClaimPhone] = useState("");
   const [claimNotes, setClaimNotes] = useState("");
   const [claimSubmitting, setClaimSubmitting] = useState(false);
   const [claimError, setClaimError] = useState("");
   const [claimSuccess, setClaimSuccess] = useState("");
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
 
   // Track page view — drops a pebble, never blocks
   useEffect(() => {
@@ -366,13 +463,55 @@ export function VenueDetail() {
     setClaimError("");
     setClaimSubmitting(true);
     try {
+      // Step 1: Upload any attached documents
+      let documentUrls: string[] = [];
+      if (uploadFiles.length > 0) {
+        setUploadingFiles(true);
+        const uploadResults = await Promise.allSettled(
+          uploadFiles.map(async (file) => {
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.error || `Failed to upload ${file.name}`);
+            }
+            const data = await res.json();
+            return data.url as string;
+          }),
+        );
+        setUploadingFiles(false);
+
+        // Collect successful uploads and report failures
+        const failed: string[] = [];
+        uploadResults.forEach((r, i) => {
+          if (r.status === "fulfilled") {
+            documentUrls.push(r.value);
+          } else {
+            failed.push(uploadFiles[i].name);
+          }
+        });
+        if (failed.length > 0) {
+          throw new Error(
+            `Failed to upload: ${failed.join(", ")}. Please try again.`,
+          );
+        }
+      }
+
+      // Step 2: Submit the claim
       const res = await fetch(`/api/venues/${id}/claim`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: claimName,
+          email: claimEmail,
           role: claimRole,
           phone: claimPhone,
           notes: claimNotes,
+          documentUrls,
         }),
       });
       const data = await res.json();
@@ -713,39 +852,74 @@ export function VenueDetail() {
         </Button>
       </SectionCard>
 
-      {/* Opening Hours */}
-      {venue.hours && (
-        <SectionCard>
+      {/* Opening Hours — always shown, with fallback when data is missing */}
+      <SectionCard>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "10px",
+          }}
+        >
+          <Clock size={18} color="#7c3aed" />
+          <h3
+            style={{
+              color: "var(--color-text-primary, #fff)",
+              fontWeight: 700,
+              fontSize: "14px",
+              margin: 0,
+            }}
+          >
+            Opening Hours
+          </h3>
+        </div>
+
+        {venue.hoursArePlaceholder && (
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: "8px",
+              padding: "8px 12px",
               marginBottom: "10px",
+              borderRadius: "8px",
+              background: "rgba(245, 158, 11, 0.1)",
+              border: "1px solid rgba(245, 158, 11, 0.25)",
+              color: "#f59e0b",
+              fontSize: "12px",
+              fontWeight: 500,
             }}
           >
-            <Clock size={18} color="#7c3aed" />
-            <h3
-              style={{
-                color: "var(--color-text-primary, #fff)",
-                fontWeight: 700,
-                fontSize: "14px",
-                margin: 0,
-              }}
-            >
-              Opening Hours
-            </h3>
+            <span style={{ fontSize: "14px", lineHeight: 1 }}>&#9888;</span>
+            <span>
+              This venue hasn&apos;t been claimed or verified yet, so opening
+              hours are an estimate and may not be accurate.
+            </span>
           </div>
-          <HoursGrid>
-            {days.map((day) => (
+        )}
+
+        <HoursGrid>
+          {days.map((day) => {
+            const entry = venue.hours?.[day] || "Closed";
+            const isClosed = entry === "Closed";
+            return (
               <HourRow key={day} $today={day === today}>
                 <span style={{ textTransform: "capitalize" }}>{day}</span>
-                <span>{venue.hours?.[day] || "Closed"}</span>
+                <span
+                  style={{
+                    color: isClosed
+                      ? "var(--color-text-muted, #737373)"
+                      : undefined,
+                  }}
+                >
+                  {entry}
+                </span>
               </HourRow>
-            ))}
-          </HoursGrid>
-        </SectionCard>
-      )}
+            );
+          })}
+        </HoursGrid>
+      </SectionCard>
 
       {/* Amenities */}
       {venue.amenities && venue.amenities.length > 0 && (
@@ -946,6 +1120,17 @@ export function VenueDetail() {
                     {claimError && <ClaimError>{claimError}</ClaimError>}
 
                     <ClaimInput
+                      placeholder="Your full name"
+                      value={claimName}
+                      onChange={(e) => setClaimName(e.target.value)}
+                    />
+                    <ClaimInput
+                      type="email"
+                      placeholder="Contact email (e.g. your bar's business email)"
+                      value={claimEmail}
+                      onChange={(e) => setClaimEmail(e.target.value)}
+                    />
+                    <ClaimInput
                       placeholder="Your role at this venue (e.g. Owner, Manager)"
                       value={claimRole}
                       onChange={(e) => setClaimRole(e.target.value)}
@@ -962,12 +1147,81 @@ export function VenueDetail() {
                       onChange={(e) => setClaimNotes(e.target.value)}
                     />
 
+                    {/* Document upload */}
+                    <GuidanceBox>
+                      <GuidanceTitle>
+                        Verification documents (optional but recommended)
+                      </GuidanceTitle>
+                      Uploading proof of ownership or affiliation helps us verify
+                      your claim faster. Accepted documents include:
+                      <br />• Business license or registration certificate
+                      <br />• Government-issued photo ID
+                      <br />• Utility bill or lease agreement for the venue
+                      <br />• Any other document linking you to this business
+                    </GuidanceBox>
+
+                    <FileDropZone>
+                      <FileDropIcon>📎</FileDropIcon>
+                      <FileDropText>
+                        Click to attach documents
+                      </FileDropText>
+                      <FileDropHint>
+                        JPEG, PNG, PDF · max 10MB each
+                      </FileDropHint>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,application/pdf"
+                        multiple
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          // Filter out files over 10MB
+                          const valid = files.filter(
+                            (f) => f.size <= 10 * 1024 * 1024,
+                          );
+                          if (valid.length < files.length) {
+                            setClaimError(
+                              "Some files were too large (max 10MB each).",
+                            );
+                          }
+                          setUploadFiles((prev) => [...prev, ...valid]);
+                          // Reset the input so the same file can be re-selected
+                          e.target.value = "";
+                        }}
+                      />
+                    </FileDropZone>
+
+                    {uploadFiles.length > 0 && (
+                      <FileList>
+                        {uploadFiles.map((file, i) => (
+                          <FileChip key={`${file.name}-${i}`}>
+                            <FileChipName>{file.name}</FileChipName>
+                            <FileChipRemove
+                              type="button"
+                              onClick={() =>
+                                setUploadFiles((prev) =>
+                                  prev.filter((_, j) => j !== i),
+                                )
+                              }
+                              aria-label={`Remove ${file.name}`}
+                            >
+                              <X size={12} />
+                            </FileChipRemove>
+                          </FileChip>
+                        ))}
+                      </FileList>
+                    )}
+
                     <Button
                       fullWidth
                       disabled={claimSubmitting}
                       onClick={handleClaimSubmit}
                     >
-                      {claimSubmitting ? "Submitting..." : "Submit request"}
+                      {claimSubmitting
+                        ? uploadingFiles
+                          ? "Uploading documents..."
+                          : "Submitting..."
+                        : "Submit request"}
                     </Button>
                   </>
                 )}

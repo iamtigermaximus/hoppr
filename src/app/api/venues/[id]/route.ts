@@ -3,32 +3,79 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function placeholderHours(): Record<string, string> {
+  return {
+    monday: "16:00 - 02:00",
+    tuesday: "16:00 - 02:00",
+    wednesday: "16:00 - 02:00",
+    thursday: "16:00 - 02:00",
+    friday: "16:00 - 04:00",
+    saturday: "16:00 - 04:00",
+    sunday: "16:00 - 02:00",
+  };
+}
+
 /** Normalize operatingHours from stored format to consumer format.
- *  Business app stores: { Monday: { open:"16:00", close:"02:00" }, ... }
- *  Consumer expects:    { monday: "16:00 - 02:00", ... }             */
-function normalizeHours(raw: unknown): Record<string, string> | null {
-  if (!raw || typeof raw !== "object") return null;
-  const src = raw as Record<string, unknown>;
+ *  Handles all 4 possible key–value combinations:
+ *    1. { monday: "16:00 - 02:00" }          — lower key, string value
+ *    2. { Monday: { open:"16:00", close:"02:00" } } — upper key, object value
+ *    3. { Monday: "16:00 - 02:00" }          — upper key, string value
+ *    4. { monday: { open:"16:00", close:"02:00" } } — lower key, object value              */
+function normalizeHours(raw: unknown): { hours: Record<string, string>; isPlaceholder: boolean } {
+  const ph = () => ({ hours: placeholderHours(), isPlaceholder: true });
+  if (!raw) return ph();
+  // Handle case where JSON field was serialized as a string
+  let src: Record<string, unknown>;
+  if (typeof raw === "string") {
+    try { src = JSON.parse(raw); } catch { return ph(); }
+  } else if (typeof raw === "object") {
+    src = raw as Record<string, unknown>;
+  } else {
+    return ph();
+  }
   const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
   const result: Record<string, string> = {};
   for (const day of days) {
-    // Already consumer format: "monday": "16:00 - 02:00"
-    const lower = src[day];
-    if (typeof lower === "string" && lower.length > 0) {
-      result[day] = lower;
-      continue;
-    }
-    // Business format: "Monday": { open:"16:00", close:"02:00" }
     const cap = day.charAt(0).toUpperCase() + day.slice(1);
+
+    // Try lowercase key first
+    const lower = src[day];
+    if (lower) {
+      if (typeof lower === "string" && lower.length > 0) { result[day] = lower; continue; }
+      if (typeof lower === "object" && lower !== null) {
+        const lo = (lower as Record<string,unknown>).open as string | undefined;
+        const lc = (lower as Record<string,unknown>).close as string | undefined;
+        if (lo && lc && lo !== "Closed" && lc !== "Closed") {
+          result[day] = `${lo} - ${lc}`;
+        } else {
+          result[day] = "Closed";
+        }
+        continue;
+      }
+    }
+
+    // Try capitalized key
     const capVal = src[cap];
-    if (capVal && typeof capVal === "object") {
-      const o = (capVal as Record<string,unknown>).open as string | undefined;
-      const c = (capVal as Record<string,unknown>).close as string | undefined;
-      if (o && c) result[day] = `${o} - ${c}`;
-      else result[day] = "Closed";
+    if (capVal) {
+      if (typeof capVal === "string" && capVal.length > 0) { result[day] = capVal; continue; }
+      if (typeof capVal === "object") {
+        const o = (capVal as Record<string,unknown>).open as string | undefined;
+        const c = (capVal as Record<string,unknown>).close as string | undefined;
+        if (o && c && o !== "Closed" && c !== "Closed") {
+          result[day] = `${o} - ${c}`;
+        } else {
+          result[day] = "Closed";
+        }
+      }
     }
   }
-  return Object.keys(result).length > 0 ? result : null;
+  // If every day is "Closed", the data was never entered — use placeholder
+  const allClosed = Object.keys(result).length === 7 &&
+    Object.values(result).every((v) => v === "Closed");
+  if (Object.keys(result).length > 0 && !allClosed) {
+    return { hours: result, isPlaceholder: false };
+  }
+  return ph();
 }
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -144,6 +191,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       isFollowing = !!follow;
     }
 
+    const nh = normalizeHours(bar.operatingHours);
+
     return NextResponse.json({
       id: bar.id,
       name: bar.name,
@@ -163,7 +212,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       musicTags: bar.musicTags,
       capacity: bar.capacity,
       amenities: bar.amenities,
-      hours: normalizeHours(bar.operatingHours),
+      hours: nh.hours,
+      hoursArePlaceholder: nh.isPlaceholder,
       imageUrl: bar.coverImage || (bar.imageUrls?.length > 0 ? bar.imageUrls[0] : null),
       imageUrls: bar.imageUrls,
       logoUrl: bar.logoUrl,

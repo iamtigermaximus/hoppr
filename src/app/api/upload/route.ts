@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const file = formData.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
 
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
   if (!allowedTypes.includes(file.type)) {
     return NextResponse.json({ error: "Invalid file type. Use JPEG, PNG, WebP, or GIF." }, { status: 400 });
   }
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
       const result = await cloudinary.uploader.upload(base64, {
         folder: "hoppr",
-        resource_type: "image",
+        resource_type: file.type === "application/pdf" ? "auto" : "image",
         transformation: [{ quality: "auto", fetch_format: "auto" }],
       });
       return NextResponse.json({ url: result.secure_url });

@@ -2,24 +2,74 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { haversineDistance } from "@/lib/utils";
 
-function normalizeHours(raw: unknown): Record<string, string> | null {
-  if (!raw || typeof raw !== "object") return null;
-  const src = raw as Record<string, unknown>;
+function placeholderHours(): Record<string, string> {
+  // Reasonable defaults for bars without stored hours.
+  // Can be updated as needed.
+  return {
+    monday: "16:00 - 02:00",
+    tuesday: "16:00 - 02:00",
+    wednesday: "16:00 - 02:00",
+    thursday: "16:00 - 02:00",
+    friday: "16:00 - 04:00",
+    saturday: "16:00 - 04:00",
+    sunday: "16:00 - 02:00",
+  };
+}
+
+function normalizeHours(raw: unknown): { hours: Record<string, string>; isPlaceholder: boolean } {
+  const ph = () => ({ hours: placeholderHours(), isPlaceholder: true });
+  if (!raw) return ph();
+  let src: Record<string, unknown>;
+  if (typeof raw === "string") {
+    try { src = JSON.parse(raw); } catch { return ph(); }
+  } else if (typeof raw === "object") {
+    src = raw as Record<string, unknown>;
+  } else {
+    return ph();
+  }
   const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
   const result: Record<string, string> = {};
   for (const day of days) {
-    const lower = src[day];
-    if (typeof lower === "string" && lower.length > 0) { result[day] = lower; continue; }
     const cap = day.charAt(0).toUpperCase() + day.slice(1);
+
+    // Try lowercase key first
+    const lower = src[day];
+    if (lower) {
+      if (typeof lower === "string" && lower.length > 0) { result[day] = lower; continue; }
+      if (typeof lower === "object" && lower !== null) {
+        const lo = (lower as Record<string,unknown>).open as string | undefined;
+        const lc = (lower as Record<string,unknown>).close as string | undefined;
+        if (lo && lc && lo !== "Closed" && lc !== "Closed") {
+          result[day] = `${lo} - ${lc}`;
+        } else {
+          result[day] = "Closed";
+        }
+        continue;
+      }
+    }
+
+    // Try capitalized key
     const capVal = src[cap];
-    if (capVal && typeof capVal === "object") {
-      const o = (capVal as Record<string,unknown>).open as string | undefined;
-      const c = (capVal as Record<string,unknown>).close as string | undefined;
-      if (o && c) result[day] = `${o} - ${c}`;
-      else result[day] = "Closed";
+    if (capVal) {
+      if (typeof capVal === "string" && capVal.length > 0) { result[day] = capVal; continue; }
+      if (typeof capVal === "object") {
+        const o = (capVal as Record<string,unknown>).open as string | undefined;
+        const c = (capVal as Record<string,unknown>).close as string | undefined;
+        if (o && c && o !== "Closed" && c !== "Closed") {
+          result[day] = `${o} - ${c}`;
+        } else {
+          result[day] = "Closed";
+        }
+      }
     }
   }
-  return Object.keys(result).length > 0 ? result : null;
+  // If every day is "Closed", the data was never entered — use placeholder
+  const allClosed = Object.keys(result).length === 7 &&
+    Object.values(result).every((v) => v === "Closed");
+  if (Object.keys(result).length > 0 && !allClosed) {
+    return { hours: result, isPlaceholder: false };
+  }
+  return ph();
 }
 
 export async function GET(req: Request) {
@@ -79,37 +129,41 @@ export async function GET(req: Request) {
       orderBy: { name: "asc" },
     });
 
-    const venues = bars.map((b) => ({
-      id: b.id,
-      name: b.name,
-      type: b.type,
-      address: b.address,
-      lat: b.latitude,
-      lng: b.longitude,
-      district: b.district,
-      phone: b.phone,
-      website: b.website,
-      email: b.email,
-      instagram: b.instagram,
-      facebook: b.facebook,
-      description: b.description,
-      priceRange: b.priceRange,
-      coverCharge: b.coverCharge,
-      musicTags: b.musicTags,
-      capacity: b.capacity,
-      amenities: b.amenities,
-      hours: normalizeHours(b.operatingHours),
-      qualityScore: b.qualityScore,
-      profileViews: b.profileViews,
-      directionClicks: b.directionClicks,
-      followerCount: b._count.followers,
-      imageUrl: b.coverImage || (b.imageUrls?.length > 0 ? b.imageUrls[0] : null),
-      crowdLevel: b.crowdReports[0]?.level ?? null,
-      crowdReportedAt: b.crowdReports[0]?.reportedAt?.toISOString() ?? null,
-      distance: b.latitude != null && b.longitude != null
-        ? haversineDistance(lat, lng, b.latitude, b.longitude)
-        : 99,
-    }));
+    const venues = bars.map((b) => {
+      const nh = normalizeHours(b.operatingHours);
+      return {
+        id: b.id,
+        name: b.name,
+        type: b.type,
+        address: b.address,
+        lat: b.latitude,
+        lng: b.longitude,
+        district: b.district,
+        phone: b.phone,
+        website: b.website,
+        email: b.email,
+        instagram: b.instagram,
+        facebook: b.facebook,
+        description: b.description,
+        priceRange: b.priceRange,
+        coverCharge: b.coverCharge,
+        musicTags: b.musicTags,
+        capacity: b.capacity,
+        amenities: b.amenities,
+        hours: nh.hours,
+        hoursArePlaceholder: nh.isPlaceholder,
+        qualityScore: b.qualityScore,
+        profileViews: b.profileViews,
+        directionClicks: b.directionClicks,
+        followerCount: b._count.followers,
+        imageUrl: b.coverImage || (b.imageUrls?.length > 0 ? b.imageUrls[0] : null),
+        crowdLevel: b.crowdReports[0]?.level ?? null,
+        crowdReportedAt: b.crowdReports[0]?.reportedAt?.toISOString() ?? null,
+        distance: b.latitude != null && b.longitude != null
+          ? haversineDistance(lat, lng, b.latitude, b.longitude)
+          : 99,
+      };
+    });
 
     // Sort by distance
     venues.sort((a, b) => (a.distance ?? 99) - (b.distance ?? 99));
