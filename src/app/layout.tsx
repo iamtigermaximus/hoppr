@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { StyledComponentsRegistry } from "@/lib/registry";
 import { AuthProvider } from "@/components/contexts/AuthContext";
 import { QueryProvider } from "@/components/contexts/QueryProvider";
+import { PushNotificationProvider } from "@/components/contexts/PushNotificationProvider";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <StyledComponentsRegistry>
           <AuthProvider>
-            <QueryProvider>{children}</QueryProvider>
+            <PushNotificationProvider>
+              <QueryProvider>{children}</QueryProvider>
+            </PushNotificationProvider>
           </AuthProvider>
         </StyledComponentsRegistry>
       </body>

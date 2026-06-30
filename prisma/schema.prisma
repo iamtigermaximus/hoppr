@@ -242,6 +242,17 @@ enum InsightChannel {
   CHAT
 }
 
+enum RetargetingRule {
+  VIEWED_NOT_FOLLOWED
+  FOLLOWED_NOT_VISITED
+}
+
+enum ScheduledNotificationStatus {
+  PENDING
+  SENT
+  CANCELLED
+}
+
 // ============================================
 // AUTH & USER
 // ============================================
@@ -266,6 +277,7 @@ model User {
   twitter     String?
   interests   String[]  @default([])
   languages   String[]  @default([])
+  pushPreferences Json?
   gallery     String[]  @default([])
   locationLat Float?
   locationLng Float?
@@ -315,6 +327,10 @@ model User {
   // Followed bars (consumer)
   followedBars BarFollow[]
   crowdReports CrowdReport[]
+
+  // Push notifications
+  devices          NotificationDevice[]
+  notificationLogs NotificationLog[]
 
   @@map("users")
 }
@@ -478,6 +494,18 @@ model Bar {
 
   // Analytics
   dailyStats BarDailyStats[]
+
+  // Notifications & marketing
+  retargetingEnabled    Boolean @default(false)
+  autoSchedulingEnabled Boolean @default(false)
+
+  // Social media integration
+  socialConnections BarSocialConnection[]
+  socialPosts       SocialPost[]
+
+  // Retargeting & scheduler
+  retargetingCampaigns RetargetingCampaign[]
+  busynessPatterns     BarBusynessPattern[]
 
   @@map("bars")
 }
@@ -1140,4 +1168,191 @@ model InsightPreference {
 
   @@unique([barId, channel, type])
   @@map("insight_preferences")
+}
+
+// ============================================
+// SOCIAL MEDIA INTEGRATION
+// ============================================
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+}
+
+model BarSocialConnection {
+  id            String        @id @default(cuid())
+  barId         String
+  platform      SocialPlatform
+  pageId        String?       // Facebook Page ID (required for Instagram too — IG account must be linked to a page)
+  pageName      String?       // Display name of the connected page
+  igAccountId   String?       // Instagram Professional Account ID (only for INSTAGRAM)
+  igUsername    String?       // Instagram username for display
+  accessToken   String        // Encrypted long-lived access token (AES-256-GCM)
+  tokenExpiresAt DateTime     // When the token expires (typically 60 days from issue)
+  isActive      Boolean       @default(true)
+  connectedAt   DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  bar  Bar   @relation(fields: [barId], references: [id], onDelete: Cascade)
+  posts SocialPost[]
+
+  @@unique([barId, platform])
+  @@map("bar_social_connections")
+}
+
+model SocialPost {
+  id             String        @id @default(cuid())
+  connectionId   String
+  barId          String
+  platform       SocialPlatform
+  contentTitle   String        // The promo/event title that was posted
+  contentType    String        // "promotion" | "event"
+  contentId      String        // The ID of the promo or event
+  imageUrl       String?       // Cloudinary URL of the posted image
+  caption        String?       // The caption that was posted
+  platformPostId String?       // Instagram media ID or Facebook post ID (for linking back)
+  platformPostUrl String?      // Public URL to the post on Instagram/Facebook
+  status         String        @default("published") // published | failed
+  errorMessage   String?       // If status is "failed"
+  postedAt       DateTime      @default(now())
+
+  connection BarSocialConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  bar        Bar                 @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@index([barId, postedAt])
+  @@index([contentId])
+  @@map("social_posts")
+}
+
+// ============================================
+// PUSH NOTIFICATIONS
+// ============================================
+
+model NotificationDevice {
+  id            String   @id @default(cuid())
+  userId        String
+  fcmToken      String   @unique
+  platform      String   @default("web") // ios | android | web
+  deviceName    String?  // e.g. "iPhone 15 Pro"
+  locale        String?  // e.g. "fi-FI"
+  timezone      String?  // e.g. "Europe/Helsinki"
+  isActive      Boolean  @default(true)
+  lastActiveAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs NotificationLog[]
+
+  @@index([userId, isActive])
+  @@index([fcmToken])
+  @@map("notification_devices")
+}
+
+model NotificationLog {
+  id             String         @id @default(cuid())
+  userId         String
+  deviceId       String?
+  type           NotificationType
+  title          String
+  body           String
+  imageUrl       String?        // Rich notification image (share card)
+  deepLink       String?        // e.g. "/promotions/abc123"
+  fcmMessageId   String?        // FCM message ID for delivery tracking
+  status         String         @default("sent") // sent | delivered | opened | failed | converted
+  contentId      String?        // The promo/event/pass ID that triggered this
+  contentBarId   String?        // Which bar's content it was
+  errorMessage   String?        // If status is "failed"
+  sentAt         DateTime       @default(now())
+  deliveredAt    DateTime?
+  openedAt       DateTime?
+  convertedAt    DateTime?      // User visited the bar within 2h of opening
+
+  user   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device NotificationDevice? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, sentAt])
+  @@index([contentBarId, sentAt])
+  @@index([status, sentAt])
+  @@index([contentId])
+  @@map("notification_logs")
+}
+
+// ============================================
+// RETARGETING
+// ============================================
+
+model RetargetingCampaign {
+  id        String          @id @default(cuid())
+  barId     String
+  rule      RetargetingRule
+  enabled   Boolean         @default(true)
+  maxPerDay Int             @default(5)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  bar     Bar                 @relation(fields: [barId], references: [id], onDelete: Cascade)
+  actions RetargetingAction[]
+
+  @@unique([barId, rule])
+  @@map("retargeting_campaigns")
+}
+
+model RetargetingAction {
+  id           String          @id @default(cuid())
+  campaignId   String
+  userId       String
+  barId        String
+  rule         RetargetingRule
+  fcmMessageId String?
+  status       String          @default("sent")
+  sentAt       DateTime        @default(now())
+
+  campaign RetargetingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([userId, barId, rule, sentAt])
+  @@index([campaignId, sentAt])
+  @@map("retargeting_actions")
+}
+
+// ============================================
+// AI MARKETING SCHEDULER
+// ============================================
+
+model BarBusynessPattern {
+  id          String   @id @default(cuid())
+  barId       String
+  dayOfWeek   Int      // 0=Sun … 6=Sat
+  hour        Int      // 0-23
+  avgLevel    Float    // 1=QUIET … 5=AT_CAPACITY
+  sampleCount Int      // number of CrowdReports backing this row
+  rampUpHour  Int?     // hour just before the peak (optimal send window)
+  computedAt  DateTime @default(now())
+
+  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@unique([barId, dayOfWeek, hour])
+  @@index([barId, dayOfWeek])
+  @@map("bar_busyness_patterns")
+}
+
+model ScheduledNotification {
+  id          String                      @id @default(cuid())
+  barId       String
+  promoId     String?
+  eventId     String?
+  title       String
+  body        String
+  imageUrl    String?
+  deepLink    String?
+  type        NotificationType
+  scheduledAt DateTime
+  sentAt      DateTime?
+  status      ScheduledNotificationStatus @default(PENDING)
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([barId, status])
+  @@map("scheduled_notifications")
 }
