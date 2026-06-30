@@ -699,6 +699,11 @@ model BarPromotion {
   redemptions Int @default(0)
   cardViews   Int @default(0)
 
+  // Share card
+  svgBackground String?
+  category      String?
+  occasion      String?
+
   // Who created / approved
   createdById  String?
   approvedById String?
@@ -757,6 +762,11 @@ model Event {
   complianceStatus ComplianceStatus @default(COMPLIANT)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+
+  // Share card
+  svgBackground String?
+  category      String?
+  occasion      String?
 
   creator      User               @relation("EventCreator", fields: [creatorId], references: [id])
   venue        Bar                @relation(fields: [venueId], references: [id])
@@ -935,6 +945,11 @@ model AdCampaign {
 
   // Finnish compliance
   complianceStatus ComplianceStatus @default(PENDING_REVIEW)
+
+  // Share card
+  svgBackground String?
+  category      String?
+  occasion      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

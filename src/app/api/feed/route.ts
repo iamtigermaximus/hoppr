@@ -23,7 +23,7 @@ export async function GET(req: Request) {
         status: "ACTIVE",
         startDate: { lte: now },
         endDate: { gte: now },
-        complianceStatus: "COMPLIANT",
+        complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
       },
     });
     const boostedCampaigns = campaigns.filter(
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
         prisma.event.findMany({
           where: {
             startTime: { gte: start, lte: end },
-            complianceStatus: "COMPLIANT",
+            complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
           },
           include: {
             participants: {
@@ -69,7 +69,7 @@ export async function GET(req: Request) {
           where: {
             isActive: true,
             isApproved: true,
-            complianceStatus: "COMPLIANT",
+            complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
             startDate: { lte: end },
             endDate: { gte: start },
           },

@@ -10,7 +10,7 @@ export async function GET(_req: Request) {
         status: "ACTIVE",
         startDate: { lte: now },
         endDate: { gte: now },
-        complianceStatus: "COMPLIANT",
+        complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
       },
       select: {
         id: true,

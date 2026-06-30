@@ -11,12 +11,19 @@ export async function GET(req: Request) {
 
     const where: any = {
       isActive: true,
-      isApproved: true,
-      complianceStatus: "COMPLIANT",
-      startDate: { lte: new Date() },
-      endDate: { gte: new Date() },
     };
-    if (id) where.id = id;
+
+    // Public listing: only show approved, compliant, active-date-range promotions
+    if (!id) {
+      where.isApproved = true;
+      where.complianceStatus = { in: ["COMPLIANT", "FLAGGED_AUTO"] };
+      where.startDate = { lte: new Date() };
+      where.endDate = { gte: new Date() };
+    } else {
+      // Direct access by ID: relax filters so bar owners can preview their own
+      // content even if not yet approved or date hasn't started
+      where.id = id;
+    }
 
     const promotions = await prisma.barPromotion.findMany({
       where,

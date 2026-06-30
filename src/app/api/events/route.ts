@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
     const where: any = {
       startTime: { gte: new Date() },
-      complianceStatus: "COMPLIANT",
+      complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
     };
     if (creatorId) where.creatorId = creatorId;
     if (userId) {
