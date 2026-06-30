@@ -3,6 +3,7 @@ import { StyledComponentsRegistry } from "@/lib/registry";
 import { AuthProvider } from "@/components/contexts/AuthContext";
 import { QueryProvider } from "@/components/contexts/QueryProvider";
 import { PushNotificationProvider } from "@/components/contexts/PushNotificationProvider";
+import AppShell from "@/components/AppShell";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StyledComponentsRegistry>
           <AuthProvider>
             <PushNotificationProvider>
-              <QueryProvider>{children}</QueryProvider>
+              <QueryProvider>
+                <AppShell>{children}</AppShell>
+              </QueryProvider>
             </PushNotificationProvider>
           </AuthProvider>
         </StyledComponentsRegistry>

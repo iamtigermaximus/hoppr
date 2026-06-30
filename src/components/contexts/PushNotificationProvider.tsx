@@ -122,13 +122,6 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
     }
   }, [supported, registerToken]);
 
-  // Debug helper — exposes requestPermission on window for console testing
-  // TODO: Remove after adding a proper UI component for notification opt-in
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      (window as unknown as Record<string, unknown>).__enablePush = () => requestPermission();
-    }
-  }, [requestPermission]);
 
   const unregister = useCallback(async () => {
     if (fcmToken) {
