@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import ShareButton from "@/components/ui/ShareButton";
+import SharePrompt from "@/components/ui/SharePrompt";
 import { FollowButton } from "@/components/ui/FollowButton";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { SkeletonDetail } from "@/components/ui/Skeleton";
@@ -743,6 +744,15 @@ export function VenueDetail() {
           ) : null}
         </div>
       </div>
+
+      {/* Share prompt — bars thrive on word of mouth */}
+      <SharePrompt
+        storageKey={`venue_${id}`}
+        headline={`Know someone who'd love ${venue.name}? Share it!`}
+        subtitle={`Spread the word — ${venue.name} is on Hoppr.`}
+        shareTitle={venue.name}
+        shareText={`Check out ${venue.name}${venue.district ? ` in ${venue.district}` : ""} on Hoppr!`}
+      />
 
       {/* Description */}
       {venue.description && (

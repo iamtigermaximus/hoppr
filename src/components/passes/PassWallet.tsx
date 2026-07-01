@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMyPasses } from "@/hooks/usePasses";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { QRCodeView } from "./QRCodeView";
+import SharePrompt from "@/components/ui/SharePrompt";
 import { Ticket, CheckCircle, XCircle } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
 
@@ -28,9 +29,34 @@ export function PassWallet() {
     p.status === "USED" || p.scannedAt || new Date(p.expiresAt) < new Date()
   );
 
+  // Compute share prompt data from active pass
+  const firstActiveBar = active[0]?.bar?.name || "the bar";
+  const firstActivePassName = active[0]?.vipPass?.name || "My Pass";
+
+  // Recently-used pass (scanned within last 48 hours) for post-redemption share
+  const recentlyUsed = useMemo(() => {
+    const now = Date.now();
+    const twoDays = 48 * 60 * 60 * 1000;
+    return used.find((p: any) => {
+      const scannedAt = p.scannedAt ? new Date(p.scannedAt).getTime() : 0;
+      return scannedAt > now - twoDays;
+    });
+  }, [used]);
+
   return (
     <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
       <h1 style={{ fontWeight: 800, fontSize: "18px", color: "#fff", marginBottom: "16px" }}>My Passes</h1>
+
+      {/* Share prompt — show when user has active passes */}
+      {active.length > 0 && (
+        <SharePrompt
+          storageKey="passes_active"
+          headline="Got a pass? Share it with your friends!"
+          subtitle={`Invite your crew to grab the same deal at ${firstActiveBar}.`}
+          shareTitle={firstActivePassName}
+          shareText={`Join me at ${firstActiveBar} — I've got a VIP pass!`}
+        />
+      )}
 
       <div style={{ marginBottom: "24px" }}>
         <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Active ({active.length})</h3>
@@ -56,6 +82,16 @@ export function PassWallet() {
 
       {used.length > 0 && (
         <div>
+          {/* Post-redemption share prompt — highest-value viral moment */}
+          {recentlyUsed && (
+            <SharePrompt
+              storageKey={`pass_used_${recentlyUsed.id}`}
+              headline={`You just used your pass at ${recentlyUsed.bar?.name || "the bar"}! 🎉`}
+              subtitle="Share your experience — let your friends know about this spot."
+              shareTitle={`Just used my pass at ${recentlyUsed.bar?.name || "this bar"}`}
+              shareText={`I just redeemed a VIP pass at ${recentlyUsed.bar?.name || "a great bar"} on Hoppr. Check it out!`}
+            />
+          )}
           <h3 style={{ color: "#fff", fontWeight: 700, fontSize: "14px", marginBottom: "8px" }}>Past ({used.length})</h3>
           {used.map((pass: any) => (
             <Card key={pass.id} style={{ marginBottom: "8px", opacity: 0.5 }}>

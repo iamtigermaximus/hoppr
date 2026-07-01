@@ -8,6 +8,7 @@ import { SkeletonDetail } from "@/components/ui/Skeleton";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { MapPin, Clock, Calendar, ArrowLeft, NavigationArrow, Fire } from "@phosphor-icons/react";
 import ShareButton from "@/components/ui/ShareButton";
+import SharePrompt from "@/components/ui/SharePrompt";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useQuery } from "@tanstack/react-query";
 import { markEligibleForPushOptIn } from "@/lib/push-eligibility";
@@ -87,6 +88,15 @@ export default function PromotionDetailPage() {
           <h1 style={{ fontWeight: 800, fontSize: "24px", color: "#fff", margin: 0, lineHeight: 1.2 }}>{promo.title}</h1>
         </div>
       </Hero>
+
+      {/* Share prompt — promotions are inherently social */}
+      <SharePrompt
+        storageKey={`promo_${promo.id}`}
+        headline="Love this deal? Share it with your friends!"
+        subtitle={`Let your crew know about ${promo.title} at ${promo.venueName}.`}
+        shareTitle={promo.title}
+        shareText={`Check out this deal: ${promo.title} at ${promo.venueName} on Hoppr!`}
+      />
 
       <Content>
         <InfoCard>

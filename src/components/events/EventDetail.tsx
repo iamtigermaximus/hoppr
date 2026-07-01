@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
 import ShareButton from "@/components/ui/ShareButton";
+import SharePrompt from "@/components/ui/SharePrompt";
 import { SkeletonDetail } from "@/components/ui/Skeleton";
 import { formatEventTime } from "@/lib/utils";
 
@@ -70,6 +71,15 @@ export function EventDetail({ id }: { id: string }) {
         <br />
         Organized by {event.creator?.username || "Anonymous"}
       </div>
+
+      {/* Share prompt — events are better with friends */}
+      <SharePrompt
+        storageKey={`event_${event.id}`}
+        headline="Going to this event? Bring your friends!"
+        subtitle={`Share ${event.title} at ${event.venueName} — more people, more fun.`}
+        shareTitle={event.title}
+        shareText={`Join me at ${event.title} at ${event.venueName} on Hoppr! ${formatEventTime(new Date(event.startTime))}`}
+      />
 
       {event.description && (
         <div style={sectionStyle}>
