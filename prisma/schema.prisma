@@ -253,6 +253,12 @@ enum ScheduledNotificationStatus {
   CANCELLED
 }
 
+enum SubscriptionPlan {
+  FREE
+  PRO
+  PREMIUM
+}
+
 // ============================================
 // AUTH & USER
 // ============================================
@@ -269,6 +275,7 @@ model User {
   hashedPassword String?
   googleId       String?   @unique
   role           UserRole  @default(CONSUMER)
+  activatedAt    DateTime? // when the user completed their activation event (first meaningful action)
 
   // Social profile (consumer)
   bio         String?
@@ -423,9 +430,10 @@ model Bar {
   logoUrl    String?
 
   // Status & verification
-  status        BarStatus @default(UNCLAIMED)
-  isVerified    Boolean   @default(false)
-  isActive      Boolean   @default(true)
+  status        BarStatus       @default(UNCLAIMED)
+  isVerified    Boolean         @default(false)
+  isActive      Boolean         @default(true)
+  plan          SubscriptionPlan @default(FREE)
   claimedAt     DateTime?
   claimedById   String?
   importedAt    DateTime?
