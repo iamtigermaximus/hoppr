@@ -7,6 +7,7 @@ import styled from "styled-components";
 import { Heart } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { track } from "@/lib/analytics";
+import { markEligibleForPushOptIn } from "@/lib/push-eligibility";
 
 // ---- Styled ----
 
@@ -112,6 +113,11 @@ export function FollowButton({
           type: newFollowing ? "FOLLOW" : "UNFOLLOW",
           barId,
         });
+        // Following a bar is a strong signal of engagement —
+        // make the user eligible for push notification opt-in
+        if (newFollowing) {
+          markEligibleForPushOptIn();
+        }
       } else {
         // Revert on error
         setOptimistic(null);

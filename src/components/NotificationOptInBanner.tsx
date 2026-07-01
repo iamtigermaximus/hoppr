@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePushNotifications } from "@/components/contexts/PushNotificationProvider";
+import { isEligibleForPushOptIn } from "@/lib/push-eligibility";
 
 const DISMISSED_KEY = "push_optin_dismissed";
 
@@ -10,9 +11,12 @@ const DISMISSED_KEY = "push_optin_dismissed";
  * - Have a browser that supports push
  * - Haven't granted or denied permission yet (default state)
  * - Haven't dismissed the banner in the last 7 days
+ * - Have completed a meaningful action (viewed a promo, followed a bar, etc.)
  *
- * Shows a subtle, non-intrusive banner inviting them to enable
- * notifications for event reminders and promo alerts from bars they follow.
+ * The banner is gated behind an eligibility signal set by positive user
+ * actions rather than showing on first app launch. This follows the
+ * established pattern of asking for permission after value delivery
+ * (see: Duolingo, Strava, etc.).
  */
 export default function NotificationOptInBanner() {
   const { supported, permission, requestPermission, loading } =
@@ -24,6 +28,11 @@ export default function NotificationOptInBanner() {
     // Only show if push is supported and user hasn't made a decision yet
     if (!supported) return;
     if (permission !== "default") return;
+
+    // Don't ask until the user has done something valuable in the app.
+    // This is set by markEligibleForPushOptIn() called from engagement
+    // points like promo views, bar follows, and pass claims.
+    if (!isEligibleForPushOptIn()) return;
 
     // Check if recently dismissed (within 7 days)
     const dismissedAt = localStorage.getItem(DISMISSED_KEY);

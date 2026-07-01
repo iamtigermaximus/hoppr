@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import styled from "styled-components";
 import { Badge } from "@/components/ui/Badge";
@@ -9,6 +10,7 @@ import { MapPin, Clock, Calendar, ArrowLeft, NavigationArrow, Fire } from "@phos
 import ShareButton from "@/components/ui/ShareButton";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useQuery } from "@tanstack/react-query";
+import { markEligibleForPushOptIn } from "@/lib/push-eligibility";
 
 const Hero = styled.div<{ $imageUrl?: string }>`
   border-radius: 20px; overflow: hidden; height: 220px; position: relative; margin-bottom: 20px;
@@ -48,6 +50,14 @@ export default function PromotionDetailPage() {
     queryFn: () => fetch(`/api/promotions?id=${id}`).then((r) => r.json()),
     enabled: !!id,
   });
+
+  // Viewing a promotion detail is meaningful engagement — signal eligibility
+  // for the push notification opt-in banner (shown later, not here).
+  useEffect(() => {
+    if (promo && !promo.error) {
+      markEligibleForPushOptIn();
+    }
+  }, [promo]);
 
   if (isLoading) return <SkeletonDetail />;
   if (!promo || promo.error) return <div style={{ padding: 32, textAlign: "center", color: "#ef4444" }}>Promotion not found</div>;
