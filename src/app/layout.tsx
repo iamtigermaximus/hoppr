@@ -14,9 +14,17 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0a",
 };
 
+const BASE_URL =
+  process.env.NEXT_PUBLIC_CONSUMER_URL || "https://hoppr.fi";
+
 export const metadata: Metadata = {
-  title: "Hoppr — Discover. Crawl. Connect.",
-  description: "Finland's drinking establishments, unified.",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "Hoppr — Discover. Crawl. Connect.",
+    template: "%s | Hoppr",
+  },
+  description:
+    "Discover the best bars, clubs, events, promotions, and VIP passes in Finland. Real-time crowd levels, full menus, and exclusive deals — all in one app.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -26,6 +34,35 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Hoppr",
+    title: "Hoppr — Discover. Crawl. Connect.",
+    description:
+      "Discover the best bars, clubs, events, promotions, and VIP passes in Finland. Real-time crowd levels, full menus, and exclusive deals.",
+    url: BASE_URL,
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "Hoppr — Discover. Crawl. Connect.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hoppr — Discover. Crawl. Connect.",
+    description:
+      "Discover the best bars, clubs, events, promotions, and VIP passes in Finland.",
+    images: ["/og-default.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+    "max-snippet": -1,
   },
 };
 

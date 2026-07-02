@@ -4,7 +4,7 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import styled from "styled-components";
 import Image from "next/image";
-import { Bell, User, Gear, SignOut } from "@phosphor-icons/react";
+import { Bell, MagnifyingGlass, User, Gear, SignOut } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useMyProfile } from "@/hooks/useProfile";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -115,6 +115,9 @@ export function AppHeader() {
             priority
           />
         </Logo>
+      </Link>
+      <Link href="/search" style={{ display: "inline-flex", alignItems: "center" }}>
+        <MagnifyingGlass size={20} color="#737373" />
       </Link>
       <Actions>
         <Link href="/notifications">
