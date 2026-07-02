@@ -1,12 +1,14 @@
 "use client";
 import Link from "next/link";
 import styled from "styled-components";
+import { useSession } from "next-auth/react";
 import { MapPin } from "@phosphor-icons/react";
 import { TrendingCarousel } from "@/components/home/TrendingCarousel";
 import { PromoSlider } from "@/components/home/PromoSlider";
 import { EventList } from "@/components/home/EventList";
 import { BarSlider } from "@/components/home/BarSlider";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
+import { FromYourBars } from "@/components/home/FromYourBars";
 import { useCrowdScores } from "@/hooks/useCrowdScores";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
@@ -77,6 +79,8 @@ function levelColor(level: string | null): string {
 }
 
 export default function HomePage() {
+  const { data: session } = useSession();
+  const userName = (session?.user as Record<string, unknown> | undefined)?.name as string | undefined;
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", {
     weekday: "long",
@@ -106,6 +110,17 @@ export default function HomePage() {
   return (
     <>
       <div style={{ padding: "4px 16px 12px" }}>
+        {userName && (
+          <div
+            style={{
+              color: "#a3a3a3",
+              fontSize: "12px",
+              marginBottom: "2px",
+            }}
+          >
+            Welcome back, {userName.split(" ")[0]}
+          </div>
+        )}
         <div
           style={{
             display: "flex",
@@ -174,6 +189,8 @@ export default function HomePage() {
           </HeatVibe>
         </div>
       </HeatStrip>
+
+      <FromYourBars />
 
       <TrendingCarousel />
       <PromoSlider />

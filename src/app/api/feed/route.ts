@@ -12,6 +12,8 @@ export async function GET(req: Request) {
   const lng = parseFloat(searchParams.get("lng") || "24.9384");
   const radius = parseFloat(searchParams.get("radius") || "10");
   const time = searchParams.get("time") || "today";
+  const barIdsParam = searchParams.get("barIds");
+  const barIds = barIdsParam ? barIdsParam.split(",").filter(Boolean) : null;
 
   const { start, end } = getTimeFilterWindow(time);
 
@@ -54,6 +56,7 @@ export async function GET(req: Request) {
           where: {
             startTime: { gte: start, lte: end },
             complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
+            ...(barIds ? { venueId: { in: barIds } } : {}),
           },
           include: {
             participants: {
@@ -72,6 +75,7 @@ export async function GET(req: Request) {
             complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
             startDate: { lte: end },
             endDate: { gte: start },
+            ...(barIds ? { barId: { in: barIds } } : {}),
           },
           include: {
             bar: {
@@ -276,11 +280,14 @@ export async function GET(req: Request) {
       }
     }
 
-    // 9. Merge and filter by radius
-    const withinRadius = [
+    // 9. Merge and filter by radius (skip when querying followed bars — they can be anywhere)
+    const merged = [
       ...eventItems.map(attachCrowd).map(attachCampaign),
       ...promoItems.map(attachCrowd).map(attachCampaign),
-    ].filter((item) => item.distance <= radius);
+    ];
+    const withinRadius = barIds
+      ? merged
+      : merged.filter((item) => item.distance <= radius);
 
     // 10. Rank with personalization (or chronological fallback)
     const ranked =
