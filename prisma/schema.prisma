@@ -10,8 +10,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
 }
 
 // ============================================
@@ -75,6 +75,14 @@ enum PriceRange {
   MODERATE
   PREMIUM
   LUXURY
+}
+
+enum ContentTone {
+  BOLD_ENERGETIC
+  WARM_INVITING
+  EDGY_IRREVERENT
+  ELEGANT_PREMIUM
+  PLAYFUL_FUN
 }
 
 enum PromotionType {
@@ -439,6 +447,9 @@ model Bar {
   importedAt    DateTime?
   importBatchId String?
 
+  // Content voice
+  contentTone ContentTone?
+
   // Quality & performance
   qualityScore    Int?
   performanceTier BarPerformanceTier?
@@ -516,75 +527,6 @@ model Bar {
   busynessPatterns     BarBusynessPattern[]
 
   @@map("bars")
-}
-
-// ============================================
-// MENU
-// ============================================
-
-enum MenuCategory {
-  DRINK
-  FOOD
-  SNACK
-  DESSERT
-  COCKTAIL
-  BEER
-  WINE
-  SPIRITS
-  SHOT
-  COFFEE
-  OTHER
-}
-
-model MenuItem {
-  id          String       @id @default(cuid())
-  barId       String
-  name        String
-  description String?
-  priceCents  Int          // e.g., 950 = €9.50
-  category    MenuCategory @default(OTHER)
-  imageUrl    String?
-  isAvailable Boolean      @default(true)
-  sortOrder   Int          @default(0)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
-
-  @@index([barId, category])
-  @@index([barId, sortOrder])
-  @@map("menu_items")
-}
-
-model BarDailyStats {
-  id            String   @id @default(cuid())
-  barId         String
-  date          DateTime @map("stats_date")
-  pageViews     Int      @default(0)
-  barViews      Int      @default(0)
-  promoViews    Int      @default(0)
-  promoClicks   Int      @default(0)
-  promoRedemptions Int   @default(0)
-  eventViews    Int      @default(0)
-  eventJoins    Int      @default(0)
-  passViews     Int      @default(0)
-  passPurchases Int      @default(0)
-  passScans     Int      @default(0)
-  barDirections Int      @default(0)
-  barCalls      Int      @default(0)
-  barWebsites   Int      @default(0)
-  barShares     Int      @default(0)
-  searches      Int      @default(0)
-  uniqueVisitors Int     @default(0)
-  aggregatedAt  DateTime @default(now())
-  createdAt     DateTime @default(now())
-
-  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
-
-  @@unique([barId, date])
-  @@index([barId, date])
-  @@index([date])
-  @@map("bar_daily_stats")
 }
 
 model BarFollow {
@@ -735,15 +677,15 @@ model BarPromotion {
   redemptions Int @default(0)
   cardViews   Int @default(0)
 
-  // Share card
-  svgBackground String?
-  category      String?
-  occasion      String?
-
   // Who created / approved
   createdById  String?
   approvedById String?
   approvedAt   DateTime?
+
+  // Share card customization
+  svgBackground String?
+  category      String?
+  occasion      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -796,13 +738,14 @@ model Event {
   imageUrl         String?
   creatorId        String
   complianceStatus ComplianceStatus @default(COMPLIANT)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
 
-  // Share card
+  // Share card customization
   svgBackground String?
   category      String?
   occasion      String?
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   creator      User               @relation("EventCreator", fields: [creatorId], references: [id])
   venue        Bar                @relation(fields: [venueId], references: [id])
@@ -982,7 +925,7 @@ model AdCampaign {
   // Finnish compliance
   complianceStatus ComplianceStatus @default(PENDING_REVIEW)
 
-  // Share card
+  // Share card customization
   svgBackground String?
   category      String?
   occasion      String?
@@ -1016,6 +959,79 @@ model AnalyticsEvent {
   @@index([userId, createdAt])
   @@index([type, createdAt])
   @@map("analytics_events")
+}
+
+enum MenuCategory {
+  DRINK
+  FOOD
+  SNACK
+  DESSERT
+  COCKTAIL
+  BEER
+  WINE
+  SPIRITS
+  SHOT
+  COFFEE
+  OTHER
+}
+
+model MenuItem {
+  id          String       @id @default(cuid())
+  barId       String
+  name        String
+  description String?
+  priceCents  Int
+  category    MenuCategory @default(OTHER)
+  imageUrl    String?
+  isAvailable Boolean      @default(true)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@index([barId, category])
+  @@index([barId, sortOrder])
+  @@map("menu_items")
+}
+
+// Pre-aggregated daily analytics per bar — populated by cron job
+model BarDailyStats {
+  id            String   @id @default(cuid())
+  barId         String
+  date          DateTime @map("stats_date") // midnight of the stats day
+  // Page & bar views
+  pageViews     Int      @default(0)
+  barViews      Int      @default(0)
+  // Promotion metrics
+  promoViews    Int      @default(0)
+  promoClicks   Int      @default(0)
+  promoRedemptions Int   @default(0)
+  // Event metrics
+  eventViews    Int      @default(0)
+  eventJoins    Int      @default(0)
+  // Pass metrics
+  passViews     Int      @default(0)
+  passPurchases Int      @default(0)
+  passScans     Int      @default(0)
+  // Engagement
+  barDirections Int      @default(0)
+  barCalls      Int      @default(0)
+  barWebsites   Int      @default(0)
+  barShares     Int      @default(0)
+  searches      Int      @default(0)
+  // Unique visitors
+  uniqueVisitors Int     @default(0)
+  // Metadata
+  aggregatedAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@unique([barId, date])
+  @@index([barId, date])
+  @@index([date])
+  @@map("bar_daily_stats")
 }
 
 // ============================================
