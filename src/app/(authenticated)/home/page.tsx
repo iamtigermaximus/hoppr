@@ -11,6 +11,7 @@ import { EventList } from "@/components/home/EventList";
 import { BarSlider } from "@/components/home/BarSlider";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { FromYourBars } from "@/components/home/FromYourBars";
+import NotificationOptInBanner from "@/components/NotificationOptInBanner";
 import { useCrowdScores } from "@/hooks/useCrowdScores";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
@@ -235,6 +236,8 @@ export default function HomePage() {
           </div>
         </OnboardingBanner>
       )}
+
+      <NotificationOptInBanner />
 
       <HeatStrip href="/map">
         <HeatStripHeader>

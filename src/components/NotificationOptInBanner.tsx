@@ -5,60 +5,44 @@ import { useSession } from "next-auth/react";
 import { usePushNotifications } from "@/components/contexts/PushNotificationProvider";
 import { isEligibleForPushOptIn } from "@/lib/push-eligibility";
 
-const DISMISSED_KEY = "push_optin_dismissed";
-const DISMISSED_SESSION_KEY = "push_optin_dismissed_session";
+const DISMISSED_KEY = "push_optin_dismissed_permanent";
 
 /**
- * Notification opt-in banner shown to users who:
- * - Have completed onboarding
- * - Have a browser that supports push
- * - Haven't granted or denied permission yet (default state)
- * - Haven't dismissed the banner (in this session or within 7 days)
- * - Have completed a meaningful action (viewed a promo, followed a bar, etc.)
+ * Compact notification opt-in banner shown on the home page only.
+ * Auto-dismisses after 8 seconds and stays gone permanently once dismissed.
+ * Suppressed until onboarding is complete.
  */
 export default function NotificationOptInBanner() {
   const { data: session, status } = useSession();
   const { supported, permission, requestPermission, loading } =
     usePushNotifications();
   const [visible, setVisible] = useState(false);
-  const [dismissing, setDismissing] = useState(false);
 
   const onboardingCompleted = (session?.user as Record<string, unknown> | undefined)
     ?.onboardingCompleted as boolean | undefined;
 
   useEffect(() => {
-    // Don't ask during onboarding — wait until the user is settled on the home feed
     if (status !== "authenticated" || onboardingCompleted !== true) return;
-
-    // Only show if push is supported and user hasn't made a decision yet
     if (!supported) return;
     if (permission !== "default") return;
-
-    // Don't ask until the user has done something valuable in the app.
     if (!isEligibleForPushOptIn()) return;
 
-    // Dismissed in this session? (handles incognito where localStorage is ephemeral)
+    // Permanently dismissed?
     try {
-      if (sessionStorage.getItem(DISMISSED_SESSION_KEY) === "true") return;
-    } catch {
-      // sessionStorage unavailable — ignore
-    }
+      if (localStorage.getItem(DISMISSED_KEY) === "true") return;
+      if (sessionStorage.getItem(DISMISSED_KEY) === "true") return;
+    } catch {}
 
-    // Dismissed recently? (within 7 days, persists across normal sessions)
-    try {
-      const dismissedAt = localStorage.getItem(DISMISSED_KEY);
-      if (dismissedAt) {
-        const dismissedDate = new Date(parseInt(dismissedAt));
-        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        if (dismissedDate > sevenDaysAgo) return;
-      }
-    } catch {
-      // localStorage unavailable — ignore
-    }
+    // Show after a short delay
+    const showTimer = setTimeout(() => setVisible(true), 3000);
 
-    // Small delay so it doesn't flash on page load
-    const timer = setTimeout(() => setVisible(true), 2000);
-    return () => clearTimeout(timer);
+    // Auto-dismiss after 8 seconds if user hasn't interacted
+    const dismissTimer = setTimeout(() => setVisible(false), 11000);
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(dismissTimer);
+    };
   }, [status, onboardingCompleted, supported, permission]);
 
   const handleEnable = async () => {
@@ -67,73 +51,79 @@ export default function NotificationOptInBanner() {
   };
 
   const handleDismiss = () => {
-    setDismissing(true);
-    // Store in sessionStorage so it stays dismissed for the current session
-    // (handles incognito where localStorage clears on window close)
-    try { sessionStorage.setItem(DISMISSED_SESSION_KEY, "true"); } catch {}
-    // Store in localStorage for cross-session persistence (7-day check above)
-    try { localStorage.setItem(DISMISSED_KEY, String(Date.now())); } catch {}
-    // Animate out
-    setTimeout(() => {
-      setVisible(false);
-      setDismissing(false);
-    }, 300);
+    try { localStorage.setItem(DISMISSED_KEY, "true"); } catch {}
+    try { sessionStorage.setItem(DISMISSED_KEY, "true"); } catch {}
+    setVisible(false);
   };
 
   if (!visible) return null;
 
   return (
     <div
-      className={`fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm transition-all duration-300 ${
-        dismissing
-          ? "translate-y-4 opacity-0"
-          : "translate-y-0 opacity-100"
-      }`}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        margin: "0 16px 12px",
+        padding: "8px 12px",
+        background: "rgba(124, 58, 237, 0.08)",
+        border: "1px solid rgba(124, 58, 237, 0.15)",
+        borderRadius: "10px",
+      }}
     >
-      <div className="rounded-xl bg-gray-900 p-3 text-white shadow-lg ring-1 ring-white/10">
-        <div className="flex items-center gap-2.5">
-          {/* Bell icon — compact */}
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-600/80">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
-          </div>
+      {/* Small bell */}
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#a78bfa"
+        strokeWidth={2}
+        style={{ flexShrink: 0 }}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+        />
+      </svg>
 
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold">
-              Stay in the loop
-            </p>
-            <p className="mt-0.5 text-[11px] text-gray-400 leading-snug">
-              Get notified about events and promos from bars you follow. No spam.
-            </p>
-            <div className="mt-2 flex gap-2">
-              <button
-                onClick={handleEnable}
-                disabled={loading}
-                className="rounded-md bg-purple-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-purple-500 disabled:opacity-50 transition-colors"
-              >
-                {loading ? "Enabling..." : "Enable"}
-              </button>
-              <button
-                onClick={handleDismiss}
-                className="rounded-md px-2.5 py-1 text-[11px] font-medium text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                Not now
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <span style={{ flex: 1, color: "#a78bfa", fontSize: "11px", fontWeight: 500 }}>
+        Get notified about events and promos from your bars
+      </span>
+
+      <button
+        onClick={handleEnable}
+        disabled={loading}
+        style={{
+          background: "#7c3aed",
+          color: "#fff",
+          border: "none",
+          borderRadius: "6px",
+          padding: "4px 10px",
+          fontSize: "10px",
+          fontWeight: 600,
+          cursor: "pointer",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {loading ? "..." : "Enable"}
+      </button>
+
+      <button
+        onClick={handleDismiss}
+        style={{
+          background: "none",
+          border: "none",
+          color: "#525252",
+          fontSize: "14px",
+          cursor: "pointer",
+          padding: "0 2px",
+          lineHeight: 1,
+        }}
+      >
+        ×
+      </button>
     </div>
   );
 }
