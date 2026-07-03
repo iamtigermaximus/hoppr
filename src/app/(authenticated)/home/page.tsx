@@ -280,9 +280,9 @@ export default function HomePage() {
         </div>
       </HeatStrip>
 
-      <FromYourBars />
-
       <TrendingCarousel />
+
+      <FromYourBars />
       <PromoSlider />
       <EventList />
       <BarSlider />
