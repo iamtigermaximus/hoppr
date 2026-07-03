@@ -6,7 +6,7 @@ import { useVenues } from "@/hooks/useVenues";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
-import { formatDistance, formatPriceRange } from "@/lib/utils";
+import { formatDistance, formatPriceRange, isVenueOpen } from "@/lib/utils";
 import CrowdIndicator from "@/components/venues/CrowdIndicator";
 import SponsoredBadge from "@/components/ads/SponsoredBadge";
 import { useQuery } from "@tanstack/react-query";
@@ -64,53 +64,6 @@ const List = styled.div`
     grid-template-columns: 1fr 1fr 1fr;
   }
 `;
-
-function isVenueOpen(hours?: Record<string, any>): boolean | null {
-  if (!hours) return null; // unknown — no data
-  const now = new Date();
-  const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-  const today = days[now.getDay()];
-  const entry = hours[today];
-  if (!entry) return null; // no entry for today — unknown
-
-  // Handle object format: { open: "16:00", close: "02:00" }
-  if (typeof entry === "object" && entry !== null && !Array.isArray(entry)) {
-    if (!entry.open || !entry.close) return null;
-    const openMin = parseTimeStr(entry.open);
-    let closeMin = parseTimeStr(entry.close);
-    if (openMin < 0 || closeMin < 0) return null;
-    if (closeMin < openMin) closeMin += 24 * 60;
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    return nowMin >= openMin && nowMin < closeMin;
-  }
-
-  // Handle string format: "16:00 – 02:00" or "Closed"
-  const timeStr = String(entry);
-  if (timeStr === "Closed" || timeStr === "closed" || timeStr === "Suljettu" || timeStr === "Kiinni") return false;
-
-  const parts = timeStr.split(/[–\-]/).map(s => s.trim());
-  if (parts.length !== 2) return null;
-
-  const openMin = parseTimeStr(parts[0]);
-  let closeMin = parseTimeStr(parts[1]);
-  if (openMin < 0 || closeMin < 0) return null;
-  if (closeMin < openMin) closeMin += 24 * 60;
-  const nowMin2 = now.getHours() * 60 + now.getMinutes();
-
-  return nowMin2 >= openMin && nowMin2 < closeMin;
-}
-
-function parseTimeStr(s: unknown): number {
-  if (typeof s !== "string") return -1;
-  const match = s.match(/(\d+)(?::(\d+))?\s*(AM|PM)?/i);
-  if (!match) return -1;
-  let hour = parseInt(match[1]);
-  const min = match[2] ? parseInt(match[2]) : 0;
-  const ampm = match[3]?.toUpperCase();
-  if (ampm === "PM" && hour !== 12) hour += 12;
-  if (ampm === "AM" && hour === 12) hour = 0;
-  return hour * 60 + min;
-}
 
 const PAGE_SIZE = 12;
 

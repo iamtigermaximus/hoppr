@@ -26,6 +26,7 @@ export async function GET() {
 
     const now = new Date();
     const results: MyBarEntry[] = [];
+    const seenBarIds = new Set<string>();
 
     // Bars where user has upcoming events they've joined
     const upcomingEvents = await prisma.eventParticipant.findMany({
@@ -51,7 +52,9 @@ export async function GET() {
     });
 
     for (const ep of upcomingEvents) {
+      if (seenBarIds.has(ep.event.venueId)) continue;
       if (ep.event.venue?.latitude && ep.event.venue?.longitude) {
+        seenBarIds.add(ep.event.venueId);
         results.push({
           barId: ep.event.venueId,
           barName: ep.event.venue.name,
@@ -82,7 +85,9 @@ export async function GET() {
     });
 
     for (const p of activePasses) {
+      if (seenBarIds.has(p.barId!)) continue;
       if (p.bar?.latitude && p.bar?.longitude) {
+        seenBarIds.add(p.barId!);
         results.push({
           barId: p.barId!,
           barName: p.bar.name,
@@ -96,7 +101,6 @@ export async function GET() {
     }
 
     // Bars user follows (only if not already covered by events/passes)
-    const coveredBarIds = new Set(results.map((r) => r.barId));
     const followedBars = await prisma.barFollow.findMany({
       where: {
         userId,
@@ -110,7 +114,9 @@ export async function GET() {
     });
 
     for (const fb of followedBars) {
-      if (!coveredBarIds.has(fb.barId) && fb.bar.latitude && fb.bar.longitude) {
+      if (seenBarIds.has(fb.barId)) continue;
+      if (fb.bar.latitude && fb.bar.longitude) {
+        seenBarIds.add(fb.barId);
         results.push({
           barId: fb.barId,
           barName: fb.bar.name,
@@ -118,7 +124,6 @@ export async function GET() {
           relevance: "followed",
           label: `You follow ${fb.bar.name}`,
         });
-        coveredBarIds.add(fb.barId);
       }
     }
 

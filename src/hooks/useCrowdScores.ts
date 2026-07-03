@@ -42,15 +42,42 @@ export interface VenueCrowdScore {
   relevanceLabel?: string;
 }
 
-export function useCrowdScores(lat: number | null, lng: number | null) {
+export interface CrowdScoreFilters {
+  types?: string[];
+  openNow?: boolean;
+  hasEvents?: boolean;
+  minCrowdScore?: number;
+  maxCrowdScore?: number;
+}
+
+export function useCrowdScores(
+  lat: number | null,
+  lng: number | null,
+  filters?: CrowdScoreFilters,
+) {
   const params = new URLSearchParams();
   if (lat != null && lng != null) {
     params.set("lat", lat.toString());
     params.set("lng", lng.toString());
   }
+  if (filters?.types && filters.types.length > 0) {
+    params.set("types", filters.types.join(","));
+  }
+  if (filters?.openNow) {
+    params.set("openNow", "true");
+  }
+  if (filters?.hasEvents) {
+    params.set("hasEvents", "true");
+  }
+  if (filters?.minCrowdScore !== undefined && filters.minCrowdScore > 0) {
+    params.set("minCrowdScore", filters.minCrowdScore.toString());
+  }
+  if (filters?.maxCrowdScore !== undefined) {
+    params.set("maxCrowdScore", filters.maxCrowdScore.toString());
+  }
 
   return useQuery<VenueCrowdScore[]>({
-    queryKey: ["crowd-scores", lat, lng],
+    queryKey: ["crowd-scores", lat, lng, filters],
     queryFn: () =>
       fetch(`/api/crowd/scores?${params.toString()}`).then((r) => r.json()),
     enabled: lat != null && lng != null,

@@ -4,11 +4,12 @@ import { useSession } from "next-auth/react";
 import styled from "styled-components";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { LatLngBoundsExpression } from "leaflet";
-import { useCrowdScores, type VenueCrowdScore } from "@/hooks/useCrowdScores";
+import { useCrowdScores, type VenueCrowdScore, type CrowdScoreFilters } from "@/hooks/useCrowdScores";
 import { useLocationSharing } from "@/hooks/useLocationSharing";
 import VenueMarker from "./VenueMarker";
 import HeatMapLegend from "./HeatMapLegend";
 import LocationToggle from "./LocationToggle";
+import { MapFilters, getCrowdLevelThresholds, type MapFilterState } from "./MapFilters";
 import type { MyBarEntry } from "@/app/api/crowd/my-bars/route";
 
 const DEFAULT_CENTER: [number, number] = [60.1699, 24.9384];
@@ -181,7 +182,28 @@ function FlyToController() {
 export default function HeatMap({ userLat, userLng }: HeatMapProps) {
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
-  const { data: scores = [], isLoading } = useCrowdScores(userLat, userLng);
+
+  // ── Filter state ───────────────────────────────────────────────
+  const [mapFilters, setMapFilters] = useState<MapFilterState>({
+    types: [],
+    openNow: false,
+    hasEvents: false,
+    crowdFilter: null,
+  });
+
+  // Map UI filters → API query params
+  const crowdScoreFilters: CrowdScoreFilters = useMemo(() => {
+    const thresholds = getCrowdLevelThresholds(mapFilters.crowdFilter);
+    return {
+      types: mapFilters.types.length > 0 ? mapFilters.types : undefined,
+      openNow: mapFilters.openNow || undefined,
+      hasEvents: mapFilters.hasEvents || undefined,
+      minCrowdScore: thresholds?.minScore,
+      maxCrowdScore: thresholds?.maxScore,
+    };
+  }, [mapFilters]);
+
+  const { data: scores = [], isLoading } = useCrowdScores(userLat, userLng, crowdScoreFilters);
   const { isSharing, startSharing, stopSharing } = useLocationSharing();
   const [presenceCount, setPresenceCount] = useState(0);
   const presenceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -283,6 +305,8 @@ export default function HeatMap({ userLat, userLng }: HeatMapProps) {
 
   return (
     <MapWrapper>
+      <MapFilters value={mapFilters} onChange={setMapFilters} />
+
       {(isLoading || myBarsLoading) && (
         <LoadingOverlay>Loading crowd data...</LoadingOverlay>
       )}

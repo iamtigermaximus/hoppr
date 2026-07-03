@@ -10,20 +10,17 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatEventTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Calendar, InstagramLogo, FacebookLogo, TwitterLogo, Globe, MapPin, Gear, SignOut as SignOutIcon } from "@phosphor-icons/react";
+import { Calendar, InstagramLogo, FacebookLogo, TwitterLogo, Globe, Gear, SignOut as SignOutIcon, Phone, Wine, Heart } from "@phosphor-icons/react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { CATEGORIES, DRINK_PREFS } from "@/lib/constants";
+import { Chip } from "@/components/ui/Chip";
 
 const Section = styled.div`margin-bottom: 24px;`;
 const SectionTitle = styled.h3`
   color: var(--color-text-primary, #fff); font-weight: 700; font-size: 14px;
   margin-bottom: 12px;
   display: flex; align-items: center; gap: 8px;
-`;
-
-const SocialRow = styled.div`
-  display: flex; gap: 10px;
-  @media (min-width: 768px) { gap: 12px; }
 `;
 
 const StatCard = styled(Card)`
@@ -48,10 +45,13 @@ export function ProfileEdit() {
 
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
   const [twitter, setTwitter] = useState("");
-  const [interests, setInterests] = useState("");
+  const [interestChips, setInterestChips] = useState<string[]>([]);
+  const [customInterests, setCustomInterests] = useState("");
+  const [drinkChips, setDrinkChips] = useState<string[]>([]);
   const [languages, setLanguages] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
@@ -61,10 +61,19 @@ export function ProfileEdit() {
     if (profile) {
       setUsername(profile.username || "");
       setBio(profile.bio || "");
+      setPhoneNumber(profile.phoneNumber || "");
       setInstagram(profile.instagram || "");
       setFacebook(profile.facebook || "");
       setTwitter(profile.twitter || "");
-      setInterests((profile.interests || []).join(", "));
+      const categoryKeys = new Set<string>(CATEGORIES.map((c) => c.key));
+      const chips: string[] = [];
+      const custom: string[] = [];
+      (profile.interests || []).forEach((i: string) => {
+        categoryKeys.has(i) ? chips.push(i) : custom.push(i);
+      });
+      setInterestChips(chips);
+      setCustomInterests(custom.join(", "));
+      setDrinkChips(profile.drinkPrefs || []);
       setLanguages((profile.languages || []).join(", "));
       setAvatarUrl(profile.image || "");
       setGallery(profile.gallery || []);
@@ -73,10 +82,16 @@ export function ProfileEdit() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault(); setSaved(false);
+    const customList = customInterests
+      ? customInterests.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [];
+    const combinedInterests = [...interestChips, ...customList];
     updateProfile({
       username, bio: bio || null,
+      phoneNumber: phoneNumber || null,
       instagram: instagram || null, facebook: facebook || null, twitter: twitter || null,
-      interests: interests ? interests.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+      interests: combinedInterests,
+      drinkPrefs: drinkChips,
       languages: languages ? languages.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
       image: avatarUrl || null,
       gallery,
@@ -139,6 +154,11 @@ export function ProfileEdit() {
           <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
           <div style={{ ...labelStyle, marginTop: "10px" }}>Bio</div>
           <Textarea placeholder="Tell us about yourself..." value={bio} onChange={(e) => setBio(e.target.value)} maxLength={300} />
+          <div style={{ ...labelStyle, marginTop: "10px" }}>Phone Number <span style={{ fontWeight: 400, color: "var(--color-text-muted, #737373)" }}>(optional)</span></div>
+          <div style={{ position: "relative" }}>
+            <Phone size={16} color="var(--color-text-muted, #737373)" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", zIndex: 1 }} />
+            <Input placeholder="+358 40 123 4567" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} style={{ paddingLeft: "40px" }} />
+          </div>
         </Section>
 
         {/* Profile Photo */}
@@ -240,17 +260,50 @@ export function ProfileEdit() {
           )}
         </Section>
 
-        {/* Interests & Languages */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
-          <div>
-            <div style={labelStyle}>Interests <span style={{ fontWeight: 400, color: "var(--color-text-muted, #737373)" }}>(comma-separated)</span></div>
-            <Input placeholder="e.g., techno, craft beer, karaoke" value={interests} onChange={(e) => setInterests(e.target.value)} />
+        {/* Interests — chips matching onboarding UX */}
+        <Section>
+          <SectionTitle><Heart size={16} color="#7c3aed" /> Interests</SectionTitle>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
+            {CATEGORIES.map((cat) => (
+              <Chip
+                key={cat.key}
+                $active={interestChips.includes(cat.key)}
+                onClick={() => setInterestChips((prev) =>
+                  prev.includes(cat.key) ? prev.filter((k) => k !== cat.key) : [...prev, cat.key]
+                )}
+              >
+                {cat.label}
+              </Chip>
+            ))}
           </div>
-          <div>
-            <div style={labelStyle}>Languages <span style={{ fontWeight: 400, color: "var(--color-text-muted, #737373)" }}>(comma-separated)</span></div>
-            <Input placeholder="e.g., Finnish, English, Swedish" value={languages} onChange={(e) => setLanguages(e.target.value)} />
+          <div style={labelStyle}>Custom interests <span style={{ fontWeight: 400, color: "var(--color-text-muted, #737373)" }}>(comma-separated, optional)</span></div>
+          <Input placeholder="e.g., techno, karaoke, craft beer" value={customInterests} onChange={(e) => setCustomInterests(e.target.value)} />
+        </Section>
+
+        {/* Drink Preferences — chips matching onboarding UX */}
+        <Section>
+          <SectionTitle><Wine size={16} color="#f59e0b" /> Drink Preferences</SectionTitle>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {DRINK_PREFS.map((d) => (
+              <Chip
+                key={d.key}
+                $active={drinkChips.includes(d.key)}
+                onClick={() => setDrinkChips((prev) =>
+                  prev.includes(d.key) ? prev.filter((k) => k !== d.key) : [...prev, d.key]
+                )}
+              >
+                {d.label}
+              </Chip>
+            ))}
           </div>
-        </div>
+        </Section>
+
+        {/* Languages */}
+        <Section>
+          <SectionTitle><Globe size={16} color="#10b981" /> Languages</SectionTitle>
+          <div style={labelStyle}>Languages <span style={{ fontWeight: 400, color: "var(--color-text-muted, #737373)" }}>(comma-separated)</span></div>
+          <Input placeholder="e.g., Finnish, English, Swedish" value={languages} onChange={(e) => setLanguages(e.target.value)} />
+        </Section>
 
         {saved && <p style={{ color: "#10b981", fontSize: "13px", fontWeight: 600, textAlign: "center" }}>Profile updated!</p>}
         <Button type="submit" size="lg" fullWidth disabled={isPending}>{isPending ? "Saving..." : "Save Changes"}</Button>

@@ -9,7 +9,8 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { Warning, InstagramLogo, FacebookLogo, TwitterLogo, Calendar, Heart, Globe, Camera, ArrowLeft } from "@phosphor-icons/react";
+import { Warning, InstagramLogo, FacebookLogo, TwitterLogo, Calendar, Heart, Globe, Camera, ArrowLeft, Wine, Phone } from "@phosphor-icons/react";
+import { CATEGORIES, DRINK_PREFS } from "@/lib/constants";
 import { formatEventTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -64,6 +65,11 @@ export function ProfileView({ id }: { id: string }) {
         <Avatar src={profile.image} name={profile.username} size={96} />
         <h1 style={{ fontWeight: 800, fontSize: "24px", color: "var(--color-text-primary, #fff)", marginTop: "12px" }}>{profile.username}</h1>
         {profile.bio && <p style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", marginTop: "4px", textAlign: "center", maxWidth: "400px" }}>{profile.bio}</p>}
+        {profile.phoneNumber && (
+          <div style={{ display: "flex", alignItems: "center", gap: "5px", color: "var(--color-text-muted, #737373)", fontSize: "11px", marginTop: "6px" }}>
+            <Phone size={12} /> {profile.phoneNumber}
+          </div>
+        )}
         <p style={{ color: "var(--color-text-muted, #737373)", fontSize: "11px", marginTop: "6px" }}>
           Joined {new Date(profile.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </p>
@@ -148,9 +154,32 @@ export function ProfileView({ id }: { id: string }) {
             <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>Interests</span>
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            {profile.interests.map((i: string) => (
-              <span key={i} style={{ background: "rgba(124,58,237,0.1)", color: "#a78bfa", fontSize: "11px", padding: "4px 10px", borderRadius: "6px" }}>{i}</span>
-            ))}
+            {profile.interests.map((i: string) => {
+              const cat = CATEGORIES.find((c: { key: string; label: string }) => c.key === i);
+              const label = cat ? cat.label : i.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+              return (
+                <span key={i} style={{ background: "rgba(124,58,237,0.1)", color: "#a78bfa", fontSize: "11px", padding: "4px 10px", borderRadius: "6px" }}>{label}</span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Drink Preferences */}
+      {profile.drinkPrefs?.length > 0 && (
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+            <Wine size={14} color="#f59e0b" />
+            <span style={{ color: "var(--color-text-primary, #fff)", fontWeight: 600, fontSize: "13px" }}>Drinks</span>
+          </div>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            {profile.drinkPrefs.map((d: string) => {
+              const pref = DRINK_PREFS.find((p: { key: string; label: string }) => p.key === d);
+              const label = pref ? pref.label : d.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+              return (
+                <span key={d} style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", fontSize: "11px", padding: "4px 10px", borderRadius: "6px" }}>{label}</span>
+              );
+            })}
           </div>
         </div>
       )}

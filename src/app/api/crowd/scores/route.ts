@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { haversineDistance } from "@/lib/utils";
+import { haversineDistance, isVenueOpen } from "@/lib/utils";
 
 const WEIGHTS = {
   CROWD_REPORT: 0.25,
@@ -31,14 +31,36 @@ export async function GET(req: Request) {
     const userLat = parseFloat(searchParams.get("lat") || "60.1699");
     const userLng = parseFloat(searchParams.get("lng") || "24.9384");
 
+    // ── Filter parameters ──────────────────────────────────────────
+    const typesParam = searchParams.get("types"); // comma-separated
+    const openNow = searchParams.get("openNow") === "true";
+    const hasEvents = searchParams.get("hasEvents") === "true";
+    const minCrowdScore = parseInt(searchParams.get("minCrowdScore") || "0");
+    const maxCrowdScore = searchParams.get("maxCrowdScore") // optional ceiling
+      ? parseInt(searchParams.get("maxCrowdScore")!)
+      : undefined;
+
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
 
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 86400000);
+
+    const barWhere: any = {
+      isActive: true,
+      latitude: { not: null },
+      longitude: { not: null },
+    };
+
+    if (typesParam) {
+      const requestedTypes = typesParam.split(",").map((t) => t.trim()).filter(Boolean);
+      if (requestedTypes.length > 0) {
+        barWhere.type = { in: requestedTypes };
+      }
+    }
+
     const bars = await prisma.bar.findMany({
-      where: {
-        isActive: true,
-        latitude: { not: null },
-        longitude: { not: null },
-      },
+      where: barWhere,
       include: {
         crowdReports: {
           where: { expiresAt: { gte: new Date() } },
@@ -64,7 +86,7 @@ export async function GET(req: Request) {
       },
     });
 
-    const scores = bars.map((bar) => {
+    let scores = bars.map((bar) => {
       const latestReport = bar.crowdReports[0];
       const crowdReportScore = latestReport
         ? CROWD_LEVEL_VALUE[latestReport.level] ?? 0
@@ -139,6 +161,34 @@ export async function GET(req: Request) {
         crowdReportedAt: latestReport?.reportedAt?.toISOString() ?? null,
       };
     });
+
+    // ── Post-query filtering ─────────────────────────────────────
+    // openNow: filter by operating hours
+    if (openNow) {
+      scores = scores.filter((s) => {
+        const bar = bars.find((b) => b.id === s.id);
+        if (!bar?.operatingHours) return false;
+        return isVenueOpen(bar.operatingHours as Record<string, unknown>) === true;
+      });
+    }
+
+    // hasEvents: only include bars with active events
+    if (hasEvents) {
+      scores = scores.filter((s) => {
+        const bar = bars.find((b) => b.id === s.id);
+        return bar && bar.events.length > 0;
+      });
+    }
+
+    // crowdScore range filter
+    if (minCrowdScore > 0 || maxCrowdScore !== undefined) {
+      scores = scores.filter((s) => {
+        const cs = s.compositeScore;
+        if (cs < minCrowdScore) return false;
+        if (maxCrowdScore !== undefined && cs > maxCrowdScore) return false;
+        return true;
+      });
+    }
 
     return NextResponse.json(scores);
   } catch (error) {
