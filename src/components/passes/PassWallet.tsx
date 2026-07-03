@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { QRCodeView } from "./QRCodeView";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import SharePrompt from "@/components/ui/SharePrompt";
 import { Ticket, CheckCircle, XCircle } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
@@ -16,11 +18,59 @@ function getStatusBadge(pass: any) {
   return <Badge $type="pass">ACTIVE</Badge>;
 }
 
+function SkeletonPassRow() {
+  return (
+    <div
+      style={{
+        background: "#1a1a1a",
+        border: "1px solid #262626",
+        borderRadius: "12px",
+        padding: "14px 16px",
+        marginBottom: "8px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", flex: 1 }}>
+        <Skeleton width="24px" height="24px" radius="6px" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
+          <Skeleton width="60%" height="13px" radius="4px" />
+          <Skeleton width="40%" height="11px" radius="4px" />
+        </div>
+      </div>
+      <Skeleton width="60px" height="28px" radius="8px" />
+    </div>
+  );
+}
+
 export function PassWallet() {
   const { data: passes = [], isLoading } = useMyPasses();
   const [selectedPass, setSelectedPass] = useState<string | null>(null);
 
-  if (isLoading) return <div style={{ padding: 16, color: "#737373" }}>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
+        <h1 style={{ fontWeight: 800, fontSize: "18px", color: "#fff", marginBottom: "16px" }}>My Passes</h1>
+        <SkeletonPassRow />
+        <SkeletonPassRow />
+        <SkeletonPassRow />
+      </div>
+    );
+  }
+
+  if (passes.length === 0) {
+    return (
+      <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
+        <h1 style={{ fontWeight: 800, fontSize: "18px", color: "#fff", marginBottom: "16px" }}>My Passes</h1>
+        <EmptyState
+          icon={<Ticket size={24} />}
+          title="No passes yet"
+          description="Browse the marketplace to grab your first VIP pass."
+        />
+      </div>
+    );
+  }
 
   const active = passes.filter((p: any) =>
     p.status !== "USED" && !p.scannedAt && new Date(p.expiresAt) >= new Date()

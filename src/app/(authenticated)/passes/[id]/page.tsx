@@ -4,6 +4,8 @@ import styled from "styled-components";
 import { Badge } from "@/components/ui/Badge";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
+import { SkeletonDetail } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { formatDistance, formatEventTime } from "@/lib/utils";
 import { MapPin, ArrowLeft, NavigationArrow, Ticket, CheckCircle, Clock, CurrencyCircleDollar } from "@phosphor-icons/react";
 import ShareButton from "@/components/ui/ShareButton";
@@ -38,7 +40,7 @@ export default function PassDetailPage() {
   const { mutate: purchase, isPending } = usePurchasePass();
   const id = params.id as string;
 
-  const { data: passes = [] } = useQuery<any[]>({
+  const { data: passes = [], isLoading } = useQuery<any[]>({
     queryKey: ["passes"],
     queryFn: () => fetch("/api/passes").then((r) => r.json()),
   });
@@ -46,7 +48,16 @@ export default function PassDetailPage() {
   const pass = passes.find((p: any) => p.id === id);
   const { data: venue } = useVenue(pass?.venueId || "");
 
-  if (!pass) return <div style={{ padding: 32, textAlign: "center", color: "#737373" }}>Loading...</div>;
+  if (isLoading) return <SkeletonDetail />;
+
+  if (!pass) {
+    return (
+      <ErrorState
+        message="Pass not found"
+        description="This pass may have been removed or the link is invalid."
+      />
+    );
+  }
 
   const distance = venue && lat && lng && venue.lat != null && venue.lng != null
     ? Math.sqrt((venue.lat - lat) ** 2 + (venue.lng - lng) ** 2) * 111.32
