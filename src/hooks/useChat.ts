@@ -13,14 +13,14 @@ export function useChatMessages(roomId: string | null) {
   const { socket } = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const { data: history = [] } = useQuery<Message[]>({
+  const { data: history } = useQuery<Message[]>({
     queryKey: ["chat", roomId],
     queryFn: () => fetch(`/api/chat/${roomId}/messages`).then(r => r.json()),
     enabled: !!roomId,
   });
 
   useEffect(() => {
-    setMessages(history);
+    if (history) setMessages(history);
   }, [history]);
 
   useEffect(() => {

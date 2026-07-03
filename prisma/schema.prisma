@@ -283,7 +283,8 @@ model User {
   hashedPassword String?
   googleId       String?   @unique
   role           UserRole  @default(CONSUMER)
-  activatedAt    DateTime? // when the user completed their activation event (first meaningful action)
+  activatedAt          DateTime? // when the user completed their activation event (first meaningful action)
+  onboardingCompleted  Boolean   @default(false) // whether the user completed the onboarding flow
 
   // Social profile (consumer)
   bio         String?

@@ -1,8 +1,10 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import { useSession } from "next-auth/react";
-import { MapPin } from "@phosphor-icons/react";
+import { MapPin, X } from "@phosphor-icons/react";
 import { TrendingCarousel } from "@/components/home/TrendingCarousel";
 import { PromoSlider } from "@/components/home/PromoSlider";
 import { EventList } from "@/components/home/EventList";
@@ -78,9 +80,55 @@ function levelColor(level: string | null): string {
   }
 }
 
+const ONBOARDING_BANNER_KEY = "hoppr_onboarding_dismissed";
+
+const OnboardingBanner = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 16px 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(124, 58, 237, 0.04));
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 12px;
+`;
+
+const OnboardingBannerText = styled.span`
+  color: #d4c4ff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+`;
+
+const OnboardingBannerLink = styled.button`
+  background: none;
+  border: none;
+  color: #a78bfa;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0;
+  &:hover { color: #c4b5fd; }
+`;
+
+const OnboardingBannerClose = styled.button`
+  background: none;
+  border: none;
+  color: #737373;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  &:hover { color: #a3a3a3; }
+`;
+
 export default function HomePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const userName = (session?.user as Record<string, unknown> | undefined)?.name as string | undefined;
+  const onboardingCompleted = (session?.user as Record<string, unknown> | undefined)?.onboardingCompleted as boolean | undefined;
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", {
     weekday: "long",
@@ -89,6 +137,28 @@ export default function HomePage() {
   });
   const { lat, lng } = useGeolocation();
   const { data: scores = [] } = useCrowdScores(lat, lng);
+
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  // Redirect to onboarding if user hasn't completed it
+  useEffect(() => {
+    if (status === "authenticated" && onboardingCompleted === false) {
+      router.replace("/onboarding");
+    }
+  }, [status, onboardingCompleted, router]);
+
+  // Check localStorage for dismissed banner on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const dismissed = localStorage.getItem(ONBOARDING_BANNER_KEY);
+      if (dismissed === "true") setBannerDismissed(true);
+    }
+  }, []);
+
+  const dismissBanner = () => {
+    localStorage.setItem(ONBOARDING_BANNER_KEY, "true");
+    setBannerDismissed(true);
+  };
 
   const hotCount = scores.filter(
     (s) =>
@@ -148,6 +218,23 @@ export default function HomePage() {
           </span>
         </div>
       </div>
+
+      {/* Onboarding nudge banner — shown when user hasn't completed onboarding */}
+      {status === "authenticated" && onboardingCompleted === false && !bannerDismissed && (
+        <OnboardingBanner>
+          <OnboardingBannerText>
+            Personalize your experience — takes 30 seconds
+          </OnboardingBannerText>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <OnboardingBannerLink onClick={() => router.push("/onboarding")}>
+              Set preferences
+            </OnboardingBannerLink>
+            <OnboardingBannerClose onClick={dismissBanner}>
+              <X size={14} />
+            </OnboardingBannerClose>
+          </div>
+        </OnboardingBanner>
+      )}
 
       <HeatStrip href="/map">
         <HeatStripHeader>

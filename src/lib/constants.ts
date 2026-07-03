@@ -17,6 +17,17 @@ export const TIME_FILTERS = [
   { value: "all", label: "All Upcoming" },
 ] as const;
 
+export const DRINK_PREFS = [
+  { key: "CRAFT_BEER", label: "Craft Beer" },
+  { key: "COCKTAILS", label: "Cocktails" },
+  { key: "WINE", label: "Wine" },
+  { key: "SPIRITS", label: "Spirits" },
+  { key: "CIDER", label: "Cider" },
+  { key: "NON_ALCOHOLIC", label: "Non-Alcoholic" },
+  { key: "COFFEE", label: "Coffee" },
+  { key: "CHAMPAGNE", label: "Champagne" },
+] as const;
+
 export const CATEGORIES = [
   { key: "PUB", label: "Pubs", icon: "Users" },
   { key: "COCKTAIL_LOUNGE", label: "Cocktails", icon: "Heart" },

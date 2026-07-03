@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const room = await prisma.chatRoom.findUnique({ where: { eventId } });
+      const room = await prisma.eventChatRoom.findUnique({ where: { eventId } });
       if (!room) {
         socket.emit("error", "Chat room not found");
         return;
@@ -114,10 +114,10 @@ io.on("connection", (socket) => {
   socket.on("send-message", async ({ roomId, content }: { roomId: string; content: string }) => {
     if (!content?.trim()) return;
     try {
-      const message = await prisma.chatMessage.create({
+      const message = await prisma.eventChatMessage.create({
         data: { content, roomId, authorId: socket.data.userId },
         include: {
-          author: { select: { id: true, username: true, avatarUrl: true } },
+          author: { select: { id: true, username: true, image: true } },
         },
       });
 
@@ -127,13 +127,13 @@ io.on("connection", (socket) => {
         author: {
           id: message.author.id,
           username: message.author.username,
-          image: message.author.avatarUrl,
+          image: message.author.image,
         },
         createdAt: message.createdAt,
       });
 
       // Create notification for other room members
-      const roomRecord = await prisma.chatRoom.findUnique({
+      const roomRecord = await prisma.eventChatRoom.findUnique({
         where: { id: roomId },
         include: { event: { include: { participants: true } } },
       });

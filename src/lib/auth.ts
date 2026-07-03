@@ -37,6 +37,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!;
         session.user.image = token.picture as string | null | undefined;
         session.user.name = token.name as string | null | undefined;
+        (session.user as any).onboardingCompleted = token.onboardingCompleted ?? false;
       }
       return session;
     },
@@ -46,17 +47,24 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
         (token as any).picture = user.image;
         (token as any).name = user.name;
+        // Fetch onboarding status from DB on initial sign-in
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { onboardingCompleted: true },
+        });
+        (token as any).onboardingCompleted = dbUser?.onboardingCompleted ?? false;
       }
 
       // On session update (e.g., profile change), refresh from DB
       if (trigger === "update" && token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: { username: true, image: true },
+          select: { username: true, image: true, onboardingCompleted: true },
         });
         if (dbUser) {
           (token as any).picture = dbUser.image;
           (token as any).name = dbUser.username;
+          (token as any).onboardingCompleted = dbUser.onboardingCompleted;
         }
         // Also apply any session data passed to update()
         if (session?.image !== undefined) {
@@ -64,6 +72,9 @@ export const authOptions: NextAuthOptions = {
         }
         if (session?.name !== undefined) {
           (token as any).name = session.name;
+        }
+        if (session?.onboardingCompleted !== undefined) {
+          (token as any).onboardingCompleted = session.onboardingCompleted;
         }
       }
 
