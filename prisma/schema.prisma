@@ -1067,7 +1067,7 @@ model ComplianceCheck {
 model OutreachLog {
   id         String         @id @default(cuid())
   barId      String
-  userId     String
+  userId     String?
   method     OutreachMethod
   status     OutreachStatus @default(NOT_CONTACTED)
   notes      String?
@@ -1075,8 +1075,8 @@ model OutreachLog {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  bar  Bar  @relation(fields: [barId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  bar  Bar   @relation(fields: [barId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
 
   @@index([barId, createdAt])
   @@map("outreach_logs")
