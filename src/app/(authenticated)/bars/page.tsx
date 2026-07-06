@@ -13,16 +13,18 @@ import { useQuery } from "@tanstack/react-query";
 import { House, Star, Users, MagnifyingGlass, X, NavigationArrow, ListBullets, ChartBar, Megaphone } from "@phosphor-icons/react";
 import { SkeletonBarCard } from "@/components/ui/Skeleton";
 
-const VENUE_TYPES = [
-  { key: "PUB", label: "Pubs" },
-  { key: "CLUB", label: "Clubs" },
-  { key: "COCKTAIL_LOUNGE", label: "Cocktails" },
-  { key: "SPORTS_BAR", label: "Sports" },
-  { key: "KARAOKE_BAR", label: "Karaoke" },
-  { key: "WINE_BAR", label: "Wine" },
-  { key: "BREWERY_TAPROOM", label: "Brewery" },
-  { key: "LIVE_MUSIC", label: "Live Music" },
-];
+const VENUE_TYPE_LABEL_MAP: Record<string, string> = {
+  PUB: "Pubs",
+  CLUB: "Clubs",
+  COCKTAIL_LOUNGE: "Cocktails",
+  SPORTS_BAR: "Sports",
+  KARAOKE_BAR: "Karaoke",
+  WINE_BAR: "Wine",
+  BREWERY_TAPROOM: "Brewery",
+  LIVE_MUSIC: "Live Music",
+};
+
+const VENUE_TYPE_KEYS = Object.keys(VENUE_TYPE_LABEL_MAP);
 
 const SearchBar = styled.div`
   display: flex; align-items: center; gap: 8px;
@@ -181,9 +183,9 @@ export default function BarsPage() {
       </SearchBar>
 
       <Filters>
-        {VENUE_TYPES.map(t => (
-          <Chip key={t.key} $active={selectedTypes.includes(t.key)} onClick={() => toggleType(t.key)} type="button">
-            {t.label}
+        {VENUE_TYPE_KEYS.map(key => (
+          <Chip key={key} $active={selectedTypes.includes(key)} onClick={() => toggleType(key)} type="button">
+            {VENUE_TYPE_LABEL_MAP[key]}
           </Chip>
         ))}
         {(selectedTypes.length > 0 || selectedDistricts.length > 0 || search) && (
@@ -204,8 +206,8 @@ export default function BarsPage() {
       )}
 
       <div style={{ color: "var(--color-text-muted, #737373)", fontSize: "12px", marginBottom: "12px" }}>
-        {filtered.length} {filtered.length === 1 ? "venue" : "venues"} found
-        {selectedTypes.length > 0 && ` · ${selectedTypes.map(t => VENUE_TYPES.find(vt => vt.key === t)?.label).join(", ")}`}
+        {filtered.length === 1 ? `${filtered.length} venue found` : `${filtered.length} venues found`}
+        {selectedTypes.length > 0 && ` · ${selectedTypes.map(type => VENUE_TYPE_LABEL_MAP[type]).join(", ")}`}
       </div>
 
       {isLoading && (
@@ -253,9 +255,9 @@ export default function BarsPage() {
                     <div>
                       <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px" }}>{bar.name}</div>
                       <div style={{ color: "#a3a3a3", fontSize: "12px", marginTop: "2px" }}>
-                        {bar.type?.replace(/_/g, " ")} · {bar.district}
+                        {VENUE_TYPE_LABEL_MAP[bar.type] || bar.type?.replace(/_/g, " ")} · {bar.district}
                         {bar.priceRange && <> · <span style={{ color: "#f59e0b" }}>{formatPriceRange(bar.priceRange)}</span></>}
-                        {bar.coverCharge != null && <> · {bar.coverCharge === 0 ? <span style={{ color: "#10b981" }}>Free entry</span> : <span>Entry: €{bar.coverCharge}</span>}</>}
+                        {bar.coverCharge != null && <> · {bar.coverCharge === 0 ? <span style={{ color: "#10b981" }}>Free entry</span> : <span>{`Entry: €${bar.coverCharge}`}</span>}</>}
                       </div>
                       {bar.musicTags?.length > 0 && (
                         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "4px" }}>
@@ -267,7 +269,7 @@ export default function BarsPage() {
                       {bar.followerCount > 0 && (
                         <div style={{ color: "#737373", fontSize: "10px", marginTop: "3px" }}>
                           <Users size={10} style={{ verticalAlign: "middle", marginRight: "3px" }} />
-                          {bar.followerCount} {bar.followerCount === 1 ? "follower" : "followers"}
+                          {bar.followerCount === 1 ? `${bar.followerCount} follower` : `${bar.followerCount} followers`}
                         </div>
                       )}
                     </div>
@@ -341,7 +343,7 @@ export default function BarsPage() {
                 <div>
                   <div style={{ color: "var(--color-text-primary, #fff)", fontWeight: 700, fontSize: "15px" }}>{venue.name}</div>
                   <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "12px", marginTop: "2px" }}>
-                    {venue.type?.replace(/_/g, " ")} · {venue.district}
+                    {VENUE_TYPE_LABEL_MAP[venue.type] || venue.type?.replace(/_/g, " ")} · {venue.district}
                     {venue.priceRange && <> · <span style={{ color: "#f59e0b" }}>{formatPriceRange(venue.priceRange)}</span></>}
                     {venue.coverCharge != null && <> · {venue.coverCharge === 0 ? <span style={{ color: "#10b981" }}>Free entry</span> : <span>Entry: €{venue.coverCharge}</span>}</>}
                   </div>
@@ -371,7 +373,7 @@ export default function BarsPage() {
       {hasMore && (
         <div style={{ textAlign: "center", marginTop: "16px" }}>
           <Button variant="secondary" fullWidth onClick={() => setPage(p => p + 1)}>
-            Show more ({filtered.length - displayed.length} remaining)
+            {`Show more (${filtered.length - displayed.length} remaining)`}
           </Button>
         </div>
       )}

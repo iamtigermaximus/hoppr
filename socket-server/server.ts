@@ -28,9 +28,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../src/lib/prisma";
 const app = express();
 const http = createServer(app);
 const io = new Server(http, {

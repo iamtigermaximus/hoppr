@@ -72,12 +72,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <StyledComponentsRegistry>
           <AuthProvider>
-            <PushNotificationProvider>
-              <QueryProvider>
-                <AppShell>{children}</AppShell>
-              </QueryProvider>
-            </PushNotificationProvider>
-          </AuthProvider>
+              <PushNotificationProvider>
+                <QueryProvider>
+                  <AppShell>{children}</AppShell>
+                </QueryProvider>
+              </PushNotificationProvider>
+            </AuthProvider>
         </StyledComponentsRegistry>
       </body>
     </html>

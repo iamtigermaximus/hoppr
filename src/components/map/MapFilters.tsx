@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Chip } from "@/components/ui/Chip";
 import { Faders, X } from "@phosphor-icons/react";
 
-const VENUE_TYPES = [
+const VENUE_TYPE_KEYS = [
   { key: "PUB", label: "Pubs" },
   { key: "CLUB", label: "Clubs" },
   { key: "COCKTAIL_LOUNGE", label: "Cocktails" },
@@ -14,7 +14,7 @@ const VENUE_TYPES = [
   { key: "LIVE_MUSIC", label: "Live Music" },
 ];
 
-const CROWD_FILTERS = [
+const CROWD_FILTER_KEYS = [
   { key: "BUSY", label: "Busy Now", levels: ["BUSY", "PACKED", "AT_CAPACITY"] },
   { key: "QUIET", label: "Quiet Gems", levels: ["QUIET", "GETTING_BUSY"] },
 ];
@@ -120,9 +120,9 @@ export function MapFilters({ value, onChange }: MapFiltersProps) {
         <Faders size={12} /> Filters
       </FilterLabel>
 
-      {VENUE_TYPES.map((t) => (
-        <Chip key={t.key} $active={value.types.includes(t.key)} onClick={() => toggleType(t.key)} type="button">
-          {t.label}
+      {VENUE_TYPE_KEYS.map((item) => (
+        <Chip key={item.key} $active={value.types.includes(item.key)} onClick={() => toggleType(item.key)} type="button">
+          {item.label}
         </Chip>
       ))}
 
@@ -138,7 +138,7 @@ export function MapFilters({ value, onChange }: MapFiltersProps) {
 
       <Divider />
 
-      {CROWD_FILTERS.map((c) => (
+      {CROWD_FILTER_KEYS.map((c) => (
         <ToggleChip key={c.key} $active={value.crowdFilter === c.key} onClick={() => toggleCrowdFilter(c.key)}>
           {c.label}
         </ToggleChip>

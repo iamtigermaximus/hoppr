@@ -131,7 +131,8 @@ export default function HomePage() {
   const userName = (session?.user as Record<string, unknown> | undefined)?.name as string | undefined;
   const onboardingCompleted = (session?.user as Record<string, unknown> | undefined)?.onboardingCompleted as boolean | undefined;
   const today = new Date();
-  const dateStr = today.toLocaleDateString("en-US", {
+  const dateLocale = "en-US";
+  const dateStr = today.toLocaleDateString(dateLocale, {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -189,7 +190,7 @@ export default function HomePage() {
               marginBottom: "2px",
             }}
           >
-            Welcome back, {userName.split(" ")[0]}
+            {`Welcome back, ${userName.split(" ")[0]}`}
           </div>
         )}
         <div
