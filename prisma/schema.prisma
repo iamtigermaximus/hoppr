@@ -1381,3 +1381,24 @@ model ScheduledNotification {
   @@index([barId, status])
   @@map("scheduled_notifications")
 }
+
+// ============================================
+// CronLock — prevents overlapping cron runs
+// ============================================
+// Each cron job acquires a named lock before running. If the lock already
+// exists (acquiredAt + maxDuration hasn't elapsed), the run is skipped.
+// This prevents two Vercel cron invocations from running simultaneously.
+//
+// Usage via src/lib/cron-lock.ts:
+//   const lock = await acquireLock("insights", 10 * 60 * 1000); // 10 min max
+//   if (!lock) return NextResponse.json({ skipped: true });
+//   try { ... } finally { await releaseLock("insights"); }
+
+model CronLock {
+  lockName   String   @id @map("lock_name")
+  acquiredAt DateTime @default(now()) @map("acquired_at")
+  expiresAt  DateTime @map("expires_at")
+  instanceId String   @default("") @map("instance_id")
+
+  @@map("cron_locks")
+}
