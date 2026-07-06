@@ -60,6 +60,7 @@ enum BarStatus {
   CLAIMED
   VERIFIED
   SUSPENDED
+  REJECTED
 }
 
 enum BarPerformanceTier {
