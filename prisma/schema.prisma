@@ -1403,3 +1403,47 @@ model CronLock {
 
   @@map("cron_locks")
 }
+
+// ============================================
+// ApiUsageLog — AI credit usage tracking
+// ============================================
+// Every AI API call (DeepSeek text, BFL image) is logged here for
+// credit monitoring. Used by the business-app admin dashboard.
+// Consumer app does not write to this table directly.
+
+model ApiUsageLog {
+  id            String   @id @default(cuid())
+  provider      String   // "deepseek" | "bfl_flux"
+  endpoint      String   // "chat/completions" | "image-generation"
+  tokensIn      Int?     // input tokens (DeepSeek)
+  tokensOut     Int?     // output tokens (DeepSeek)
+  imageCount    Int?     // number of images generated (BFL)
+  estimatedCost Float    // estimated USD cost
+  barId         String?  // which bar triggered the call
+  barName       String?  // denormalized for quick display
+  metadata      Json?    // additional context (promo title, model, etc.)
+  createdAt     DateTime @default(now())
+
+  @@index([provider, createdAt])
+  @@index([barId])
+  @@index([createdAt])
+  @@map("api_usage_logs")
+}
+
+// ============================================
+// CreditPool — per-provider credit budget settings
+// ============================================
+
+model CreditPool {
+  id             String    @id @default(cuid())
+  provider       String    @unique // "deepseek" | "bfl_flux"
+  totalCredits   Float     // total USD purchased for this provider
+  alertThreshold Float     @default(2.00) // alert when remaining drops below this
+  alertEmail     String?   // where to send alerts (defaults to env ADMIN_EMAIL)
+  lastAlertedAt  DateTime? // deduplication — don't spam alerts
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("credit_pools")
+}
