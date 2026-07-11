@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     // Rate limit by IP + email to prevent account creation abuse
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
     const rateKey = `signup:${ip}`;
-    const rateCheck = checkRateLimit(rateKey, RateLimits.AUTH);
+    const rateCheck = await checkRateLimit(rateKey, RateLimits.AUTH);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Too many attempts. Try again shortly." },

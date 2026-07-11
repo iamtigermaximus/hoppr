@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
     const creatorId = session.user.id;
 
-    const rateCheck = checkRateLimit(`create-event:${creatorId}`, RateLimits.CREATE);
+    const rateCheck = await checkRateLimit(`create-event:${creatorId}`, RateLimits.CREATE);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Too many events created. Wait before creating another." },

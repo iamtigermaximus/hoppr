@@ -11,7 +11,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const userId = session.user.id;
 
-    const rateCheck = checkRateLimit(`join-event:${userId}`, RateLimits.ACTION);
+    const rateCheck = await checkRateLimit(`join-event:${userId}`, RateLimits.ACTION);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Too many actions. Slow down." },

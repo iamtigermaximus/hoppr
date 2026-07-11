@@ -12,7 +12,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const userId = session.user.id;
 
-    const rateCheck = checkRateLimit(`purchase:${userId}`, RateLimits.PURCHASE);
+    const rateCheck = await checkRateLimit(`purchase:${userId}`, RateLimits.PURCHASE);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Too many purchases. Slow down." },
