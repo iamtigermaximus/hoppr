@@ -15,13 +15,58 @@ export async function GET() {
       },
       include: {
         event: {
-          select: { id: true, title: true, venueName: true },
+          select: {
+            id: true,
+            title: true,
+            venueName: true,
+            participants: {
+              where: { userId },
+              select: { lastReadAt: true },
+            },
+          },
         },
         messages: { orderBy: { createdAt: "desc" }, take: 1 },
+        _count: { select: { messages: true } },
       },
     });
 
-    return NextResponse.json(rooms);
+    // Compute unread counts and attach them
+    const enriched = await Promise.all(
+      rooms.map(async (room) => {
+        const lastReadAt = room.event.participants[0]?.lastReadAt ?? null;
+        let unreadCount = 0;
+
+        if (lastReadAt) {
+          unreadCount = await prisma.eventChatMessage.count({
+            where: { roomId: room.id, createdAt: { gt: lastReadAt } },
+          });
+        } else {
+          // User has never opened this chat — all messages are unread
+          unreadCount = room._count.messages;
+        }
+
+        // Strip the nested participant from the response
+        const { participants, ...eventRest } = room.event;
+
+        return {
+          id: room.id,
+          eventId: room.eventId,
+          createdAt: room.createdAt,
+          event: eventRest,
+          messages: room.messages,
+          unreadCount,
+        };
+      })
+    );
+
+    // Sort by latest message timestamp so active chats float to the top
+    enriched.sort((a, b) => {
+      const aTime = a.messages[0]?.createdAt?.getTime() ?? a.createdAt.getTime();
+      const bTime = b.messages[0]?.createdAt?.getTime() ?? b.createdAt.getTime();
+      return bTime - aTime;
+    });
+
+    return NextResponse.json(enriched);
   } catch (error) {
     console.error("chat/my-chats GET error:", error);
     return NextResponse.json(

@@ -22,7 +22,11 @@ export function ChatRoom() {
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
-    if (eventId) joinEventChat(eventId);
+    if (eventId) {
+      joinEventChat(eventId);
+      // Mark chat as read so unread count resets
+      fetch(`/api/chat/events/${eventId}/mark-read`, { method: "POST" });
+    }
     return () => { if (roomId) leaveEventChat(roomId); };
   }, [eventId, roomId]);
 
