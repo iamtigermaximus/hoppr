@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useNotifications, useMarkRead } from "@/hooks/useNotifications";
+import { useNotifications, useMarkRead, useDeleteNotification, useClearReadNotifications } from "@/hooks/useNotifications";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Bell, ChatCircle, Calendar, Ticket } from "@phosphor-icons/react";
+import { Bell, ChatCircle, Calendar, Ticket, X, Trash } from "@phosphor-icons/react";
 import { formatEventTime } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -22,15 +22,56 @@ const typeColors: Record<string, string> = {
 };
 
 export function NotificationList() {
-  const { data: notifications = [], isLoading } = useNotifications();
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotifications();
   const { mutate: markRead } = useMarkRead();
+  const { mutate: deleteOne } = useDeleteNotification();
+  const { mutate: clearRead } = useClearReadNotifications();
   const router = useRouter();
+
+  // Flattened notifications from infinite query
+  const notifications: any[] = data?.notifications ?? [];
 
   const handleTap = (n: any) => {
     if (!n.read) markRead({ id: n.id });
-    const data = n.data || {};
-    if (data.eventId) router.push(`/events/${data.eventId}`);
-    else if (data.chatRoomId) router.push(`/events/${data.eventId}/chat`);
+    const d = n.data || {};
+
+    // Primary: deepLink from push notification service
+    if (d.deepLink) {
+      router.push(d.deepLink);
+      return;
+    }
+    // Chat messages: always go to the event chat, not the event page
+    if (n.type === "MESSAGE" && d.eventId) {
+      router.push(`/events/${d.eventId}/chat`);
+      return;
+    }
+    // Backward-compat: explicit ID fields
+    if (d.eventId) {
+      router.push(`/events/${d.eventId}`);
+      return;
+    }
+    if (d.promotionId) {
+      router.push(`/promotions/${d.promotionId}`);
+      return;
+    }
+    if (d.chatRoomId) {
+      router.push(`/events/${d.chatRoomId}/chat`);
+      return;
+    }
+    // Generic contentId + contentType fallback
+    if (d.contentId && d.contentType) {
+      router.push(`/${d.contentType}s/${d.contentId}`);
+      return;
+    }
+    // Last resort: bar-level notification
+    if (n.barId) {
+      router.push(`/bars/${n.barId}`);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    deleteOne(id);
   };
 
   if (isLoading) return (
@@ -48,16 +89,25 @@ export function NotificationList() {
   );
 
   const unreadCount = notifications.filter((n: any) => !n.read).length;
+  const readCount = notifications.filter((n: any) => n.read).length;
 
   return (
     <div style={{ padding: "16px", maxWidth: "600px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
         <h1 style={{ fontWeight: 800, fontSize: "18px", color: "#fff" }}>Notifications</h1>
-        {unreadCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={() => markRead({ all: true })}>
-            Mark all read
-          </Button>
-        )}
+        <div style={{ display: "flex", gap: "8px" }}>
+          {unreadCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={() => markRead({ all: true })}>
+              Mark all read
+            </Button>
+          )}
+          {readCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={() => clearRead()}>
+              <Trash size={12} style={{ marginRight: 4 }} />
+              Clear read
+            </Button>
+          )}
+        </div>
       </div>
 
       {!notifications.length && (
@@ -75,7 +125,7 @@ export function NotificationList() {
             <Card
               key={n.id}
               onClick={() => handleTap(n)}
-              style={{ opacity: n.read ? 0.5 : 1, borderColor: n.read ? "#262626" : `${color}44` }}
+              style={{ opacity: n.read ? 0.5 : 1, borderColor: n.read ? "#262626" : `${color}44`, position: "relative" }}
             >
               <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
                 <div style={{ minWidth: "36px", height: "36px", background: `${color}22`, borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -89,11 +139,36 @@ export function NotificationList() {
                   <div style={{ color: "#a3a3a3", fontSize: "11px", marginTop: "2px" }}>{n.body}</div>
                   <div style={{ color: "#737373", fontSize: "10px", marginTop: "4px" }}>{formatEventTime(new Date(n.createdAt))}</div>
                 </div>
+                <button
+                  onClick={(e) => handleDelete(e, n.id)}
+                  style={{
+                    background: "rgba(255,255,255,0.08)", border: "none", cursor: "pointer",
+                    padding: "6px", borderRadius: "8px", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                  }}
+                  aria-label="Delete notification"
+                >
+                  <X size={16} color="#a3a3a3" />
+                </button>
               </div>
             </Card>
           );
         })}
       </div>
+
+      {/* Load more */}
+      {hasNextPage && (
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "Loading..." : "Load more"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

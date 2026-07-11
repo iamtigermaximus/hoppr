@@ -87,10 +87,9 @@ export function AppHeader() {
   const { data: session } = useSession();
   const user = session?.user;
   const { data: profile } = useMyProfile();
-  const { data: notifications = [] } = useNotifications();
-  const unreadCount = Array.isArray(notifications)
-    ? notifications.filter((n: any) => !n.read).length
-    : 0;
+  const { data } = useNotifications();
+  const notifications = data?.notifications ?? [];
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

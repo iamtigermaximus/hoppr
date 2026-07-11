@@ -55,7 +55,7 @@ const INITIAL_SHOW = 3;
 
 export default function DiscoverPage() {
   const { lat, lng } = useGeolocation();
-  const [time, setTime] = useState<TimeFilter>("month");
+  const [time, setTime] = useState<TimeFilter>("now");
   const [sort, setSort] = useState<SortMode>("upcoming");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { data: items = [], isLoading } = useFeed({ lat, lng, time });
@@ -70,8 +70,7 @@ export default function DiscoverPage() {
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
   const tomorrowEnd = new Date(todayEnd.getTime() + 86400000);
 
-  // Week boundaries for month sub-sections (weeks start Monday, end Sunday)
-  const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const dayOfWeek = now.getDay();
   const daysUntilEndOfThisWeek = dayOfWeek === 0 ? 0 : 6 - dayOfWeek;
   const thisWeekEnd = new Date(todayEnd.getTime() + daysUntilEndOfThisWeek * 86400000);
   const nextWeekEnd = new Date(thisWeekEnd.getTime() + 7 * 86400000);
@@ -83,7 +82,7 @@ export default function DiscoverPage() {
       isNow: t <= now,
       isToday: t > now && t <= todayEnd,
       isTomorrow: t > todayEnd && t <= tomorrowEnd,
-      isLater: t > tomorrowEnd, // broad bucket — everything after tomorrow
+      isLater: t > tomorrowEnd,
     };
   };
 
@@ -92,7 +91,6 @@ export default function DiscoverPage() {
   const tomorrow = sorted.filter(i => timeFilter(i).isTomorrow);
   const later = sorted.filter(i => timeFilter(i).isLater);
 
-  // For "month", break the flat "Later" bucket into sub-sections
   const isMonth = time === "month";
   const thisWeekItems = isMonth ? later.filter(i => timeFilter(i).t <= thisWeekEnd) : [];
   const nextWeekItems = isMonth ? later.filter(i => timeFilter(i).t > thisWeekEnd && timeFilter(i).t <= nextWeekEnd) : [];
@@ -101,7 +99,6 @@ export default function DiscoverPage() {
   const totalEvents = sorted.filter(i => i.type === "event").length;
   const totalPromos = sorted.filter(i => i.type === "promotion").length;
 
-  // Show sectioned view (Now / Today / Tomorrow / Later) for all wider filters
   const hasSections = time !== "now" && time !== "afternoon" && time !== "evening" && time !== "night";
 
   const toggleExpand = (key: string) => {

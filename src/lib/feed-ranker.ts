@@ -2,13 +2,13 @@
  * Feed Personalization Engine
  *
  * Scores and ranks feed items based on user preferences and behavior.
- * Falls back to chronological ordering when no user data is available.
+ * Falls back to distance-based ordering when no user data is available.
  *
- * Scoring weights (sum to 1.0):
- *   Interest match  — 0.40  (user interests/drinkPrefs vs item text + bar type)
- *   Venue affinity  — 0.25  (user has visited/purchased from this bar before)
- *   Social proof    — 0.15  (attendee count, redemptions, bar quality score)
- *   Distance        — 0.10  (closer = higher, inverse linear decay)
+ * Scoring weights (sum to 1.0) — distance-weighted for "near me":
+ *   Distance        — 0.35  (closer = higher, inverse linear decay)
+ *   Interest match  — 0.25  (user interests/drinkPrefs vs item text + bar type)
+ *   Venue affinity  — 0.20  (user has visited/purchased from this bar before)
+ *   Social proof    — 0.10  (attendee count, redemptions, bar quality score)
  *   Freshness       — 0.10  (newer items slightly favored)
  */
 
@@ -48,10 +48,10 @@ export interface ScoredItem {
 // ---- Configuration ----
 
 const WEIGHTS = {
-  interest: 0.40,
-  affinity: 0.25,
-  social: 0.15,
-  distance: 0.10,
+  distance: 0.35,
+  interest: 0.25,
+  affinity: 0.20,
+  social: 0.10,
   freshness: 0.10,
 } as const;
 
@@ -61,7 +61,7 @@ const DIVERSITY_WINDOW = 6; // ensure type diversity in first N results
 
 /**
  * Score and rank feed items for a user.
- * If userProfile is null, returns chronologically sorted items with no personalization.
+ * If userProfile is null, returns distance-sorted items with no personalization.
  */
 export function rankFeed(
   items: FeedItem[],
@@ -69,8 +69,8 @@ export function rankFeed(
   userHistory: UserHistory | null,
 ): FeedItem[] {
   if (!userProfile || !userHistory) {
-    // No personalization — chronological fallback
-    return sortChronologically(items);
+    // No personalization — distance-based fallback (nearest first)
+    return sortByDistance(items);
   }
 
   const scored: ScoredItem[] = items.map((item) => {
@@ -347,16 +347,8 @@ function enrichItem(item: FeedItem, signals: RankingSignals): FeedItem {
 
 // ---- Fallback ----
 
-function sortChronologically(items: FeedItem[]): FeedItem[] {
-  return [...items].sort((a, b) => {
-    const getTime = (item: FeedItem): number => {
-      if (item.type === "featured") return Date.now();
-      if (item.type === "event") return new Date(item.startTime).getTime();
-      if (item.type === "promotion") return new Date(item.validFrom).getTime();
-      return Date.now(); // unreachable: all FeedItem types handled above
-    };
-    return getTime(a) - getTime(b);
-  });
+function sortByDistance(items: FeedItem[]): FeedItem[] {
+  return [...items].sort((a, b) => (a.distance ?? 99) - (b.distance ?? 99));
 }
 
 // ---- Helpers ----

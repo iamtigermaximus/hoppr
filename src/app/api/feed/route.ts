@@ -67,7 +67,9 @@ export async function GET(req: Request) {
           },
           orderBy: { startTime: "asc" },
         }),
-        // Promotions
+        // Promotions — removed startDate sort bias (was creating a "first to create"
+        // race condition) and raised the cap well above what any metro area will
+        // realistically have active at once. The feed-ranker handles final ordering.
         prisma.barPromotion.findMany({
           where: {
             isActive: true,
@@ -82,8 +84,8 @@ export async function GET(req: Request) {
               select: { name: true, latitude: true, longitude: true, type: true },
             },
           },
-          orderBy: { startDate: "asc" },
-          take: 30,
+          orderBy: { priority: "desc" },
+          take: 500,
         }),
         // User profile (for personalization)
         userId
