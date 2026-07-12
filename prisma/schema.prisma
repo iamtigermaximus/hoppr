@@ -1474,3 +1474,28 @@ model ImageJob {
   @@index([status, createdAt])
   @@map("image_jobs")
 }
+
+// ============================================
+// BAR INCIDENTS — operational error monitoring
+// ============================================
+
+model BarIncident {
+  id           String   @id @default(cuid())
+  barId        String
+  barName      String?
+  incidentType String
+  severity     String   @default("WARNING")
+  message      String
+  detail       String?
+  endpoint     String?
+  resolved     Boolean  @default(false)
+  resolvedAt   DateTime?
+  resolvedBy   String?
+  createdAt    DateTime @default(now())
+
+  @@index([barId, createdAt])
+  @@index([severity, resolved, createdAt])
+  @@index([incidentType, createdAt])
+  @@index([createdAt])
+  @@map("bar_incidents")
+}
