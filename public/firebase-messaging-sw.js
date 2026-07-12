@@ -19,13 +19,13 @@ importScripts("https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-com
 // Firebase config — populated at build time from env vars
 // These values are PUBLIC (they're visible in the browser)
 const firebaseConfig = {
-  apiKey: "AIzaSyCG6JbIPu6N2XVfh4P_Cw2WtYDRYmdzaeg",
-  authDomain: "kabayan-konek.firebaseapp.com",
-  projectId: "kabayan-konek",
-  storageBucket: "kabayan-konek.firebasestorage.app",
-  messagingSenderId: "928799804023",
-  appId: "1:928799804023:web:758c280434f8b5069ad472",
-  measurementId: "G-1Q9YXSSNLY",
+  apiKey: "AIzaSyD9ManAMOJowmG0YfwR3Ezll17K0DNp2T0",
+  authDomain: "hoppr-business.firebaseapp.com",
+  projectId: "hoppr-business",
+  storageBucket: "hoppr-business.firebasestorage.app",
+  messagingSenderId: "1018602858827",
+  appId: "1:1018602858827:web:d43c08663d8c3aa7fda0ce",
+  measurementId: "G-D12W7K7RC7",
 };
 
 firebase.initializeApp(firebaseConfig);

@@ -8,6 +8,7 @@ import { Heart } from "@phosphor-icons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { track } from "@/lib/analytics";
 import { markEligibleForPushOptIn } from "@/lib/push-eligibility";
+import { useInstallPromptContext } from "@/components/contexts/InstallPromptProvider";
 
 // ---- Styled ----
 
@@ -59,6 +60,7 @@ export function FollowButton({
   const { data: session } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { showBanner } = useInstallPromptContext();
   const [optimistic, setOptimistic] = useState<{
     following: boolean;
     count: number;
@@ -117,6 +119,8 @@ export function FollowButton({
         // make the user eligible for push notification opt-in
         if (newFollowing) {
           markEligibleForPushOptIn();
+          // Following is a strong intent signal — suggest installing the app
+          showBanner();
         }
       } else {
         // Revert on error

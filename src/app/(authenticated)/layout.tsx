@@ -11,6 +11,7 @@ import { AppHeader } from "@/components/app/AppHeader";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { InstallPromptProvider } from "@/components/contexts/InstallPromptProvider";
 import { MagnifyingGlass, ArrowRight } from "@phosphor-icons/react";
 
 // ---- Routes that anyone can browse without logging in ----
@@ -142,17 +143,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // ---- Authenticated (or public page viewed by logged-in user) ----
   return (
     <ThemeProvider>
-      <SocketProvider>
-        <ToastProvider>
-          <AppHeader />
-          <Main>
-            <ErrorBoundary label="This page">
-              {children}
-            </ErrorBoundary>
-          </Main>
-          <BottomNav />
-        </ToastProvider>
-      </SocketProvider>
+      <InstallPromptProvider>
+        <SocketProvider>
+          <ToastProvider>
+            <AppHeader />
+            <Main>
+              <ErrorBoundary label="This page">
+                {children}
+              </ErrorBoundary>
+            </Main>
+            <BottomNav />
+          </ToastProvider>
+        </SocketProvider>
+      </InstallPromptProvider>
     </ThemeProvider>
   );
 }
