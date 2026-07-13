@@ -2,18 +2,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Calendar, MapPin, Users, Clock, CheckCircle, Sparkle, Storefront } from "@phosphor-icons/react";
-import { useSession } from "next-auth/react";
+import { Calendar, MapPin, Users, Clock, Storefront } from "@phosphor-icons/react";
 import { Badge } from "@/components/ui/Badge";
-import { AvatarGroup } from "@/components/ui/AvatarGroup";
-import { Button } from "@/components/ui/Button";
-import { FollowButton } from "@/components/ui/FollowButton";
-import CrowdIndicator from "@/components/venues/CrowdIndicator";
-import SponsoredBadge from "@/components/ads/SponsoredBadge";
 import type { FeedItem } from "@/types/feed";
 import { formatDistance, formatEventTime, formatPromoCountdown } from "@/lib/utils";
 
-const CardWrapper = styled.div<{ $color: string }>`
+// ---- Styled Components ----
+
+const Card = styled.div`
   background: var(--color-card, #1a1a1a);
   border: 1px solid var(--color-card-border, #262626);
   border-radius: 16px;
@@ -21,59 +17,112 @@ const CardWrapper = styled.div<{ $color: string }>`
   cursor: pointer;
   transition: border-color 0.15s;
   display: flex;
-  &:hover { border-color: ${({ $color }) => $color}44; }
+  height: 120px;
+  &:hover { border-color: #7c3aed44; }
 `;
 
-const CardImage = styled.div`
-  width: 120px; min-width: 120px;
-  background: #262626;
+const CardImage = styled.div<{ $color: string }>`
+  width: 120px;
+  min-width: 120px;
+  background: linear-gradient(135deg, ${({ $color }) => $color}18, ${({ $color }) => $color}06);
   position: relative;
   overflow: hidden;
-  img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+  }
 `;
 
-const CardIconPlaceholder = styled.div<{ $color: string }>`
-  width: 100px; min-width: 100px;
-  background: linear-gradient(135deg, ${({ $color }) => $color}22, ${({ $color }) => $color}08);
-  display: flex; align-items: center; justify-content: center;
+const ImageFallbackIcon = styled.div`
+  position: relative;
+  z-index: 1;
 `;
 
 const CardBody = styled.div`
-  padding: 14px 16px;
-  flex: 1; min-width: 0;
-  display: flex; flex-direction: column; justify-content: center;
+  padding: 12px 14px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
-const TopBadge = styled.div`
-  position: absolute; top: 8px; left: 8px; z-index: 2;
+const Title = styled.div`
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
-const TypeLabel = styled.div<{ $color: string }>`
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 9px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.5px;
+const Subtitle = styled.div`
+  color: #a3a3a3;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const BottomRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const Distance = styled.span`
+  color: #737373;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+`;
+
+const ActionBadge = styled.span<{ $color: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
   color: ${({ $color }) => $color};
-  padding: 3px 8px; border-radius: 4px;
-  background: ${({ $color }) => $color}15;
-  margin-bottom: 6px;
 `;
 
-const typeLabels = {
-  featured: { label: "FEATURED", icon: Storefront, color: "#a78bfa" },
-  event: { label: "EVENT", icon: Calendar, color: "#3b82f6" },
-  promotion: { label: "PROMO", icon: MapPin, color: "#10b981" },
+// ---- Config ----
+
+const typeConfig = {
+  featured: { label: "FEATURED", icon: Storefront, color: "#a78bfa", badgeType: "featured" as const },
+  event: { label: "EVENT", icon: Calendar, color: "#3b82f6", badgeType: "event" as const },
+  promotion: { label: "PROMO", icon: MapPin, color: "#10b981", badgeType: "promo" as const },
 };
+
+// ---- Component ----
 
 export function FeedCard({ item }: { item: FeedItem }) {
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   const trackedRef = useRef(false);
   const [imgError, setImgError] = useState(false);
-  const { data: session } = useSession();
-  const userId = (session?.user as any)?.id as string | undefined;
-  const t = (typeLabels as Record<string, { label: string; icon: any; color: string }>)[item.type] ?? { label: item.type.toUpperCase(), icon: MapPin, color: "#737373" };
-  const color = t.color;
-  const IconComponent = t.icon;
+
+  const cfg = (typeConfig as Record<string, typeof typeConfig[keyof typeof typeConfig]>)[item.type] ?? {
+    label: item.type.toUpperCase(),
+    icon: MapPin,
+    color: "#737373",
+    badgeType: "event" as const,
+  };
+  const color = cfg.color;
+  const Icon = cfg.icon;
+
   const imageSrc = "image" in item ? (item as any).image : (item as any).imageUrl;
   const isSponsored = item.isSponsored === true;
   const campaignId = (item as any).campaignId as string | undefined;
@@ -91,7 +140,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
     else if (item.type === "promotion") router.push(`/promotions/${item.id}`);
   };
 
-  // Impression tracking via IntersectionObserver
+  // Impression tracking
   useEffect(() => {
     if (!isSponsored || !campaignId || trackedRef.current) return;
     const el = cardRef.current;
@@ -114,149 +163,56 @@ export function FeedCard({ item }: { item: FeedItem }) {
     return () => observer.disconnect();
   }, [isSponsored, campaignId]);
 
-  // Check user status for this item
-  const isEventJoined = item.type === "event" && userId && (item as any).attendees?.some((a: any) => a.id === userId);
+  const subtitleText = (() => {
+    if (item.type === "featured") return item.venueType?.replace(/_/g, " ") || "Venue";
+    if (item.type === "event") return `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`;
+    if (item.type === "promotion") return item.venueName;
+    return "";
+  })();
 
   return (
-    <CardWrapper $color={color} onClick={handleClick} ref={cardRef}>
-      {imageSrc && !imgError ? (
-        <CardImage>
+    <Card onClick={handleClick} ref={cardRef}>
+      <CardImage $color={color}>
+        {imageSrc && !imgError ? (
           <img src={imageSrc} alt="" onError={() => setImgError(true)} />
-          <div style={{ position: "absolute", top: "8px", left: "8px", display: "flex", gap: "6px", zIndex: 2 }}>
-            <Badge $type={item.type === "promotion" ? "promo" : item.type}>{t.label}</Badge>
-            {isEventJoined && (
-              <span style={{ background: "rgba(16,185,129,0.8)", backdropFilter: "blur(4px)", color: "#fff", fontSize: "9px", fontWeight: 700, padding: "3px 8px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                <CheckCircle size={10} weight="fill" /> JOINED
-              </span>
-            )}
-          </div>
-        </CardImage>
-      ) : (
-        <CardIconPlaceholder $color={color}>
-          <IconComponent size={36} color={color} weight="fill" opacity={0.3} />
-        </CardIconPlaceholder>
-      )}
+        ) : (
+          <ImageFallbackIcon>
+            <Icon size={36} color={color} weight="fill" opacity={0.25} />
+          </ImageFallbackIcon>
+        )}
+        <div style={{ position: "absolute", top: "8px", left: "8px", zIndex: 2 }}>
+          <Badge $type={cfg.badgeType}>{cfg.label}</Badge>
+        </div>
+      </CardImage>
 
       <CardBody>
-        {!imageSrc && <TypeLabel $color={color}><IconComponent size={10} weight="fill" />{t.label}</TypeLabel>}
+        <Title>{item.title}</Title>
 
-        <div style={{ color: "#fff", fontWeight: 600, fontSize: "14px", marginBottom: "4px", lineHeight: 1.3 }}>
-          {item.title}
-        </div>
+        <Subtitle>{subtitleText}</Subtitle>
 
-        <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "6px" }}>
-          {item.type === "featured" && `${item.venueType?.replace(/_/g, " ") || "Venue"}${(item as any).district ? ` · ${(item as any).district}` : ""}`}
-          {item.type === "event" && `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`}
-          {item.type === "promotion" && (() => {
-            const now = Date.now();
-            const startsAt = new Date(item.validFrom).getTime();
-            const isUpcoming = startsAt > now;
-            const diffDays = Math.ceil((startsAt - now) / (1000 * 60 * 60 * 24));
-            const diffHours = Math.ceil((startsAt - now) / (1000 * 60 * 60));
-            let startsLabel = "";
-            if (isUpcoming) {
-              if (diffDays >= 1) startsLabel = `Starts in ${diffDays}d`;
-              else if (diffHours >= 1) startsLabel = `Starts in ${diffHours}h`;
-              else startsLabel = "Starting soon";
-            }
-            return (
-              <>{item.venueName} · {formatEventTime(new Date(item.validFrom))}
-                {isUpcoming ? (
-                  <span style={{ color: "#a78bfa", fontWeight: 600 }}> · {startsLabel}</span>
-                ) : (
-                  (() => { const cd = formatPromoCountdown(item.validTo); return cd ? <span style={{ color: "#f59e0b", fontWeight: 600 }}> · {cd}</span> : null; })()
-                )}
-              </>
-            );
-          })()}
-        </div>
-
-        <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
-          <MapPin size={10} />{formatDistance(item.distance)}
-        </div>
-
-        {/* Description snippet for promo/event cards */}
-        {(item.type === "promotion" || item.type === "event") && (item as any).description && (
-          <div style={{ color: "#9ca3af", fontSize: "11px", lineHeight: 1.35, marginBottom: "6px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-            {(item as any).description}
-          </div>
-        )}
-
-        {/* Crowd indicator */}
-        {(item as any).crowdLevel && (
-          <div style={{ marginBottom: "4px" }}>
-            <CrowdIndicator level={(item as any).crowdLevel} reportedAt={(item as any).crowdReportedAt} variant="badge" />
-          </div>
-        )}
-
-        {/* Compact follow button */}
-        <div style={{ marginBottom: "4px" }}>
-          <FollowButton barId={item.venueId} compact />
-        </div>
-
-        {/* Sponsored badge */}
-        {isSponsored && (
-          <div style={{ marginBottom: "4px" }}>
-            <SponsoredBadge />
-          </div>
-        )}
-
-        {/* Recommendation reasons — shown when personalized */}
-        {item.recommendationReasons && item.recommendationReasons.length > 0 && (
-          <div style={{ display: "flex", gap: "4px", marginBottom: "6px", flexWrap: "wrap" }}>
-            {item.recommendationReasons.map((reason, i) => (
-              <span
-                key={i}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "3px",
-                  background: `${color}18`,
-                  color: color,
-                  fontSize: "9px",
-                  fontWeight: 600,
-                  padding: "2px 6px",
-                  borderRadius: "3px",
-                }}
-              >
-                <Sparkle size={9} weight="fill" />
-                {reason}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          {item.type === "featured" && (
-            <>
-              {(item as any).qualityScore != null && (
-                <span style={{ color: "#a78bfa", fontSize: "12px", fontWeight: 600 }}>
-                  ★ {(item as any).qualityScore} quality
-                </span>
-              )}
-              <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); router.push(`/venues/${item.venueId}`); }}>
-                <Storefront size={12} /> Visit
-              </Button>
-            </>
-          )}
-          {item.type === "event" && item.attendees && item.attendees.length > 0 ? (
-            <AvatarGroup users={item.attendees} max={4} size={24} />
-          ) : <div />}
+        <BottomRow>
+          <Distance>
+            <MapPin size={10} />
+            {formatDistance(item.distance)}
+          </Distance>
 
           {item.type === "event" && (
-            isEventJoined ? (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "#10b981", fontSize: "12px", fontWeight: 600 }}>
-                <CheckCircle size={14} weight="fill" /> Joined
-              </span>
-            ) : (
-              <Button size="sm" onClick={(e) => { e.stopPropagation(); handleClick(); }}><Users size={12} /> Join</Button>
-            )
+            <ActionBadge $color={color}>
+              <Users size={12} /> Join
+            </ActionBadge>
           )}
           {item.type === "promotion" && (
-            <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); handleClick(); }}><Clock size={12} /> View</Button>
+            <ActionBadge $color={color}>
+              <Clock size={12} /> View
+            </ActionBadge>
           )}
-        </div>
+          {item.type === "featured" && (
+            <ActionBadge $color={color}>
+              <Storefront size={12} /> Visit
+            </ActionBadge>
+          )}
+        </BottomRow>
       </CardBody>
-    </CardWrapper>
+    </Card>
   );
 }

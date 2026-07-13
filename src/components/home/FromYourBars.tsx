@@ -6,60 +6,8 @@ import styled from "styled-components";
 import { useQuery } from "@tanstack/react-query";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Badge } from "@/components/ui/Badge";
-import { formatDistance, formatEventTime } from "@/lib/utils";
-import { MapPin, Calendar, Ticket, Buildings } from "@phosphor-icons/react";
+import { HomeCard, CardGrid, type HomeCardItem } from "./HomeCard";
 import type { FeedItem } from "@/types/feed";
-
-const Slider = styled.div`
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 0 16px;
-  scroll-snap-type: x mandatory;
-
-  @media (min-width: 768px) {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    overflow-x: visible;
-    scroll-snap-type: none;
-    padding: 0;
-  }
-  @media (min-width: 1200px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-`;
-
-const Card = styled.div`
-  min-width: 260px;
-  border-radius: 14px;
-  background: #1a1a1a;
-  border: 1px solid #262626;
-  padding: 16px;
-  scroll-snap-align: start;
-  cursor: pointer;
-  transition: border-color 0.15s;
-  &:hover {
-    border-color: #7c3aed44;
-  }
-
-  @media (min-width: 768px) {
-    min-width: unset;
-  }
-`;
-
-const CardImage = styled.div<{ $url?: string }>`
-  width: 100%;
-  height: 100px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-  background: ${({ $url }) =>
-    $url
-      ? `url(${$url}) center/cover`
-      : "linear-gradient(135deg, #1a0533, #2d1060)"};
-  position: relative;
-  overflow: hidden;
-`;
 
 const EmptyPrompt = styled.div`
   display: flex;
@@ -102,7 +50,6 @@ export function FromYourBars() {
   const { lat, lng } = useGeolocation();
   const hasCoords = lat != null && lng != null;
 
-  // Fetch followed bars
   const { data: followingData, isLoading: loadingFollows } = useQuery<{
     following: { id: string; name: string }[];
     total: number;
@@ -119,7 +66,6 @@ export function FromYourBars() {
     [followedBars],
   );
 
-  // Fetch feed filtered to followed bars
   const { data: feedItems = [], isLoading: loadingFeed } = useQuery<FeedItem[]>(
     {
       queryKey: ["feed", "followed", followedIds.join(","), lat, lng],
@@ -142,28 +88,46 @@ export function FromYourBars() {
 
   const isLoading = loadingFollows || (loadingFeed && followedIds.length > 0);
 
-  // Build display items: events first, then promotions (max 4)
-  const displayItems = useMemo(() => {
+  const displayItems: HomeCardItem[] = useMemo(() => {
     if (!feedItems.length) return [];
     const events = feedItems
       .filter((i) => i.type === "event")
       .sort(
         (a, b) =>
           new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-      );
-    const promos = feedItems.filter((i) => i.type === "promotion");
-    return [...events, ...promos].slice(0, 4);
+      )
+      .slice(0, 3)
+      .map((e) => ({
+        id: e.id,
+        type: "event" as const,
+        title: e.title,
+        venueName: e.venueName,
+        image: e.image,
+        distance: e.distance,
+        startTime: e.startTime,
+      }));
+    const promos = feedItems
+      .filter((i) => i.type === "promotion")
+      .slice(0, 3)
+      .map((p) => ({
+        id: p.id,
+        type: "promotion" as const,
+        title: p.title,
+        venueName: p.venueName,
+        image: p.image,
+        distance: p.distance,
+        validFrom: p.validFrom,
+      }));
+    return [...events, ...promos].slice(0, 6);
   }, [feedItems]);
 
-  // Don't render anything if not logged in
   if (!userId) return null;
 
-  // Loading state
   if (isLoading) {
     return (
       <div style={{ marginBottom: "18px", padding: "0 16px" }}>
         <SectionHeader title="From your bars" />
-        <Slider>
+        <CardGrid>
           {[1, 2].map((i) => (
             <SkeletonCard key={i}>
               <SkeletonBlock $h={100} />
@@ -171,12 +135,11 @@ export function FromYourBars() {
               <SkeletonBlock $w="40%" />
             </SkeletonCard>
           ))}
-        </Slider>
+        </CardGrid>
       </div>
     );
   }
 
-  // Hide section entirely when there's nothing to show
   if (followedBars.length === 0 || displayItems.length === 0) {
     return null;
   }
@@ -187,105 +150,11 @@ export function FromYourBars() {
         title="From your bars"
         onSeeAll={() => (window.location.href = "/discover")}
       />
-      <Slider>
-        {displayItems.map((item) => {
-          const href =
-            item.type === "event"
-              ? `/events/${item.id}`
-              : `/promotions/${item.id}`;
-          const timeLabel =
-            item.type === "event"
-              ? formatEventTime(new Date(item.startTime))
-              : item.validFrom
-                ? formatEventTime(new Date(item.validFrom))
-                : null;
-
-          return (
-            <Card
-              key={`${item.type}-${item.id}`}
-              onClick={() => (window.location.href = href)}
-            >
-              <CardImage $url={item.image}>
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "8px",
-                    left: "8px",
-                    display: "flex",
-                    gap: "6px",
-                  }}
-                >
-                  <Badge $type={item.type === "event" ? "event" : "promo"}>
-                    {item.type === "event" ? "EVENT" : "PROMO"}
-                  </Badge>
-                </div>
-              </CardImage>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  marginBottom: "4px",
-                }}
-              >
-                <MapPin size={12} color="#7c3aed" weight="fill" />
-                <span
-                  style={{
-                    color: "#a3a3a3",
-                    fontSize: "11px",
-                    fontWeight: 500,
-                  }}
-                >
-                  {item.venueName}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: "14px",
-                  marginBottom: "6px",
-                  lineHeight: 1.3,
-                }}
-              >
-                {item.title}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  color: "#737373",
-                  fontSize: "11px",
-                }}
-              >
-                {timeLabel && (
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    {item.type === "event" ? (
-                      <Calendar size={12} />
-                    ) : (
-                      <Ticket size={12} />
-                    )}
-                    {timeLabel}
-                  </span>
-                )}
-                {item.distance != null && (
-                  <span>{formatDistance(item.distance)}</span>
-                )}
-              </div>
-            </Card>
-          );
-        })}
-      </Slider>
+      <CardGrid>
+        {displayItems.map((item) => (
+          <HomeCard key={`${item.type}-${item.id}`} item={item} />
+        ))}
+      </CardGrid>
     </div>
   );
 }
