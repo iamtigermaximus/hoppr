@@ -132,7 +132,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         isActive: true,
         isApproved: true,
         complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
-        startDate: { lte: now },
         endDate: { gte: now },
       },
       select: {

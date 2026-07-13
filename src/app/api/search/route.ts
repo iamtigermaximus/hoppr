@@ -42,6 +42,7 @@ export async function GET(req: Request) {
       // --- Events: search title, description, venueName (future only, compliant) ---
       prisma.event.findMany({
         where: {
+          isActive: true,
           startTime: { gte: new Date() },
           complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
           OR: [
@@ -73,7 +74,6 @@ export async function GET(req: Request) {
           isActive: true,
           isApproved: true,
           complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
-          startDate: { lte: new Date() },
           endDate: { gte: new Date() },
           OR: [
             { title: { contains: q, mode: "insensitive" } },

@@ -181,8 +181,8 @@ export function TrendingCarousel() {
                 }
               </div>
               {(t.itemType === "ad" || t.itemType === "promo") && t.description && (
-                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", marginTop: "6px", marginBottom: 0 }}>
-                  {t.description.slice(0, 80)}{t.description.length > 80 ? "..." : ""}
+                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", marginTop: "6px", marginBottom: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.4 }}>
+                  {t.description}
                 </p>
               )}
               {t.itemType !== "promo" && t.itemType !== "ad" && (

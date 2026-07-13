@@ -19,8 +19,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    const event = await prisma.event.findUnique({ where: { id } });
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, isActive: true, maxAttendees: true, creatorId: true, title: true },
+    });
     if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (!event.isActive) {
+      return NextResponse.json({ error: "This event is not yet available" }, { status: 400 });
+    }
 
     const existing = await prisma.eventParticipant.findUnique({
       where: { userId_eventId: { userId, eventId: id } },

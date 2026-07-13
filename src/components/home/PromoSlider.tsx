@@ -55,7 +55,10 @@ const PromoCard = styled.div<{ $imageUrl?: string }>`
 
 // Per-promo inner component so useCountdown runs per card
 function PromoContent({ promo }: { promo: any }) {
-  const countdown = useCountdown(promo.validTo);
+  const now = Date.now();
+  const startsAt = new Date(promo.validFrom).getTime();
+  const isUpcoming = startsAt > now;
+  const countdown = useCountdown(isUpcoming ? promo.validFrom : promo.validTo);
   const hasRedemptions = promo.redemptions > 0;
 
   // Track promo view when card enters the feed
@@ -94,14 +97,19 @@ function PromoContent({ promo }: { promo: any }) {
       <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "8px" }}>
         <div style={{ color: "#fff", fontWeight: 700, fontSize: "15px", flex: 1 }}>{promo.title}</div>
         {countdown && countdown !== "Ended" && (
-          <span style={{ color: "#f59e0b", fontSize: "10px", fontWeight: 600, whiteSpace: "nowrap" }}>
-            ⏰ {countdown}
+          <span style={{ color: isUpcoming ? "#a78bfa" : "#f59e0b", fontSize: "10px", fontWeight: 600, whiteSpace: "nowrap" }}>
+            {isUpcoming ? "📅" : "⏰"} {isUpcoming ? `Starts in ${countdown}` : countdown}
           </span>
         )}
       </div>
       <div style={{ color: "#a3a3a3", fontSize: "11px", marginTop: "4px" }}>
         {promo.venueName} · {formatEventTime(new Date(promo.validFrom))}
       </div>
+      {promo.description && (
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "11px", marginTop: "4px", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          {promo.description}
+        </div>
+      )}
       <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
         <span style={{ background: "rgba(255,255,255,0.08)", color: "#a3a3a3", fontSize: "9px", padding: "2px 8px", borderRadius: "4px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
           <MapPin size={10} /> {formatDistance(promo.distance)}

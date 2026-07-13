@@ -23,10 +23,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     // Look up the VIP pass from the database
     const vipPass = await prisma.vIPPassEnhanced.findUnique({
       where: { id },
-      select: { id: true, name: true, barId: true, priceCents: true, validityEnd: true, maxPerUser: true },
+      select: { id: true, name: true, barId: true, priceCents: true, validityEnd: true, maxPerUser: true, isActive: true },
     });
 
     if (!vipPass) return NextResponse.json({ error: "Pass not found" }, { status: 404 });
+
+    if (!vipPass.isActive) {
+      return NextResponse.json({ error: "This pass is not yet available" }, { status: 400 });
+    }
 
     // Check max per user limit
     const existingCount = await prisma.userVIPPass.count({

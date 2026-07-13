@@ -54,6 +54,7 @@ export async function GET(req: Request) {
         // Events
         prisma.event.findMany({
           where: {
+            isActive: true,
             startTime: { gte: start, lte: end },
             complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
             ...(barIds ? { venueId: { in: barIds } } : {}),

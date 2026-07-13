@@ -147,16 +147,40 @@ export function FeedCard({ item }: { item: FeedItem }) {
         <div style={{ color: "#a3a3a3", fontSize: "11px", marginBottom: "6px" }}>
           {item.type === "featured" && `${item.venueType?.replace(/_/g, " ") || "Venue"}${(item as any).district ? ` · ${(item as any).district}` : ""}`}
           {item.type === "event" && `${item.venueName} · ${formatEventTime(new Date(item.startTime))}`}
-          {item.type === "promotion" && (
-            <>{item.venueName} · {formatEventTime(new Date(item.validFrom))}
-              {(() => { const cd = formatPromoCountdown(item.validTo); return cd ? <span style={{ color: "#f59e0b", fontWeight: 600 }}> · {cd}</span> : null; })()}
-            </>
-          )}
+          {item.type === "promotion" && (() => {
+            const now = Date.now();
+            const startsAt = new Date(item.validFrom).getTime();
+            const isUpcoming = startsAt > now;
+            const diffDays = Math.ceil((startsAt - now) / (1000 * 60 * 60 * 24));
+            const diffHours = Math.ceil((startsAt - now) / (1000 * 60 * 60));
+            let startsLabel = "";
+            if (isUpcoming) {
+              if (diffDays >= 1) startsLabel = `Starts in ${diffDays}d`;
+              else if (diffHours >= 1) startsLabel = `Starts in ${diffHours}h`;
+              else startsLabel = "Starting soon";
+            }
+            return (
+              <>{item.venueName} · {formatEventTime(new Date(item.validFrom))}
+                {isUpcoming ? (
+                  <span style={{ color: "#a78bfa", fontWeight: 600 }}> · {startsLabel}</span>
+                ) : (
+                  (() => { const cd = formatPromoCountdown(item.validTo); return cd ? <span style={{ color: "#f59e0b", fontWeight: 600 }}> · {cd}</span> : null; })()
+                )}
+              </>
+            );
+          })()}
         </div>
 
         <div style={{ color: "#737373", fontSize: "10px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "3px" }}>
           <MapPin size={10} />{formatDistance(item.distance)}
         </div>
+
+        {/* Description snippet for promo/event cards */}
+        {(item.type === "promotion" || item.type === "event") && (item as any).description && (
+          <div style={{ color: "#9ca3af", fontSize: "11px", lineHeight: 1.35, marginBottom: "6px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {(item as any).description}
+          </div>
+        )}
 
         {/* Crowd indicator */}
         {(item as any).crowdLevel && (

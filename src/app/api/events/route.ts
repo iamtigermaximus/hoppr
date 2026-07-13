@@ -15,6 +15,10 @@ export async function GET(req: Request) {
       startTime: { gte: new Date() },
       complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
     };
+    // Only filter by isActive for public listings — creators should see their scheduled events
+    if (!creatorId && !userId) {
+      where.isActive = true;
+    }
     if (creatorId) where.creatorId = creatorId;
     if (userId) {
       where.OR = [

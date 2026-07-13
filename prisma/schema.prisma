@@ -669,10 +669,11 @@ model BarPromotion {
   validHours      Json?
   redemptionRule  RedemptionRule   @default(SINGLE_USE)
   maxRedemptions  Int?
-  isActive        Boolean          @default(true)
-  isApproved      Boolean          @default(false)
-  priority        Int              @default(1)
-  complianceStatus ComplianceStatus @default(COMPLIANT)
+  isActive           Boolean          @default(true)
+  isApproved         Boolean          @default(false)
+  scheduledPublishAt DateTime?
+  priority           Int              @default(1)
+  complianceStatus   ComplianceStatus @default(COMPLIANT)
 
   // Counters
   views       Int @default(0)
@@ -737,10 +738,12 @@ model Event {
   startTime        DateTime
   endTime          DateTime?
   maxAttendees     Int?
-  isPrivate        Boolean          @default(false)
-  imageUrl         String?
-  creatorId        String
-  complianceStatus ComplianceStatus @default(COMPLIANT)
+  isPrivate          Boolean          @default(false)
+  isActive           Boolean          @default(true)
+  scheduledPublishAt DateTime?
+  imageUrl           String?
+  creatorId          String
+  complianceStatus   ComplianceStatus @default(COMPLIANT)
 
   // Share card customization
   svgBackground String?
@@ -850,13 +853,14 @@ model VIPPassEnhanced {
   redemptionMode   RedemptionMode @default(SINGLE_USE)
   maxRedemptions   Int?
 
-  isActive   Boolean          @default(true)
-  isApproved Boolean          @default(false)
-  approvedById String?
-  approvedAt  DateTime?
-  complianceStatus ComplianceStatus @default(COMPLIANT)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  isActive           Boolean          @default(true)
+  isApproved         Boolean          @default(false)
+  scheduledPublishAt DateTime?
+  approvedById       String?
+  approvedAt         DateTime?
+  complianceStatus   ComplianceStatus @default(COMPLIANT)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   bar        Bar           @relation(fields: [barId], references: [id], onDelete: Cascade)
   userPasses UserVIPPass[]

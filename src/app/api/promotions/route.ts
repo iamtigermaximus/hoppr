@@ -17,7 +17,6 @@ export async function GET(req: Request) {
     if (!id) {
       where.isApproved = true;
       where.complianceStatus = { in: ["COMPLIANT", "FLAGGED_AUTO"] };
-      where.startDate = { lte: new Date() };
       where.endDate = { gte: new Date() };
     } else {
       // Direct access by ID: relax filters so bar owners can preview their own
