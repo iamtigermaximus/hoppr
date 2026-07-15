@@ -289,6 +289,7 @@ model User {
   role           UserRole  @default(CONSUMER)
   activatedAt          DateTime? // when the user completed their activation event (first meaningful action)
   onboardingCompleted  Boolean   @default(false) // whether the user completed the onboarding flow
+  claimNotificationsEnabled Boolean @default(true)  // email notifications for claim status updates
 
   // Social profile (consumer)
   bio         String?
