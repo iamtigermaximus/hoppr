@@ -674,6 +674,7 @@ model BarPromotion {
   isActive           Boolean          @default(true)
   isApproved         Boolean          @default(false)
   scheduledPublishAt DateTime?
+  duplicatedFrom     String?
   priority           Int              @default(1)
   complianceStatus   ComplianceStatus @default(COMPLIANT)
 
@@ -743,6 +744,7 @@ model Event {
   isPrivate          Boolean          @default(false)
   isActive           Boolean          @default(true)
   scheduledPublishAt DateTime?
+  duplicatedFrom     String?
   imageUrl           String?
   creatorId          String
   complianceStatus   ComplianceStatus @default(COMPLIANT)
@@ -858,6 +860,7 @@ model VIPPassEnhanced {
   isActive           Boolean          @default(true)
   isApproved         Boolean          @default(false)
   scheduledPublishAt DateTime?
+  duplicatedFrom     String?
   approvedById       String?
   approvedAt         DateTime?
   complianceStatus   ComplianceStatus @default(COMPLIANT)
