@@ -1084,6 +1084,13 @@ model OutreachLog {
   status     OutreachStatus @default(NOT_CONTACTED)
   notes      String?
   followUpAt DateTime?
+  // Email tracking (for EMAIL method via Resend)
+  emailSubject   String?
+  emailBody      String?
+  emailTemplate  String?   // "intro" | "follow_up" | "proposal" | "onboarding" | "launch"
+  resendEmailId  String?   // Resend email ID for open/click correlation
+  emailOpenedAt  DateTime?
+  emailClickedAt DateTime?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
@@ -1416,6 +1423,23 @@ model CronLock {
   instanceId String   @default("") @map("instance_id")
 
   @@map("cron_locks")
+}
+
+// ============================================
+// HealthCheckResult — time-series monitoring
+// ============================================
+
+model HealthCheckResult {
+  id        String   @id @default(cuid())
+  service   String   // "deepseek" | "bfl_flux" | "cloudinary" | "resend" | "internal_db" | "internal_api" | "internal_pool"
+  status    String   // "healthy" | "degraded" | "down"
+  latencyMs Int
+  message   String?
+  checkedAt DateTime @default(now())
+
+  @@index([service, checkedAt])
+  @@index([checkedAt])
+  @@map("health_check_results")
 }
 
 // ============================================
