@@ -255,6 +255,8 @@ enum InsightChannel {
 enum RetargetingRule {
   VIEWED_NOT_FOLLOWED
   FOLLOWED_NOT_VISITED
+  VIEWED_NOT_REDEEMED
+  EVENT_NOT_RSVPED
 }
 
 enum ScheduledNotificationStatus {
@@ -1316,18 +1318,20 @@ model NotificationLog {
 // ============================================
 
 model RetargetingCampaign {
-  id        String          @id @default(cuid())
-  barId     String
-  rule      RetargetingRule
-  enabled   Boolean         @default(true)
-  maxPerDay Int             @default(5)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id          String          @id @default(cuid())
+  barId       String
+  rule        RetargetingRule
+  enabled     Boolean         @default(true)
+  maxPerDay   Int             @default(5)
+  contentId   String          @default("")
+  contentType String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   bar     Bar                 @relation(fields: [barId], references: [id], onDelete: Cascade)
   actions RetargetingAction[]
 
-  @@unique([barId, rule])
+  @@unique([barId, rule, contentId])
   @@map("retargeting_campaigns")
 }
 
