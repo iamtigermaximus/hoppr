@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import styled from "styled-components";
 import { useVenue } from "@/hooks/useVenues";
 import { useEvents } from "@/hooks/useEvents";
 import { useCountdown } from "@/hooks/useCountdown";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -407,6 +408,18 @@ export function VenueDetail() {
   const { data: events = [] } = useEvents();
   const venueEvents = events.filter((e: any) => e.venueId === id);
 
+  // Fetch brand post for this bar
+  const { data: campaigns = [] } = useQuery<any[]>({
+    queryKey: ["campaigns", "venue", id],
+    queryFn: () => fetch("/api/campaigns").then((r) => r.json()),
+    enabled: !!id,
+  });
+  const brandPost = useMemo(() => {
+    return (campaigns as any[]).find(
+      (c: any) => c.type === "BRAND_POST" && c.barId === id,
+    ) || null;
+  }, [campaigns, id]);
+
   // Claim form state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -426,6 +439,13 @@ export function VenueDetail() {
   useEffect(() => {
     track({ type: "BAR_VIEW", barId: id });
   }, [id]);
+
+  // Track brand post view when the brand section renders
+  useEffect(() => {
+    if (brandPost?.id) {
+      track({ type: "BRAND_POST_VIEW", barId: id, promoId: brandPost.id });
+    }
+  }, [brandPost?.id, id]);
 
   if (isLoading) return <SkeletonDetail />;
   if (!venue || venue.error)
@@ -744,6 +764,31 @@ export function VenueDetail() {
           ) : null}
         </div>
       </div>
+
+      {/* Brand identity — captured social card image with text already baked in */}
+      {brandPost && brandPost.imageUrl && (
+        <SectionCard
+          style={{
+            background: "transparent",
+            border: "none",
+            borderRadius: "14px",
+            padding: 0,
+            overflow: "hidden",
+          }}
+        >
+          <img
+            src={brandPost.imageUrl}
+            alt={brandPost.title || "Brand content"}
+            onClick={() => setSelectedImage(brandPost.imageUrl!)}
+            style={{
+              width: "100%",
+              display: "block",
+              borderRadius: "14px",
+              cursor: "pointer",
+            }}
+          />
+        </SectionCard>
+      )}
 
       {/* Share prompt — bars thrive on word of mouth */}
       <SharePrompt

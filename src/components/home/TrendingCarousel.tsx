@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Badge } from "@/components/ui/Badge";
 import { formatDistance, formatEventTime } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 import { Star } from "@phosphor-icons/react";
 import { useVenues } from "@/hooks/useVenues";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -91,13 +92,20 @@ export function TrendingCarousel() {
     .filter((c: any) => c.type === "BANNER_AD")
     .sort((a: any, b: any) => (b.budgetCents || 0) - (a.budgetCents || 0))[0];
 
-  // Build trending items: high-priority promos + top-rated venues
+  // Pick brand posts — organic brand content from bars, no budget
+  const brandPosts = (adCampaigns as any[])
+    .filter((c: any) => c.type === "BRAND_POST" && c.status === "ACTIVE")
+    .slice(0, 3);
+
+  // Build trending items: high-priority promos + top-rated venues + brand posts
   const topPromos = promotions
     .filter((p: any) => p.priority && p.priority >= 1)
-    .slice(0, 2)
+    .slice(0, 3)
     .map((p: any) => ({ ...p, itemType: "promo" as const }));
 
-  const maxVenues = bannerAd ? 1 : 2;
+  const bannerOrBrandCount = (bannerAd ? 1 : 0) + brandPosts.length;
+  // 8 total slots: banner(1) + promos(up to 3) + brand(up to 3) + venues(rest, min 1)
+  const maxVenues = Math.max(1, 7 - bannerOrBrandCount - 1);
   const topVenues = (venues as any[])
     .filter((v: any) => v.qualityScore != null && v.qualityScore > 0)
     .sort((a: any, b: any) => (b.qualityScore || 0) - (a.qualityScore || 0))
@@ -109,7 +117,30 @@ export function TrendingCarousel() {
       return { ...v, itemType: "venue" as const, distance };
     });
 
-  const trending = [...topPromos, ...topVenues].slice(0, 4);
+  // Build trending: promos + venues, then inject brand posts BEFORE capping
+  let trending = [...topPromos, ...topVenues];
+
+  // Inject brand posts — organic bar identity content (up to 3)
+  for (const bp of brandPosts) {
+    if (trending.length >= 8) break;
+    const brandItem = {
+      ...bp,
+      itemType: "brand" as const,
+      name: bp.title,
+      imageUrl: bp.imageUrl || bp.bar?.coverImage,
+      venueName: bp.bar?.name,
+      description: bp.description,
+      barId: bp.barId,
+    };
+    trending.push(brandItem);
+  }
+
+  // Cap trending so banner has a reserved slot (max 7 if banner exists, else 8)
+  if (bannerAd) {
+    trending = trending.slice(0, 7);
+  } else {
+    trending = trending.slice(0, 8);
+  }
 
   // Inject banner ad at position 2 (index 1) if available
   if (bannerAd) {
@@ -122,11 +153,19 @@ export function TrendingCarousel() {
       description: bannerAd.description,
     };
     trending.splice(Math.min(1, trending.length), 0, adItem);
-    if (trending.length > 4) trending.length = 4;
+    if (trending.length > 8) trending.length = 8;
   }
 
   const next = useCallback(() => setCurrent((prev) => (prev + 1) % trending.length), [trending.length]);
   const prev = useCallback(() => setCurrent((p) => (p - 1 + trending.length) % trending.length), [trending.length]);
+
+  // Track brand post views in carousel
+  useEffect(() => {
+    const brandItems = trending.filter((t: any) => t.itemType === "brand");
+    for (const bi of brandItems) {
+      track({ type: "BRAND_POST_VIEW", barId: bi.barId, promoId: bi.id });
+    }
+  }, [brandPosts.length, ((trending as any[])[0] as any)?.id]);
 
   useEffect(() => {
     if (!trending.length) return;
@@ -141,6 +180,10 @@ export function TrendingCarousel() {
     "linear-gradient(135deg, #065f46 0%, #10b981 50%, #022c22 100%)",
     "linear-gradient(135deg, #991b1b 0%, #ef4444 50%, #1a0505 100%)",
     "linear-gradient(135deg, #1e3a5f 0%, #3b82f6 50%, #0a0a2e 100%)",
+    "linear-gradient(135deg, #92400e 0%, #f59e0b 50%, #1a0f02 100%)",
+    "linear-gradient(135deg, #831843 0%, #ec4899 50%, #1a0510 100%)",
+    "linear-gradient(135deg, #14532d 0%, #22c55e 50%, #022c16 100%)",
+    "linear-gradient(135deg, #1e1b4b 0%, #818cf8 50%, #020024 100%)",
   ];
   const currentGradient = gradients[current] || gradients[0];
 
@@ -155,6 +198,10 @@ export function TrendingCarousel() {
             $imageUrl={t.imageUrl || t.coverImage}
             onClick={() => {
               if (t.itemType === "ad") window.location.href = t.targetUrl || `/venues/${t.barId}`;
+              else if (t.itemType === "brand") {
+                track({ type: "BRAND_POST_CLICK", barId: t.barId, promoId: t.id });
+                window.location.href = `/venues/${t.barId}`;
+              }
               else if (t.itemType === "promo") window.location.href = `/promotions/${t.id}`;
               else window.location.href = `/venues/${t.id}`;
             }}
@@ -163,29 +210,31 @@ export function TrendingCarousel() {
             }}
           >
             <div style={{ position: "absolute", top: "20px", left: "28px", display: "flex", gap: "6px", zIndex: 1 }}>
-              <Badge $type={t.itemType === "ad" ? "ad" : t.itemType === "promo" ? "promo" : "pass"}>
-                {t.itemType === "ad" ? "SPONSORED" : t.itemType === "promo" ? "PROMO" : "TRENDING"}
+              <Badge $type={t.itemType === "ad" ? "ad" : t.itemType === "brand" ? "ad" : t.itemType === "promo" ? "promo" : "pass"}>
+                {t.itemType === "ad" ? "SPONSORED" : t.itemType === "brand" ? "BRAND" : t.itemType === "promo" ? "PROMO" : "TRENDING"}
               </Badge>
             </div>
 
             <div style={{ marginTop: "auto", position: "relative", zIndex: 1 }}>
               <div style={{ color: "#fff", fontWeight: 800, fontSize: "22px", lineHeight: 1.2 }}>
-                {t.itemType === "ad" ? t.title || t.name : t.itemType === "promo" ? t.title : t.name}
+                {t.itemType === "ad" || t.itemType === "brand" ? t.title || t.name : t.itemType === "promo" ? t.title : t.name}
               </div>
               <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginTop: "6px" }}>
                 {t.itemType === "ad"
                   ? `${t.venueName || t.bar?.name || ""} · Sponsored`
-                  : t.itemType === "promo"
-                    ? `${t.venueName || ""}${t.validFrom ? ` · ${formatEventTime(new Date(t.validFrom))}` : ""}`
-                    : `${t.type?.replace(/_/g, " ") || "Venue"}${t.district ? ` · ${t.district}` : ""}${t.distance ? ` · ${formatDistance(t.distance)}` : ""}`
+                  : t.itemType === "brand"
+                    ? `${t.venueName || t.bar?.name || ""} · ${t.description ? t.description.slice(0, 60) : "Discover this place"}`
+                    : t.itemType === "promo"
+                      ? `${t.venueName || ""}${t.validFrom ? ` · ${formatEventTime(new Date(t.validFrom))}` : ""}`
+                      : `${t.type?.replace(/_/g, " ") || "Venue"}${t.district ? ` · ${t.district}` : ""}${t.distance ? ` · ${formatDistance(t.distance)}` : ""}`
                 }
               </div>
-              {(t.itemType === "ad" || t.itemType === "promo") && t.description && (
+              {(t.itemType === "ad" || t.itemType === "brand" || t.itemType === "promo") && t.description && (
                 <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", marginTop: "6px", marginBottom: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.4 }}>
                   {t.description}
                 </p>
               )}
-              {t.itemType !== "promo" && t.itemType !== "ad" && (
+              {t.itemType !== "promo" && t.itemType !== "ad" && t.itemType !== "brand" && (
                 <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "rgba(255,255,255,0.7)", fontSize: "12px" }}>
                     <Star size={14} weight="fill" color="#f59e0b" /> {t.qualityScore || 0} quality

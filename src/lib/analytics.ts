@@ -6,7 +6,8 @@ type EventType =
   | "BAR_WEBSITE" | "BAR_SHARE" | "PROMO_VIEW" | "PROMO_CLICK"
   | "PROMO_REDEMPTION" | "EVENT_VIEW" | "EVENT_JOIN"
   | "PASS_VIEW" | "PASS_PURCHASE" | "PASS_SCAN"
-  | "SEARCH" | "FEED_SCROLL" | "FOLLOW" | "UNFOLLOW";
+  | "SEARCH" | "FEED_SCROLL" | "FOLLOW" | "UNFOLLOW"
+  | "BRAND_POST_VIEW" | "BRAND_POST_CLICK";
 
 interface AnalyticsEvent {
   type: EventType;

@@ -150,6 +150,7 @@ enum AdCampaignType {
   BANNER_AD
   BOOSTED_PROMO
   SPONSORED_EVENT
+  BRAND_POST
 }
 
 enum AdCampaignStatus {
@@ -180,6 +181,8 @@ enum AnalyticsEventType {
   FEED_SCROLL
   FOLLOW
   UNFOLLOW
+  BRAND_POST_VIEW
+  BRAND_POST_CLICK
 }
 
 enum CrowdLevel {
