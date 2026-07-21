@@ -538,6 +538,9 @@ model Bar {
   // Brand voice memory
   voiceProfile BarVoiceProfile?
 
+  // Performance feedback loop — creative ingredient snapshots
+  contentCreativeSnapshots ContentCreativeSnapshot[]
+
   @@map("bars")
 }
 
@@ -1560,4 +1563,36 @@ model BarVoiceProfile {
   bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
 
   @@map("bar_voice_profiles")
+}
+
+// ============================================
+// CONTENT CREATIVE SNAPSHOT — maps creative ingredients to content records
+// ============================================
+// Captures the creative choices (tone, template, audience, atmosphere, etc.)
+// at the moment content is published. Enables the performance feedback loop —
+// queries can join this to AnalyticsEvent / content counters to compute
+// which creative ingredients drive the best engagement per bar.
+model ContentCreativeSnapshot {
+  id            String   @id @default(cuid())
+  barId         String
+  contentId     String   // FK to BarPromotion.id, Event.id, VIPPass.id, or AdCampaign.id
+  contentType   String   // "promotion" | "event" | "pass" | "campaign" | "brand"
+  tone          String?  // e.g. WARM_INVITING, BOLD_ENERGETIC
+  template      String?  // e.g. after-work, live-music, ladies-night
+  audience      Json     @default("[]") // e.g. ["friend-groups", "couples"]
+  atmosphere    Json     @default("[]") // e.g. ["warm-homey", "energetic-pulsating"]
+  coreMessage   String?  // e.g. something-new, best-place
+  imageWorld    String?  // venue, mood, craft, nature
+  copyStructure String?  // fab, aida, pas, direct
+  hookPattern   String?  // curiosity_gap, urgency_scarcity, social_proof
+  cardLayout    String?  // split, centered, card
+  createdAt     DateTime @default(now())
+
+  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@index([barId, contentType])
+  @@index([barId, tone])
+  @@index([barId, template])
+  @@index([barId, createdAt])
+  @@map("content_creative_snapshots")
 }
