@@ -535,6 +535,9 @@ model Bar {
   retargetingCampaigns RetargetingCampaign[]
   busynessPatterns     BarBusynessPattern[]
 
+  // Brand voice memory
+  voiceProfile BarVoiceProfile?
+
   @@map("bars")
 }
 
@@ -1537,4 +1540,24 @@ model BarIncident {
   @@index([incidentType, createdAt])
   @@index([createdAt])
   @@map("bar_incidents")
+}
+
+// ============================================
+// BAR VOICE PROFILE — persistent brand voice memory per bar
+// ============================================
+
+model BarVoiceProfile {
+  id               String   @id @default(cuid())
+  barId            String   @unique
+  totalGenerations Int      @default(0)
+  toneUsage        Json     @default("{}")
+  templateUsage    Json     @default("{}")
+  preferredAudience Json    @default("[]")
+  lastUsedAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
+
+  @@map("bar_voice_profiles")
 }
