@@ -176,7 +176,7 @@ export async function GET(req: Request) {
         venueName: dbp.bar.name,
         description: dbp.description,
         validFrom: dbp.startDate.toISOString(),
-        validTo: dbp.endDate.toISOString(),
+        validTo: dbp.endDate?.toISOString() ?? null,
         distance,
         image: dbp.imageUrl || undefined,
         accentColor: dbp.accentColor || undefined,

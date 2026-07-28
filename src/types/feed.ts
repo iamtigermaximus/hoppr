@@ -51,7 +51,7 @@ export type FeedItem =
       venueName: string;
       description: string;
       validFrom: string;
-      validTo: string;
+      validTo: string | null;
       distance: number;
       image?: string;
       accentColor?: string;

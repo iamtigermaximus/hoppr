@@ -278,7 +278,7 @@ function computeFreshnessScore(item: FeedItem): number {
     endTime = item.endTime ? new Date(item.endTime).getTime() : startTime + 4 * 3600 * 1000;
   } else if (item.type === "promotion") {
     startTime = new Date(item.validFrom).getTime();
-    endTime = new Date(item.validTo).getTime();
+    endTime = item.validTo ? new Date(item.validTo).getTime() : startTime + 30 * 24 * 3600 * 1000; // permanent promos: 30-day window
   } else {
     return 0.5; // unreachable: all FeedItem types handled above
   }

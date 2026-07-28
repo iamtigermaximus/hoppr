@@ -678,7 +678,7 @@ model BarPromotion {
   conditions      String[]
   benefits        Json?              // [{ item, discountedPrice, originalPrice, description }]
   startDate       DateTime
-  endDate         DateTime
+  endDate         DateTime?
   validDays       String[]
   validHours      Json?
   redemptionRule  RedemptionRule   @default(SINGLE_USE)

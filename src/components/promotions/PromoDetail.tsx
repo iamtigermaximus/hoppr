@@ -222,12 +222,13 @@ export default function PromoDetail() {
     ? Math.sqrt((promo.venueLat - lat) ** 2 + (promo.venueLng - lng) ** 2) * 111.32
     : null;
 
-  const isActive = new Date(promo.validFrom) <= new Date() && new Date(promo.validTo) >= new Date();
+  const isActive = new Date(promo.validFrom) <= new Date() &&
+    (!promo.validTo || new Date(promo.validTo) >= new Date());
   const benefits: Benefit[] = Array.isArray(promo.benefits) ? promo.benefits : [];
   const hasBenefits = benefits.length > 0;
 
   // Check if promotion has expired or is upcoming
-  const isExpired = new Date(promo.validTo) < new Date();
+  const isExpired = promo.validTo && new Date(promo.validTo) < new Date();
   const isUpcoming = new Date(promo.validFrom) > new Date();
 
   // Build the button label based on state
@@ -313,7 +314,7 @@ export default function PromoDetail() {
           <InfoRow><MapPin size={16} color="#737373" />{promo.venueName}, {promo.venueAddress}</InfoRow>
           {distance && <InfoRow><NavigationArrow size={16} color="#737373" />{formatDistance(distance)} away</InfoRow>}
           <InfoRow><Calendar size={16} color="#737373" />{formatEventTime(new Date(promo.validFrom))}</InfoRow>
-          <InfoRow><Clock size={16} color="#737373" />Until {formatEventTime(new Date(promo.validTo))}</InfoRow>
+          <InfoRow><Clock size={16} color="#737373" />{promo.validTo ? `Until ${formatEventTime(new Date(promo.validTo))}` : "Always available"}</InfoRow>
           <InfoRow><Fire size={16} color="#f59e0b" />{promo.type?.replace(/_/g, " ")}</InfoRow>
           {promo.redemptionRule && (
             <InfoRow style={{ color: "#a3a3a3" }}>

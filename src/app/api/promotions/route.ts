@@ -17,7 +17,10 @@ export async function GET(req: Request) {
     if (!id) {
       where.isApproved = true;
       where.complianceStatus = { in: ["COMPLIANT", "FLAGGED_AUTO"] };
-      where.endDate = { gte: new Date() };
+      where.OR = [
+        { endDate: { gte: new Date() } },
+        { endDate: null },
+      ];
     } else {
       // Direct access by ID: relax filters so bar owners can preview their own
       // content even if not yet approved or date hasn't started
@@ -49,7 +52,7 @@ export async function GET(req: Request) {
         conditions: p.conditions,
         benefits: p.benefits,
         validFrom: p.startDate.toISOString(),
-        validTo: p.endDate.toISOString(),
+        validTo: p.endDate?.toISOString() ?? null,
         validDays: p.validDays,
         validHours: p.validHours,
         redemptionRule: p.redemptionRule,

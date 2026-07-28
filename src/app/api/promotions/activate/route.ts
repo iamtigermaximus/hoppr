@@ -43,9 +43,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check date validity
+    // Check date validity (endDate may be null = permanent promotion)
     const now = new Date();
-    if (now < promotion.startDate || now > promotion.endDate) {
+    if (now < promotion.startDate || (promotion.endDate && now > promotion.endDate)) {
       return NextResponse.json(
         { error: "This offer is not currently valid" },
         { status: 400 },

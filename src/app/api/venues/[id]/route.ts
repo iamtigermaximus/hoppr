@@ -132,7 +132,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         isActive: true,
         isApproved: true,
         complianceStatus: { in: ["COMPLIANT", "FLAGGED_AUTO"] },
-        endDate: { gte: now },
+        OR: [
+          { endDate: { gte: now } },
+          { endDate: null },
+        ],
       },
       select: {
         id: true,
@@ -144,6 +147,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         imageUrl: true,
         accentColor: true,
         redemptions: true,
+        discount: true,
+        benefits: true,
       },
       orderBy: { startDate: "asc" },
     });
@@ -231,10 +236,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         description: p.description,
         type: p.type,
         validFrom: p.startDate.toISOString(),
-        validTo: p.endDate.toISOString(),
+        validTo: p.endDate?.toISOString() ?? null,
         imageUrl: p.imageUrl,
         accentColor: p.accentColor,
         redemptions: p.redemptions,
+        discount: p.discount,
+        benefits: p.benefits,
       })),
       passes: passes.map((p) => ({
         id: p.id,

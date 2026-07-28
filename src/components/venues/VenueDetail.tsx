@@ -338,7 +338,10 @@ function PromoDetailCard({ promo }: { promo: any }) {
   }, [promo.id, promo.title, promo.venueId]);
 
   return (
-    <Card>
+    <Card
+      onClick={() => { const b = Array.isArray(promo.benefits) ? promo.benefits : []; if (b.length > 0) window.location.href = `/promotions/${promo.id}`; }}
+      style={Array.isArray(promo.benefits) && promo.benefits.length > 0 ? { cursor: "pointer" } : undefined}
+    >
       <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
         <Badge $type="promo">PROMO</Badge>
         <div style={{ flex: 1 }}>
@@ -369,6 +372,29 @@ function PromoDetailCard({ promo }: { promo: any }) {
           >
             {promo.description}
           </div>
+
+          {/* Daily deals teaser — no prices on venue page */}
+          {Array.isArray(promo.benefits) && promo.benefits.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                marginTop: "6px",
+                padding: "6px 10px",
+                background: "rgba(16, 185, 129, 0.08)",
+                border: "1px solid rgba(16, 185, 129, 0.15)",
+                borderRadius: "8px",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "#10b981",
+              }}
+            >
+              <Ticket size={14} color="#10b981" weight="fill" />
+              {promo.benefits.length} daily {promo.benefits.length === 1 ? "deal" : "deals"} available — view details
+            </div>
+          )}
+
           <div
             style={{
               display: "flex",
@@ -380,10 +406,14 @@ function PromoDetailCard({ promo }: { promo: any }) {
             }}
           >
             <span>
-              {formatEventTime(new Date(promo.validFrom))} —{" "}
-              {formatEventTime(new Date(promo.validTo))}
+              {formatEventTime(new Date(promo.validFrom))}
+              {promo.validTo ? (
+                <> — {formatEventTime(new Date(promo.validTo))}</>
+              ) : (
+                <span style={{ color: "#10b981", fontWeight: 600 }}> · Permanent</span>
+              )}
             </span>
-            {countdown && countdown !== "Ended" && (
+            {promo.validTo && countdown && countdown !== "Ended" && (
               <span style={{ color: "#f59e0b", fontWeight: 600 }}>⏰ {countdown}</span>
             )}
             {promo.redemptions > 0 && (
