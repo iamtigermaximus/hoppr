@@ -1586,6 +1586,11 @@ model ContentCreativeSnapshot {
   copyStructure String?  // fab, aida, pas, direct
   hookPattern   String?  // curiosity_gap, urgency_scarcity, social_proof
   cardLayout    String?  // split, centered, card
+  focalPoint    String?  // bar-counter, seating, terrace, details, lighting, stage, entrance, people, in-the-glass, walls-stories
+  season        String?  // early-spring, spring, early-summer, high-summer, late-summer, early-autumn, autumn, november, early-winter, christmas, deep-winter, deep-freeze, vappu, midsummer
+  timeOfDay     String?  // morning, midday, afternoon, golden-hour, dusk, evening, late-night, midnight
+  roomEnergy    String?  // just-opening, first-arrivals, quiet-company, steady-hum, busy-hour, full-house, peak-night
+  mode          String?  // "brand" | "promotional"
   createdAt     DateTime @default(now())
 
   bar Bar @relation(fields: [barId], references: [id], onDelete: Cascade)
