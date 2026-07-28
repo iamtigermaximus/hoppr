@@ -499,6 +499,7 @@ model Bar {
   vipPassesEnhanced VIPPassEnhanced[]
   userVIPPasses     UserVIPPass[]
   vipPassScans      VIPPassScan[]
+  activations       PromotionActivation[]
 
   // Events (consumer)
   events Event[]
@@ -675,6 +676,7 @@ model BarPromotion {
   callToAction    String?
   discount        Float?
   conditions      String[]
+  benefits        Json?              // [{ item, discountedPrice, originalPrice, description }]
   startDate       DateTime
   endDate         DateTime
   validDays       String[]
@@ -712,6 +714,7 @@ model BarPromotion {
   approvedBy        User?             @relation("PromoApprover", fields: [approvedById], references: [id])
   usageHistory      PromotionUsage[]
   complianceChecks  ComplianceCheck[]
+  activations       PromotionActivation[]
 
   @@map("bar_promotions")
 }
@@ -922,6 +925,28 @@ model VIPPassScan {
   scannedBy BarStaff    @relation(fields: [scannedById], references: [id])
 
   @@map("vip_pass_scans")
+}
+
+// ============================================
+// PROMOTION ACTIVATIONS — redemption tracking for promotions
+// ============================================
+
+model PromotionActivation {
+  id           String   @id @default(cuid())
+  promotionId  String
+  userId       String
+  barId        String
+  status       String   @default("activated") // activated | expired | verified
+  activatedAt  DateTime @default(now())
+  expiresAt    DateTime // 30 seconds after activatedAt
+  verifiedAt   DateTime?
+
+  promotion BarPromotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  bar       Bar          @relation(fields: [barId], references: [id])
+
+  @@index([promotionId, userId, activatedAt])
+  @@index([userId, activatedAt])
+  @@map("promotion_activations")
 }
 
 // ============================================
