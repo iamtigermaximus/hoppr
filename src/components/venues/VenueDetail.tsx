@@ -1343,6 +1343,28 @@ export function VenueDetail() {
               >
                 <div style={{ display: "flex", gap: "8px" }}>
                   <Badge $type="event">EVENT</Badge>
+                  {event.headlinerName && (
+                    <Badge $type="featured">TALENT</Badge>
+                  )}
+                  {event.headlinerName && (
+                    <div style={{
+                      color: "#c4b5fd", fontSize: "11px", fontWeight: 700,
+                      display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px",
+                    }}>
+                      {event.headlinerImage ? (
+                        <img src={event.headlinerImage} alt=""
+                          style={{ width: "16px", height: "16px", borderRadius: "4px", objectFit: "cover" }} />
+                      ) : (
+                        <span style={{
+                          width: "16px", height: "16px", borderRadius: "4px",
+                          background: "rgba(124,58,237,0.2)", display: "inline-flex",
+                          alignItems: "center", justifyContent: "center",
+                          fontSize: "8px", fontWeight: 800,
+                        }}>{event.headlinerName.charAt(0)}</span>
+                      )}
+                      {event.headlinerName}
+                    </div>
+                  )}
                   <div>
                     <div
                       style={{

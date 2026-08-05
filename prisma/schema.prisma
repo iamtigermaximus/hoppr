@@ -767,6 +767,11 @@ model Event {
   category      String?
   occasion      String?
 
+  // Headliner (talent feature — DJ, band, comedian)
+  headlinerName      String?
+  headlinerImage     String?
+  headlinerInstagram String?
+
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 

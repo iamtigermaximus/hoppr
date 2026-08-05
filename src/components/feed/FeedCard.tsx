@@ -190,6 +190,31 @@ export function FeedCard({ item }: { item: FeedItem }) {
 
         <Subtitle>{subtitleText}</Subtitle>
 
+        {item.type === "event" && item.headlinerName && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: "5px", marginTop: "5px",
+            background: "rgba(124,58,237,0.08)", borderRadius: "6px",
+            padding: "3px 8px 3px 3px", alignSelf: "flex-start",
+          }}>
+            {item.headlinerImage ? (
+              <img src={item.headlinerImage} alt={item.headlinerName}
+                style={{ width: "20px", height: "20px", borderRadius: "5px", objectFit: "cover", flexShrink: 0 }} />
+            ) : (
+              <div style={{
+                width: "20px", height: "20px", borderRadius: "5px",
+                background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(124,58,237,0.1))",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "10px", color: "#c4b5fd", fontWeight: 700, flexShrink: 0,
+              }}>
+                {item.headlinerName.charAt(0)}
+              </div>
+            )}
+            <span style={{ color: "#c4b5fd", fontSize: "11px", fontWeight: 600, lineHeight: 1 }}>
+              {item.headlinerName}
+            </span>
+          </div>
+        )}
+
         <BottomRow>
           <Distance>
             <MapPin size={10} />

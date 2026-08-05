@@ -59,10 +59,69 @@ export function EventDetail({ id }: { id: string }) {
         )}
       </div>
 
+      {event.headlinerName && (
+        <div style={{
+          background: "linear-gradient(145deg, rgba(124,58,237,0.18), rgba(88,28,200,0.06))",
+          border: "1px solid rgba(124,58,237,0.25)", borderRadius: "16px",
+          padding: "20px", marginBottom: "16px",
+          display: "flex", alignItems: "center", gap: "16px",
+          position: "relative", overflow: "hidden",
+        }}>
+          {/* Subtle glow behind the photo */}
+          <div style={{
+            position: "absolute", top: "-20px", left: "-20px",
+            width: "120px", height: "120px",
+            background: "radial-gradient(circle, rgba(124,58,237,0.12), transparent 70%)",
+            pointerEvents: "none",
+          }} />
+          {event.headlinerImage ? (
+            <img src={event.headlinerImage} alt={event.headlinerName}
+              style={{
+                width: "72px", height: "72px", borderRadius: "16px", objectFit: "cover",
+                border: "2px solid rgba(124,58,237,0.4)", boxShadow: "0 4px 20px rgba(124,58,237,0.2)",
+                position: "relative", zIndex: 1,
+              }} />
+          ) : (
+            <div style={{
+              width: "72px", height: "72px", borderRadius: "16px",
+              background: "linear-gradient(135deg, rgba(124,58,237,0.3), rgba(167,139,250,0.1))",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "32px", fontWeight: 800, color: "#c4b5fd",
+              position: "relative", zIndex: 1, flexShrink: 0,
+            }}>
+              {event.headlinerName.charAt(0)}
+            </div>
+          )}
+          <div style={{ flex: 1, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <span style={{
+                color: "#a78bfa", fontSize: "10px", fontWeight: 700,
+                letterSpacing: "1px", textTransform: "uppercase",
+                background: "rgba(124,58,237,0.15)", padding: "3px 8px", borderRadius: "4px",
+              }}>Featured Talent</span>
+            </div>
+            <div style={{ color: "#fff", fontWeight: 800, fontSize: "18px", lineHeight: 1.2 }}>{event.headlinerName}</div>
+            {event.headlinerInstagram && (
+              <a href={`https://instagram.com/${event.headlinerInstagram.replace("@", "")}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{
+                  color: "#a78bfa", fontSize: "13px", textDecoration: "none",
+                  display: "inline-flex", alignItems: "center", gap: "5px", marginTop: "4px",
+                  fontWeight: 500,
+                }}>
+                <span style={{ fontSize: "14px" }}>📸</span>
+                @{event.headlinerInstagram.replace("@", "")}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       <h1 style={{ fontWeight: 800, fontSize: "22px", color: "var(--color-text-primary, #fff)", marginBottom: "8px" }}>{event.title}</h1>
 
       <div style={{ color: "var(--color-text-secondary, #a3a3a3)", fontSize: "13px", marginBottom: "16px", lineHeight: 1.6 }}>
         <Badge $type="event">EVENT</Badge>
+        {event.headlinerName && <Badge $type="featured">TALENT</Badge>}
         <br />
         <strong style={{ color: "var(--color-text-primary, #fff)" }}>{event.venueName}</strong>
         <br />

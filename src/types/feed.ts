@@ -39,6 +39,9 @@ export type FeedItem =
       attendees?: { id: string; name: string | null; image: string | null }[];
       crowdLevel?: string;
       crowdReportedAt?: string;
+      headlinerName?: string;
+      headlinerImage?: string;
+      headlinerInstagram?: string;
       isSponsored?: boolean;
       campaignId?: string;
       campaignType?: string;
@@ -58,6 +61,9 @@ export type FeedItem =
       redemptions: number;
       crowdLevel?: string;
       crowdReportedAt?: string;
+      headlinerName?: string;
+      headlinerImage?: string;
+      headlinerInstagram?: string;
       isSponsored?: boolean;
       campaignId?: string;
       campaignType?: string;

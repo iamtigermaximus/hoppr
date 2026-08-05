@@ -159,6 +159,9 @@ export async function GET(req: Request) {
           name: p.user.username,
           image: p.user.image,
         })),
+        headlinerName: e.headlinerName || undefined,
+        headlinerImage: e.headlinerImage || undefined,
+        headlinerInstagram: e.headlinerInstagram || undefined,
       };
     });
 
