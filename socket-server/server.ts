@@ -102,6 +102,7 @@ io.on("connection", (socket) => {
       socket.join(`chat:${room.id}`);
       socket.emit("joined-room", { roomId: room.id });
     } catch (err) {
+      console.error("[socket] join-event-chat failed:", err);
       socket.emit("error", "Failed to join chat room");
     }
   });
@@ -148,6 +149,7 @@ io.on("connection", (socket) => {
         }
       }
     } catch (err) {
+      console.error("[socket] send-message failed:", err);
       socket.emit("error", "Failed to send message");
     }
   });
@@ -202,9 +204,18 @@ io.on("connection", (socket) => {
   });
 });
 
-// Health check
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+// Health check — verifies the server is up AND can reach the database
+app.get("/health", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: "ok", db: "connected" });
+  } catch (err) {
+    console.error("[health] database check failed:", err);
+    res.status(500).json({
+      status: "error",
+      db: err instanceof Error ? err.message : String(err),
+    });
+  }
 });
 
 const PORT = parseInt(process.env.PORT || "3001");
