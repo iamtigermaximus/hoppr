@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npx tsx server.ts",
-    "build": "npx tsc",
+    "dev": "npx prisma generate && npx tsx server.ts",
+    "build": "npx prisma generate && npx tsc",
     "start": "node dist/server.js"
   },
   "dependencies": {

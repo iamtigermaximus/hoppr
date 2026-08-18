@@ -1,10 +1,7 @@
 import { readFileSync } from "fs";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
+import { resolve } from "path";
 
 // Load .env.local from parent directory in development (Next.js auto-loads it, but this is a standalone process)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 try {
   const envPath = resolve(__dirname, "../.env.local");
   const envFile = readFileSync(envPath, "utf-8");
@@ -28,7 +25,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import { prisma } from "../src/lib/prisma";
+import { prisma } from "./src/prisma";
 const app = express();
 const http = createServer(app);
 const io = new Server(http, {
